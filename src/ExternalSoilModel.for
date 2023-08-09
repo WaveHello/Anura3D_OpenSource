@@ -868,7 +868,7 @@ end subroutine StressSolid
             !Track Loading Variables
             DeformCateg = 100
             !print *, FT
-            TrackFT = FT
+            !TrackFT = FT
         !___________________________________________________________________________
 		!*************************  Plastic behavior  ****************************** 
         !***************************************************************************
@@ -1018,7 +1018,7 @@ end subroutine StressSolid
 					!________________________________________________________________________________
                     call Get_invariants(Sig, p, q, theta) !stress invariants
                     call YieldFunction(q, p, eta_y, F0) !Initial drift
-                    !print *, "F0:", F0
+
                     !=================================================================================
                     !Store last F0, comment if not needed
 					if (abs(F0)>abs(Error_Yield_max)) Error_Yield_max=abs(F0)                          
@@ -1065,6 +1065,9 @@ end subroutine StressSolid
         call Get_invariants(Sig, p, q, theta) ! Recalculate invariants so that they can be stored
         Trackq_t = q
         Trackp_t = p
+        TrackFT = F0
+        !dfasd;fk
+        
     end subroutine NAMC_HSR
     !*******************************************************************************************
     
