@@ -1,0 +1,10 @@
+*.exe
+*.u2d
+*.mod
+*.obj
+*.dll
+*.pdb
+*.htm
+*.lib
+*.exp
+*.user
