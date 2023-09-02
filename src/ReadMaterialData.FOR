@@ -994,6 +994,30 @@ end select
                     call ReadReal(FileUnit, BName, DumR)
                     MatParams(I)%ESM_Statvar_in(J) = DumR
                   end do
+
+                case (ESM_ARB_Model_MohrCoulombStrainSoftening) !Copied so that I could have a template to write a case for Abdel's MCSS model
+                    print *, 'Hello World, mic check_v3'  
+                    call ReadString(FileUnit, BName, DumS) ! soil model DLL, $$SOIL_MODEL_DLL
+                    MatParams(I)%SoilModelDLL = DumS
+                  
+                  call ReadString(FileUnit, BName, DumS) ! Umat Dimension, $$UMAT_DIMENSION
+                  if (DumS=='2D_plane_strain') then
+                   MatParams(I)%UMATDimension = 4                  ! 3D Umat
+                  else !full_3D_(default)
+                   MatParams(I)%UMATDimension = 6                  ! 2D Umat
+                  end if
+                  
+                  if (MatParams(I)%UMATDimension < NTENSOR) call GiveError('UMAT-ERROR: UMAT Dimension is lower then Geometry Dimension ') ! error                   
+                  
+                  do J = 1, NPROPERTIES ! reading material parameters (n=NPROPERTIES) solid the dimension of the array of properites is defined as a global constant
+                    call ReadReal(FileUnit, BName, DumR)
+                    MatParams(I)%ESM_Solid(J) = DumR
+                  end do
+                  
+                  do J = 1, NSTATEVAR ! reading initial value of the state variables (n=NSTATEVAR) solid the dimension of the array of properites is defined as a global constant
+                    call ReadReal(FileUnit, BName, DumR)
+                    MatParams(I)%ESM_Statvar_in(J) = DumR
+                  end do
                   
                 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

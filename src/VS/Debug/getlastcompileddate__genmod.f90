@@ -1,4 +1,4 @@
-        !COMPILER-GENERATED INTERFACE MODULE: Thu Aug 31 09:22:09 2023
+        !COMPILER-GENERATED INTERFACE MODULE: Thu Aug 31 12:37:21 2023
         ! This source file is for reference only and may not completely
         ! represent the generated interface used by the compiler.
         MODULE GETLASTCOMPILEDDATE__genmod

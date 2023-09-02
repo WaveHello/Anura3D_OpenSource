@@ -114,20 +114,24 @@
 
 
         ! calculate stiffness of soil
-          G = MatParams(MaterialIndex)%ShearModulus !kPa
-          Nu = MatParams(MaterialIndex)%PoissonRatio
-          EUnloading = ( 2*G*(1-Nu))/ (1-2*Nu) !kPa  ! Eoed
+        G = MatParams(MaterialIndex)%ShearModulus !kPa
+        Nu = MatParams(MaterialIndex)%PoissonRatio
+        EUnloading = ( 2*G*(1-Nu))/ (1-2*Nu) !kPa  ! Eoed
 
-          if (SoilModel==ESM_MODIFIED_CAM_CLAY) then ! MCC
+        if (SoilModel==ESM_MODIFIED_CAM_CLAY) then ! MCC
+          Eunloading = Particles(IParticle)%ESM_UnloadingStiffness
+        end if                    
+        
+        if (SoilModel == ESM_HYPOPLASTICITY_SAND .or. &
+            SoilModel==ESM_EXTERNAL_SOIL_MODEL) then ! user-defined soil model
             Eunloading = Particles(IParticle)%ESM_UnloadingStiffness
-          end if                    
-          
-          if (SoilModel == ESM_HYPOPLASTICITY_SAND .or. &
-              SoilModel==ESM_EXTERNAL_SOIL_MODEL .or. & ! user-defined soil model
-              SoilModel==ESM_NON_ASSOC_MOHR_COULOMB) then !Luis' non-associative model
-              Eunloading = Particles(IParticle)%ESM_UnloadingStiffness
-          end if
+        end if
 
+        ! Conditions for hardcoded external soil models
+        if (SoilModel == ESM_ARB_Model_MohrCoulombStrainSoftening, & ! Abdel MCSS model
+            SoilModel==ESM_NON_ASSOC_MOHR_COULOMB) then !Luis' non-associative model
+            Eunloading = Particles(IParticle)%ESM_UnloadingStiffness
+        end if
 
         !if (CalParams%ApplyEffectiveStressAnalysis) then
         if (IsUndrEffectiveStress) then
