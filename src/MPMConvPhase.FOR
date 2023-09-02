@@ -128,7 +128,7 @@
         end if
 
         ! Conditions for hardcoded external soil models
-        if (SoilModel == ESM_ARB_Model_MohrCoulombStrainSoftening, & ! Abdel MCSS model
+        if (SoilModel == ESM_ARB_Model_MohrCoulombStrainSoftening .or. & ! Abdel MCSS model
             SoilModel==ESM_NON_ASSOC_MOHR_COULOMB) then !Luis' non-associative model
             Eunloading = Particles(IParticle)%ESM_UnloadingStiffness
         end if
