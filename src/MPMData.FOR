@@ -68,10 +68,14 @@
         real(REAL_TYPE) :: TrackShearModulus
         ! > Varaible to track Yield Function Value
         double precision :: TrackFT
+        ! > Variable to track the number of iterations in Ortiz & Simo Integration
+        double precision :: num_OS_Iterations
         !> Variable to track the inertial coefficient, I_act
         double precision :: TrackI_act
         ! > Variable to track the friction ratio, eta_y
         double precision :: TrackEta_y
+        ! > Variable to track Norm of Plastic strain
+        double precision :: NormEpsP
         ! > Variable to track the inertial coefficient
         real(REAL_TYPE) :: TrackInertialCoefficient
         ! > Variable to track the norm of the strain rate
