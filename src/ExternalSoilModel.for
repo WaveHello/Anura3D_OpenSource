@@ -849,7 +849,6 @@ end subroutine StressSolid
         !Trackq_t = q_t
         !Trackp_t = p_t
         TrackEta_y = eta_y ! Track eta_y for plotting
-        TrackDp = Dp
 
         !___________________________________________________________________________
         !Now check elastic loading, unloading
@@ -1066,6 +1065,9 @@ end subroutine StressSolid
         Trackq_t = q
         Trackp_t = p
         TrackFT = F0
+        TrackDp = Dp
+        call TwoNormTensor(EpsP, 6, TrackNormEpsP)
+
         !dfasd;fk
         
     end subroutine NAMC_HSR

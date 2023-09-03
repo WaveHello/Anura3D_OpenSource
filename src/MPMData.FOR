@@ -80,6 +80,8 @@
         real (REAL_TYPE) :: TrackSmoothStrainRate
         ! > Variable to track the shear strain rate, epsq_rate
         double precision :: TrackShearStrainRate
+        ! > Varible to track Norm of EpsP
+        double precision :: TrackNormEpsP
         
         ! > Variable to control the number of calculation steps that are done before the strain rate is updated
         Integer(INTEGER_TYPE) :: StrainUpdateCond
