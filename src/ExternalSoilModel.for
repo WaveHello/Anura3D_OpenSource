@@ -786,7 +786,7 @@ subroutine NAMC_HSR(NOEL, G_0, nu, M_tc, N, D_min, h, alpha_G, alpha_K, alpha_D,
         switch_yield=.false.
         
         !Track Loading Variables
-        DeformCateg = 100
+        DeformCateg = 100.0
         !print *, FT
         !TrackFT = FT
     !___________________________________________________________________________
@@ -804,7 +804,7 @@ subroutine NAMC_HSR(NOEL, G_0, nu, M_tc, N, D_min, h, alpha_G, alpha_K, alpha_D,
 								Gu, Ku, eta_yu, Du, dEps, MAXITER, FTOL,&
 								F0, Sig_0, alpha)
             !Track Deformation category
-            DeformCateg = 200
+            DeformCateg = 200.0
             
 
         else!pure plastic deformations or unloading
@@ -815,12 +815,12 @@ subroutine NAMC_HSR(NOEL, G_0, nu, M_tc, N, D_min, h, alpha_G, alpha_K, alpha_D,
 									Gu, Ku, eta_yu, Du, dEps, MAXITER, FTOL,&
 									F0, Sig_0, alpha)
                 !Track Deformation category
-                DeformCateg = 300
+                DeformCateg = 300.0
             
             else !Pure plasticity
                 alpha=0.0d0
                 !Track Deformation category
-                DeformCateg = 400
+                DeformCateg = 400.0
             endif                
         endif 
     
@@ -1133,7 +1133,7 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
 
     call DotProduct_2(a, dEpsPu, 6, dD) !plastic hard/softening
 
-    dD = dD + b*dI ! rate hard/softening
+    !dD = dD + b*dI ! rate hard/softening
 
     Du = Du + dD
 
@@ -1179,8 +1179,12 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
     num_OS_Iterations = 2
     
     ! Set Maximum number of iterations
-    MaxIter = 1000
+    MaxIter = 50000
     counter = 0
+    
+    !if (NOEL ==1) then
+    !    codeLine = 1 ! Just code line so I can count the number of hits
+    !end if
     do while (abs(F) >= FTOL .and. counter <= MaxIter) 
         !---------------------Begin Compute derivatives--------------------------!
         call Get_dF_to_dSigma(M_tc, eta_yu, Sigu, n_vec) !n=dF/dSig
@@ -1227,9 +1231,10 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
         call Get_strain_invariants(EpsPu, epsv_p, epsq_p)
         
         ! Calc derivatives
-        call Get_dD_to_dEpsq(D_min, h, I_0, k_D, epsq_p, epsv_p, &
-                                EpsPu, I, ApplyStrainRateUpdate, a) !a=dD/dEpsq^p
+        !call Get_dD_to_dEpsq(D_min, h, I_0, k_D, epsq_p, epsv_p, &
+        !                        dEpsPu, I, ApplyStrainRateUpdate, a) !a=dD/dEpsq^p
         
+        a(:) = 0.0
         ! Update dilatancy
         dD = 0.0
         call DotProduct_2(a, dEpsPu, 6, dD) !plastic hard/softening
@@ -1260,6 +1265,8 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
     ! dEpsP = dEpsPu
     EpsP = EpsPu
     eta_y = eta_yu
+    
+    dD = Du -Dp
     Dp = Du
     M = Mu
     
