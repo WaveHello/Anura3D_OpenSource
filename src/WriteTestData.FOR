@@ -153,8 +153,8 @@
                   select case(NDIM)
                   
                     case(3)
-                      write(PARUnit + I, '(36A20)')  &
-                            'LoadStep ', 'TimeStep ', 'Time', 'PA(1) ','PA(2) ', 'PGravity ', 'ID_MP ', 'MatID ', 'X ', 'Y ', 'Z ', &
+                      write(PARUnit + I, '(37A20)')  &
+                            'LoadStep ', 'TimeStep ', 'Time', 'PA(1) ','PA(2) ', 'PGravity ', 'ID_MP ', 'MatID ', 'DeformCateg', 'X', 'Y ', 'Z ', &
                             'Ux ', 'Uy ', 'Uz ', 'Vx ', 'Vy ', 'Vz ', 'Ax ', 'Ay ', 'Az ','SigmaXX ', 'SigmaYY ', 'SigmaZZ ', &
                             'SigmaXY ', 'SigmaYZ ', 'SigmaZX ', 'WPressure', 'EpsilonXX ', 'EpsilonYY ', 'EpsilonZZ ', 'GammaXY ', &
                             'GammaYZ ', 'GammaZX ', 'IntWeight ', 'Dp', 'NormEpsP'
@@ -471,7 +471,7 @@
                         GetEpsI(Particles(ParticleIndex),3) ! volumetric strain ! valid for 2D and 3D
                     deviatoric_stress = getq( GetSigmaPrin(Particles(ParticleIndex)) )
                                          
-                    write(PARUnit + I, '(I20, I20, 4G20.4, 2I20, 28E20.6)') & !, 9G25.4
+                    write(PARUnit + I, '(I20, I20, 4G20.4, 2I20, 29E20.6)') & !, 9G25.4
                     
                       CalParams%IStep, &
                       CalParams%TimeStep, &
@@ -480,7 +480,7 @@
                       CalParams%Multipliers%GravityCurrent,  &
                       IDArray(ParticleIndex), &
                       MaterialIDArray(ParticleIndex),&
-                        
+                      DeformCateg, &
                       (GlobPosArray(ParticleIndex,J), J=1,NVECTOR), & 
                     
                       (UArray(ParticleIndex,J), J=1,NVECTOR), & 

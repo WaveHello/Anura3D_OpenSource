@@ -865,7 +865,7 @@ end subroutine StressSolid
             switch_yield=.false.
             
             !Track Loading Variables
-            DeformCateg = 100
+            DeformCateg = 100.0
             !print *, FT
             !TrackFT = FT
         !___________________________________________________________________________
@@ -883,7 +883,7 @@ end subroutine StressSolid
 									Gu, Ku, eta_yu, Du, dEps, MAXITER, FTOL,&
 									F0, Sig_0, alpha)
                 !Track Deformation category
-                DeformCateg = 200
+                DeformCateg = 200.0
                 
 
             else!pure plastic deformations or unloading
@@ -894,12 +894,12 @@ end subroutine StressSolid
 										Gu, Ku, eta_yu, Du, dEps, MAXITER, FTOL,&
 										F0, Sig_0, alpha)
                     !Track Deformation category
-                    DeformCateg = 300
+                    DeformCateg = 300.0
                 
                 else !Pure plasticity
                     alpha=0.0d0
                     !Track Deformation category
-                    DeformCateg = 400
+                    DeformCateg = 400.0
                 endif                
             endif 
         !______________________________________________________________________________________

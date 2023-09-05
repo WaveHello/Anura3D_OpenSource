@@ -61,7 +61,7 @@
       implicit none
 
         ! > Variable to track loading type in VPMC constitutive relation, Deformation Category
-        integer(INTEGER_TYPE) :: DeformCateg
+        real(REAL_TYPE) :: DeformCateg
         !>Variabl to track Elastic material property updates
         real(REAL_TYPE) :: StrainUpdate
         !>Variable to track Shear Modulus, G
