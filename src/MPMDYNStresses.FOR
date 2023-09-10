@@ -195,8 +195,10 @@
           !!******STRAT calculation of fluid pressures (liquid and gas pressure)         
           if(NFORMULATION==1) then       ! one set of material points (1-point formulation)
           do IAEl = 1, Counters%NAEl     ! Loop over all active elements for computation of stresses
-            IEl = ActiveElement(IAEl)            
-            NElemPart = NumberOfIntegrationPoints(IEl)    ! Get the number of integration per element (Gaussian integration points or number of material points)
+            IEl = ActiveElement(IAEl)
+            ! Update 2 MPM Mixed
+            NElemPart = NPartEle(IEL)
+            !NElemPart = NumberOfIntegrationPoints(IEl)    ! Get the number of integration per element (Gaussian integration points or number of material points)
            
             ! Calculate stresses in integration/material points
             do Int = 1, NElemPart ! Loop over all integration/material points of the element

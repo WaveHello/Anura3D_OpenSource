@@ -151,7 +151,11 @@ subroutine StressSolid(IDpt, IDel, BMatrix,IEntityID)
     ! else 
     StateVar = ESMstatevArray(IDpt,:)
     ! end if 
-          
+    
+    ! Add the emailed code here    
+    if (IsUndrEffectiveStress) then
+        Particles(IDPt)%WaterPressure = Particles(IDPt)%WaterPressure + DSigWP
+    end if 
     
     
     !call AssignWatandGasPressureToGlobalArray(IDpt, DSigWP, DSigGP) !Note that the subroutine checks Cavitation Threshold & Gas Pressure
@@ -644,7 +648,7 @@ subroutine NAMC_HSR(NOEL, G_0, nu, M_tc, N, D_min, h, alpha_G, alpha_K, alpha_D,
     !print *, NOEL
 	!______________________________________________________________________________
     ! Error tolerances
-    FTOL=1.0e-6		!Yield surface tolerance
+    FTOL=1.0e-8		!Yield surface tolerance
     STOL=1.0e-3		!Relative error tolerance
     DTmin=1.0e-9	!Minimum pseudo-time increment, originally Dtmin = 1.0e-9
 	LTOL=0.01d0		!Tolerance for elastic unloading	  
