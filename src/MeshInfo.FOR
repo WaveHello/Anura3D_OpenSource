@@ -159,6 +159,8 @@
         real(REAL_TYPE), dimension(:, :), allocatable :: GravityLoad ! Nodal load array of gravity load
         real(REAL_TYPE), dimension(:, :), allocatable :: BulkViscLoad
         real(REAL_TYPE), dimension(:, :), allocatable :: LumpedMassDry ! Lumped mass vector of dry soil
+        real(REAL_TYPE), dimension(:, :), allocatable :: nodalWaterPressure ! mappping pressure from mps to nodes
+        
         real(REAL_TYPE), dimension(:, :), &
           allocatable :: TotalVelocitySoil ! Nodal total velocity
         real(REAL_TYPE), dimension(:,:), &
@@ -1347,6 +1349,10 @@
           if (allocated(LumpedMassDry)) then
             deallocate(LumpedMassDry, stat = IError)
           end if
+          
+           if (allocated(nodalWaterPressure)) then
+            deallocate(nodalWaterPressure, stat = IError)
+          end if
 
           if (allocated(TotalDisplacementSoil)) then
             deallocate(TotalDisplacementSoil, stat = IError)
@@ -2133,6 +2139,9 @@
           
           allocate(LumpedMassDry(Counters%N, Counters%NEntity), stat = IError)
           LumpedMassDry = 0.0
+          
+          allocate(nodalWaterPressure(Counters%N, Counters%NEntity), stat = IError)
+          nodalWaterPressure = 0.0
 
           allocate(TotalDisplacementSoil(Counters%N), stat = IError)
           TotalDisplacementSoil = 0.0

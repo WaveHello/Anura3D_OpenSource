@@ -694,7 +694,9 @@ end select
                 
                 end select ! material type
                 
+                !---------------------------------------------------------------------------------------------------------------!
                 !------ CONSTITUTIVE MODEL MATERIAL PROPERTIES ------ 
+                !---------------------------------------------------------------------------------------------------------------!
 
                 call ReadString(FileUnit, BName, DumS) ! read constitutive model type $$MATERIAL_MODEL_SOLID or $$MATERIAL_MODEL_LIQUID
                 MatParams(I)%MaterialModel = DumS
@@ -754,6 +756,8 @@ end select
                   if ( NDIM == 2 ) then
                       MatParams(I)%UMATDimension = 4
                   end if 
+                
+                !-----------------------------------------------------------------------------------------------------!
                 case (ESM_MOHR_COULOMB_STANDARD)
                     
                   call ReadReal(FileUnit, BName, DumR) ! Young Modulus, E, $$YOUNG_MODULUS
@@ -800,6 +804,7 @@ end select
                   if ( NDIM == 2 ) then
                       MatParams(I)%UMATDimension = 4
                   end if 
+                  
                 case (ESM_MOHR_COULOMB_TEUNISSEN)
                     
                   call ReadReal(FileUnit, BName, DumR) ! Young Modulus, E, $$YOUNG_MODULUS
