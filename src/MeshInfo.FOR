@@ -2144,7 +2144,7 @@
           nodalWaterPressure = 0.0
 
           allocate(TotalDisplacementSoil(Counters%N), stat = IError)
-          TotalDisplacementSoil = 0.0
+          TotalDisplacementSoil = 0.0  
 
           allocate(PhaseDisplacementSoil(Counters%N), stat = IError)
           PhaseDisplacementSoil = 0.0
