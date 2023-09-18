@@ -648,7 +648,7 @@ subroutine NAMC_HSR(NOEL, G_0, nu, M_tc, N, D_min, h, alpha_G, alpha_K, alpha_D,
     !print *, NOEL
 	!______________________________________________________________________________
     ! Error tolerances
-    FTOL=1.0e-8		!Yield surface tolerance
+    FTOL=1.0e-6		!Yield surface tolerance
     STOL=1.0e-3		!Relative error tolerance
     DTmin=1.0e-9	!Minimum pseudo-time increment, originally Dtmin = 1.0e-9
 	LTOL=0.01d0		!Tolerance for elastic unloading	  
@@ -802,31 +802,31 @@ subroutine NAMC_HSR(NOEL, G_0, nu, M_tc, N, D_min, h, alpha_G, alpha_K, alpha_D,
     !***********Checking surface bisection and viscoplastic unloading***********
     !===========================================================================
     else !plastic behavior            
-        if (F0<-FTOL) then !Elasto-plastic transition                
-            call Newton_Raphson(G, K, eta_y, Dp, G_0, nu, M, M_tc, N, D_min, h, D_part, &
-								G_s, epsq_p, I_coeff, I_act, I_0, alpha_K, alpha_G, alpha_D,&
-								Gu, Ku, eta_yu, Du, dEps, MAXITER, FTOL,&
-								F0, Sig_0, alpha)
-            !Track Deformation category
-            DeformCateg = 200.0
-            
-
-        else!pure plastic deformations or unloading
-            call Check_Unloading(M_tc, eta_y, eta_yu, dI, Sig_0, dSig_el, LTOL, IsUnloading)  !Determines if is unloading path
-            if (IsUnloading) then !Find new alpha
-                call Newton_Raphson(G, K, eta_y, Dp, G_0, nu, M, M_tc,N, D_min, h, D_part, &
-									G_s, epsq_p, I_coeff, I_act, I_0, alpha_K, alpha_G, alpha_D,&
-									Gu, Ku, eta_yu, Du, dEps, MAXITER, FTOL,&
-									F0, Sig_0, alpha)
-                !Track Deformation category
-                DeformCateg = 300.0
-            
-            else !Pure plasticity
-                alpha=0.0d0
-                !Track Deformation category
-                DeformCateg = 400.0
-            endif                
-        endif 
+        !if (F0<-FTOL) then !Elasto-plastic transition                
+        !    call Newton_Raphson(G, K, eta_y, Dp, G_0, nu, M, M_tc, N, D_min, h, D_part, &
+								!G_s, epsq_p, I_coeff, I_act, I_0, alpha_K, alpha_G, alpha_D,&
+								!Gu, Ku, eta_yu, Du, dEps, MAXITER, FTOL,&
+								!F0, Sig_0, alpha)
+        !    !Track Deformation category
+        !    DeformCateg = 200.0
+        !    
+        !
+        !else!pure plastic deformations or unloading
+        !    call Check_Unloading(M_tc, eta_y, eta_yu, dI, Sig_0, dSig_el, LTOL, IsUnloading)  !Determines if is unloading path
+        !    if (IsUnloading) then !Find new alpha
+        !        call Newton_Raphson(G, K, eta_y, Dp, G_0, nu, M, M_tc,N, D_min, h, D_part, &
+								!	G_s, epsq_p, I_coeff, I_act, I_0, alpha_K, alpha_G, alpha_D,&
+								!	Gu, Ku, eta_yu, Du, dEps, MAXITER, FTOL,&
+								!	F0, Sig_0, alpha)
+        !        !Track Deformation category
+        !        DeformCateg = 300.0
+        !    
+        !    else !Pure plasticity
+        !        alpha=0.0d0
+        !        !Track Deformation category
+        !        DeformCateg = 400.0
+        !    endif                
+        !endif 
     
         ! Now that the updated state parameters have been found plug integrate the 
         ! Need to make dEpsP a state variable (Done)         
@@ -1135,7 +1135,7 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
     ! Reset the increment of dilatancy
     dD = 0.0
 
-    call DotProduct_2(a, dEpsPu, 6, dD) !plastic hard/softening
+    !call DotProduct_2(a, dEpsPu, 6, dD) !plastic hard/softening
 
     !dD = dD + b*dI ! rate hard/softening
 
@@ -1167,7 +1167,7 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
         EpsP = EpsPu
         ! dEpsP = dEpsPu
         eta_y = eta_yu
-        Dp = Du
+        !Dp = Du
 
         ! Exit out of the Subroutine and return values
         return
@@ -1183,7 +1183,7 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
     num_OS_Iterations = 2
     
     ! Set Maximum number of iterations
-    MaxIter = 50000
+    MaxIter = 100000
     counter = 0
     
     !if (NOEL ==1) then
@@ -1221,7 +1221,6 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
         ! Compute stress invariants
         call Get_invariants(Sigu, p, q, dummyVal)
                     
-        
         ! Update M
         call Get_M(M_tc, dummyVal, Mu)
         
@@ -1235,8 +1234,8 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
         call Get_strain_invariants(EpsPu, epsv_p, epsq_p)
         
         ! Calc derivatives
-        !call Get_dD_to_dEpsq(D_min, h, I_0, k_D, epsq_p, epsv_p, &
-        !                        dEpsPu, I, ApplyStrainRateUpdate, a) !a=dD/dEpsq^p
+        call Get_dD_to_dEpsq(D_min, h, I_0, k_D, epsq_p, epsv_p, &
+                                dEpsPu, I, ApplyStrainRateUpdate, a) !a=dD/dEpsq^p
         
         a(:) = 0.0
         ! Update dilatancy
@@ -1271,6 +1270,7 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
     eta_y = eta_yu
     
     dD = Du -Dp
+    ! Turned off the dilatancy update
     Dp = Du
     M = Mu
     

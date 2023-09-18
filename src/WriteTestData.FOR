@@ -439,7 +439,7 @@
         !**********************************************************************
         !
         !  Function : Output of material point data to a text file
-        !
+        !             This function creates the PAR file
         !**********************************************************************
 
         implicit none
