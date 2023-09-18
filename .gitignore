@@ -8,3 +8,5 @@
 *.lib
 *.exp
 *.user
+src/VS/Debug/
+src/VS/Release/
