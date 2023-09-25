@@ -648,7 +648,7 @@ subroutine NAMC_HSR(NOEL, G_0, nu, M_tc, N, D_min, h, alpha_G, alpha_K, alpha_D,
     !print *, NOEL
 	!______________________________________________________________________________
     ! Error tolerances
-    FTOL=1.0e-6		!Yield surface tolerance
+    FTOL=1.0e-8		!Yield surface tolerance
     STOL=1.0e-3		!Relative error tolerance
     DTmin=1.0e-9	!Minimum pseudo-time increment, originally Dtmin = 1.0e-9
 	LTOL=0.01d0		!Tolerance for elastic unloading	  
@@ -679,6 +679,7 @@ subroutine NAMC_HSR(NOEL, G_0, nu, M_tc, N, D_min, h, alpha_G, alpha_K, alpha_D,
     !    call Get_I_coeff(D_part, G_s, p, RefERate, I_coeff)
     !endif
 
+    ! Dp testing: This should be the first time that the dilatancy can be updated
     if (Dp==0.0d0) then ! Since plastic deviatoric strain epsq_p will be zero in elastic Dp will be be zero 
         call Get_Dp(h, D_min, I_coeff, I_0, epsq_p, alpha_D, ApplyStrainRateUpdates, Dp)
     endif
@@ -742,6 +743,12 @@ subroutine NAMC_HSR(NOEL, G_0, nu, M_tc, N, D_min, h, alpha_G, alpha_K, alpha_D,
     dI=I_act-I_coeff !change in inertial coefficient
     call check4crossing(I_coeff, I_act, dI, I_0, ApplyStrainRateUpdates) !Check if update needed    
     
+    if (ApplyStrainRateUpdates) then
+        ! Just using this as a way to catch if apply strain rate updates is flipped to true
+        DeformCateg = 10.0
+    endif
+        
+    ! Dp Testing: Second time that dilatancy can be updated.
     if (applystrainrateupdates) then !update
         !h=h*(i_act/i_0)**alpha_g
         call update_gk(g_0, nu, i_act, i_0, alpha_g, alpha_k, gu, ku) !updates the elastic properties
@@ -844,7 +851,6 @@ subroutine NAMC_HSR(NOEL, G_0, nu, M_tc, N, D_min, h, alpha_G, alpha_K, alpha_D,
     call Get_invariants(Sig, p, q, theta) ! Recalculate invariants so that they can be stored
     Trackq_t = q
     Trackp_t = p
-    TrackFT = F0
 end subroutine NAMC_HSR
 !*******************************************************************************************
 
@@ -1086,10 +1092,13 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
     ! Apply strain rate updates
     I_f=I+dI
     call check4crossing(I,  I_f, dI, I_0, ApplyStrainRateUpdate)
+    
+    call Get_strain_invariants(EpsPu, epsv_p, epsq_p)
 
     if (ApplyStrainRateUpdate) then !Update parameters
         call Update_GK(G_0, nu, I_f, I_0, k_G, k_K, G, K)
-
+        call Get_Dp(h, D_min, I_f, I_0, epsq_p, k_D, ApplyStrainRateUpdate, Du)
+        eta_yu = Mu-du*(1.0 * No)
     endif
 
     !--------------------Compute elastic predictor---------------------------!
@@ -1130,7 +1139,9 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
     ! Calc derivatives
     call Get_dD_to_dEpsq(D_min, h, I_0, k_D, epsq_p, epsv_p, &
                                 EpsPu, I, ApplyStrainRateUpdate, a) !a=dD/dEpsq^p
-    call Get_dD_to_dI(D_min, h, I_0, k_D, epsq_p, I, b) !b=dXs/dI in place of dXs/dErate
+    
+    a(:) = 0.0
+    !call Get_dD_to_dI(D_min, h, I_0, k_D, epsq_p, I, b) !b=dXs/dI in place of dXs/dErate
 
     ! Reset the increment of dilatancy
     dD = 0.0
@@ -1167,7 +1178,7 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
         EpsP = EpsPu
         ! dEpsP = dEpsPu
         eta_y = eta_yu
-        !Dp = Du
+        Dp = Du
 
         ! Exit out of the Subroutine and return values
         return
@@ -1189,9 +1200,11 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
     !if (NOEL ==1) then
     !    codeLine = 1 ! Just code line so I can count the number of hits
     !end if
+    !ApplyStrainRateUpdate = .False.
     do while (abs(F) >= FTOL .and. counter <= MaxIter) 
         !---------------------Begin Compute derivatives--------------------------!
-        call Get_dF_to_dSigma(M_tc, eta_yu, Sigu, n_vec) !n=dF/dSig
+        ! Trying 
+        call Get_dF_to_dSigma(Mu, eta_yu, Sigu, n_vec) !n=dF/dSig
         call Get_dP_to_dSigma(Du, Sigu, m_vec) !m=dP/dSig
         L = -p * (1-No) !dF/Xs == Xi in Ortiz & Simo
         !L = p ! dF/dXs with Xs = eta_y
@@ -1237,10 +1250,10 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
         call Get_dD_to_dEpsq(D_min, h, I_0, k_D, epsq_p, epsv_p, &
                                 dEpsPu, I, ApplyStrainRateUpdate, a) !a=dD/dEpsq^p
         
-        a(:) = 0.0
         ! Update dilatancy
         dD = 0.0
-        call DotProduct_2(a, dEpsPu, 6, dD) !plastic hard/softening
+        a(:) = 0.0
+        !call DotProduct_2(a, dEpsPu, 6, dD) !plastic hard/softening
         Du = Du + dD
         
         ! Update eta_y
@@ -1270,9 +1283,10 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
     eta_y = eta_yu
     
     dD = Du -Dp
-    ! Turned off the dilatancy update
     Dp = Du
     M = Mu
+    ! Store Yield function value at end of iteration
+    TrackFVal = F
     
     ! Track 2-Norm of plastic strain EpsP
     call TwoNormTensor(EpsP, 6, NormEpsP)
@@ -2187,18 +2201,36 @@ end subroutine Stress_Drift_Correction
 	! determines if strain rate updating must occur                   *
 	! Boolean                                                         *
 	!******************************************************************
+    ! IErate0I: The previous (initial reference strain rate. State parameter pulled from the previous time step
+    ! IErateI: The new inertial coefficient for this strain rate
+    ! dErate_eff: The increment of strain rate change (This is calculated in this subroutine)
+    ! RateRef: Reference strain rate other variables are compared to 
+    ! Apply: Boolean keeping track to determine if strain rate updates should be applied
 		implicit none
 		double precision, intent(inout):: IErate0I, IErateI, dErate_eff
         double precision, intent(in)   :: RateRef
 		logical:: cond1, cond2, cond3
 		logical, intent(out)::Apply
 		  Apply=.false.
+          ! If the rate from the last time step is less than or equalt ot the reference rate, update the previous time step value to be the reference rate
 		  if(IErate0I<=RateRef) IErate0I=RateRef
+          
+          ! If the current rate is less than the reference rate than update the current rate to be the reference rate
 		  if (IErateI<=RateRef) IErateI=RateRef
+          
+          ! Cond1 - Checks if the rate has moved from slower than reference to faster than reference on this time step (Rate increased)
 		  cond1=(IErate0I==RateRef).and.(IErateI>RateRef)
+          
+          ! Cond2 - Checks if the rate has moved from greater than the reference to slower than the reference (Rate slowed)
 		  cond2=(IErate0I>RateRef).and.(IErateI==RateRef)
-		  dErate_eff=IErateI-IErate0I
+		  
+          ! Calculate the rate increment
+          dErate_eff=IErateI-IErate0I
+          
+          ! Cond3 - Check if the current and previous value is greater than the reference rate. if they are that means that rate affects should be applied
 		  cond3=(IErate0I>RateRef).and.(IErateI>RateRef)
+          
+          ! Check if any of the conditions are true, if so strain rate effects need to be applied
 		  if (cond1.or.cond2.or.cond3) Apply=.true.
 	end Subroutine check4crossing
 

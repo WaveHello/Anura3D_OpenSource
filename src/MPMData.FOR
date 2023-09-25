@@ -67,7 +67,7 @@
         !>Variable to track Shear Modulus, G
         real(REAL_TYPE) :: TrackShearModulus
         ! > Varaible to track Yield Function Value
-        double precision :: TrackFT
+        double precision :: TrackFVal
         ! > Variable to track the number of iterations in Ortiz & Simo Integration
         double precision :: num_OS_Iterations
         !> Variable to track the inertial coefficient, I_act

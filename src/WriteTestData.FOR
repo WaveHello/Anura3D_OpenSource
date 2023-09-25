@@ -154,17 +154,17 @@
                   
                   case(3)
                         !, 'PA(1) ','PA(2) '                      
-                      write(PARUnit + I, '(37A20)')  &
+                      write(PARUnit + I, '(38A20)')  &
                             'LoadStep ', 'TimeStep ', 'Time', 'PGravity ', 'ID_MP ', 'MatID ', 'DeformCateg', 'X ', 'Y ', 'Z ', &
                             'Ux ', 'Uy ', 'Uz ', 'Vx ', 'Vy ', 'Vz ', 'Ax ', 'Ay ', 'Az ','SigmaXX ', 'SigmaYY ', 'SigmaZZ ', &
                             'SigmaXY ', 'SigmaYZ ', 'SigmaZX ', 'WPressure', 'EpsilonXX ', 'EpsilonYY ', 'EpsilonZZ ', 'GammaXY ', &
-                            'GammaYZ ', 'GammaZX ', 'IntWeight ', 'Dp', 'NormEpsP'
+                            'GammaYZ ', 'GammaZX ', 'IntWeight ', 'Dp', 'NormEpsP', 'YieldVal'
                     case(2)
                       write(PARUnit + I, '(28A20)')  &
                             'LoadStep ', 'TimeStep ', 'Time', 'PGravity ', 'ID_MP ', 'MatID ', 'DeformCateg', 'X ', 'Y ', &
                             'Ux ', 'Uy ', 'Vx ', 'Vy ', 'Ax ', 'Ay ', 'SigmaXX ', 'SigmaYY ', 'SigmaZZ ','SigmaXY ', &
                             'WPressure', 'EpsilonXX ', 'EpsilonYY ', 'EpsilonZZ ','GammaXY ', &
-                             'IntWeight ', 'Dp', 'NormEpsP'
+                             'IntWeight ', 'Dp', 'NormEpsP', 'YieldVal'
                   end select
 
                 end if  
@@ -472,7 +472,7 @@
                         GetEpsI(Particles(ParticleIndex),3) ! volumetric strain ! valid for 2D and 3D
                     deviatoric_stress = getq( GetSigmaPrin(Particles(ParticleIndex)) )
                                          
-                    write(PARUnit + I, '(I20, I20, 2G20.4, 2I20, 29G20.4)') & !, 9G25.4
+                    write(PARUnit + I, '(I20, I20, 2G20.4, 2I20, 30G20.4)') & !, 9G25.4
                     
                       CalParams%IStep, &
                       CalParams%TimeStep, &
@@ -501,7 +501,9 @@
                       
                       TrackDp, &
                       
-                      NormEpsP
+                      NormEpsP, &
+                      
+                      TrackFVal
                       
                       
                       !DeformCateg,&
