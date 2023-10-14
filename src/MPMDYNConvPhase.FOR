@@ -938,6 +938,8 @@
 
           do IAEl = 1, Counters%NAEl   ! Loop over all elements
             IEl = ActiveElement(IAEl)
+
+
             do I = 1, NVECTOR
               IDof(I, 1:ELEMENTNODES) = ReducedDof(ElementConnectivities(1:ELEMENTNODES, IEl)) + I
               NodAcc(I, 1:ELEMENTNODES, 1:Counters%nEntity) = AccelerationSoil(IDof(I, 1:ELEMENTNODES), 1:NoEn)
@@ -969,6 +971,7 @@
                
                 ParticleVelocity = ParticleVelocity + ParticleIncrementalVelocity
 
+                ! Corrects unrealistic velocities of MPs if they are exploding
                 do I = 1, NVECTOR ! nodal i-momentum
                   Momentum(IDof(I,1:ELEMENTNODES), iEntity) = Momentum(IDof(I,1:ELEMENTNODES), iEntity) + PartilceMass * ParticleShape * ParticleVelocity(I)
                 end do     
@@ -2016,11 +2019,11 @@
             ParticleIndex = GetParticleIndexFromList(IParticle)
 
             Pw = -Particles(ParticleIndex)%WaterPressure
-            T = Particles(ParticleIndex)%Temperature   !Temperature (ºC)
+            T = Particles(ParticleIndex)%Temperature   !Temperature (ï¿½C)
             Kw = Particles(ParticleIndex)%BulkWater
             g = CalParams%GravityData%GAccel  !Gravity (m/s2)
             
-            Alpha = -0.00034d0  !Default=-0.00034, volumetric thermal expansion coefficient for water (1/ºC)
+            Alpha = -0.00034d0  !Default=-0.00034, volumetric thermal expansion coefficient for water (1/ï¿½C)
             Beta = 1/Kw         !Default=0.00045, water compressibility (1/MPa) ---> Inverse of the bulk modulus
             Pw0 =  0.0d0        !Default=0.1, Reference water pressure (MPa) 
             WD0 = 1.0026d0      !Default=1002.6, Reference water density (kg/m3)
@@ -2058,14 +2061,14 @@
             
             Pw = Particles(ParticleIndex)%WaterPressure
             Pg = Particles(ParticleIndex)%GasPressure
-            T = Particles(ParticleIndex)%Temperature           !Temperature (ºC)
+            T = Particles(ParticleIndex)%Temperature           !Temperature (ï¿½C)
             WD = Particles(ParticleIndex)%WaterWeight/g        !Water density of the particle
       
             Suc = Pw-Pg     !Suction
 
             if (Suc<=0.0) RETURN
 
-            T = T+273.15d0              !Temperature (ºK)
+            T = T+273.15d0              !Temperature (ï¿½K)
             Ma = 0.028d0                !Default=0.02895, Molecular gas of dry air (kg/mol)
             Mw = 0.018d0                !Default=0.01801528, Molecular mass of water (=vapour) (kg/mol)
             R = 0.008314d0              !Default=8.3144621, Gas constant value (J/mol*K)
@@ -2181,11 +2184,11 @@
             
             Pw = Particles(ParticleIndex)%WaterPressure
             Pg = Particles(ParticleIndex)%GasPressure
-            T = Particles(ParticleIndex)%Temperature           !Temperature (ºC)
+            T = Particles(ParticleIndex)%Temperature           !Temperature (ï¿½C)
             wVG = Particles(ParticleIndex)%VapourInGasMassFraction
             WD = Particles(ParticleIndex)%WaterWeight/g        !Water density of the particle
       
-            T = T+273.15d0  !Temperature (ºK)
+            T = T+273.15d0  !Temperature (ï¿½K)
             Suc = Pw-Pg     !Suction
 
            Particles(ParticleIndex)%VapourInGasMassFraction = exp(-Mw*Suc/(R*T*WD))
