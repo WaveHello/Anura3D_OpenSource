@@ -371,6 +371,13 @@
         call WriteInLogFile('Capacity, available  Byte:'// trim(String(I8_Total)) // trim(String(I8_Avail)))
         call WriteInLogFile('Capacity, available KByte:'// trim(String(I8_Total/1024d0**1)) // trim(String(I8_Avail/1024d0**1)))
         call WriteInLogFile('Capacity, available GByte:'// trim(String(I8_Total/1024d0**3)) // trim(String(I8_Avail/1024d0**3)))
+        
+        
+        ! int has max value of 2147483647. Check that the available space isn't greater than 2147483647 * 1024 bytes
+        if (I8_Total >  2147483647d0 * 1024d0) then
+          I8_Total = 2147483647 * 1024
+        endif
+        
         kBSpace = nint(I8_Total/1024d0**1)
         RETURN
       else
