@@ -8,7 +8,7 @@
     !
     !
 	!	Anura3D - Numerical modelling and simulation of large deformations 
-    !   and soil–water–structure interaction using the material point method (MPM)
+    !   and soilï¿½waterï¿½structure interaction using the material point method (MPM)
     !
     !	Copyright (C) 2023  Members of the Anura3D MPM Research Community 
     !   (See Contributors file "Contributors.txt")
@@ -1507,17 +1507,19 @@
               call Assert( ios == 0, messageIOS//trim(BName) )
               call Assert( DumI(1) == 0 .or. DumI(1) == 1, 'CPS file: ' //trim(BName)// ' must be 0 or 1.' )
               if ( DumI(1) == 1 ) CalParams%MonoPileSliceContact = .true.
+
 			else if (trim(BName)=='$$APPLY_CONTACT_VELOCITY_SCALING' ) then ! I [ 0, 1 ]
               read(FileUnit, *, iostat=ios) DumI(1)
               call Assert( ios == 0, messageIOS//trim(BName) )
               call Assert( DumI(1) == 0 .or. DumI(1) == 1, 'CPS file: ' //trim(BName)// ' must be 0 or 1.' )
               if ( DumI(1) == 1 ) CalParams%ApplyContactVelocityScaling = .true.
 			  
-			else if (trim(BName)=='$$VELOCITY_SCALING_FACTOR'  ) then ! for external release this is specified in GOM file
+			else if (trim(BName)=='$$VELOCITY_SCALING_FACTOR'  ) then ! Set in the CPS file
               read(FileUnit, *, iostat=ios) DumR(1)
               call Assert( ios == 0, messageIOS//trim(BName) )
               CalParams%ContactScalingFactor = DumR(1) !Note that the scaling factor must be restricted between 1 and 0, I'm allowing to play with it
-			
+
+    
 			else if (trim(BName)=='$$APPLY_CONTACT_NORMAL_CORRECTION') then ! I [ 0, 1 ]
               read(FileUnit, *, iostat=ios) DumI(1)
               call Assert( ios == 0, messageIOS//trim(BName) )

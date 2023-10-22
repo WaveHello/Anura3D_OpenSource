@@ -61,6 +61,7 @@
         integer(INTEGER_TYPE), dimension(:, :), allocatable :: NodeElement ! Node-element relation - for each node a list of the elements containing this global node
         integer(INTEGER_TYPE), dimension(:, :), allocatable :: ContactSurfaceElmNodes
         integer(INTEGER_TYPE):: NContactElm, PileEntityMaterial ! entity of the contact volume
+        integer(INTEGER_TYPE), dimension (:), allocatable :: AdjacentElementIDsForContact ! Stores the ids of elements next to the contact body
         real(REAL_TYPE), dimension(:,:), allocatable :: InterfaceNodesAdhesion ! Adhesion for multiple materials 
         logical, dimension(:), allocatable :: ContactSurfaceSoilElements
         logical :: GlobContElement (:)  ! global copy of element(:)
@@ -245,103 +246,106 @@
                     DiffDotUn = DiffDotUn + VelDiff(I) * Unormal(I)
                   end do  
                     
-                    !get the traction at the node for this entity if the modified contact model is used
-                    if (CalParams%ApplyTractionContact) then               !MODIFIED (TRACTION) CONTACT MODEL IS USED
-                      call EntityNodeTraction(nn, ient, Unormal, Traction)
-                    else                                                   !STANDARD CONTACT MODEL IS USED
-                      Traction = 0.0                                       !set equal to zero so that (DiffDotUn > 0) is only criteria used below
-                    end if 
-                    !
-                    !If the modified contact model is used, correction is done when Traction < 0 (compression)
-                    ! The exeption is when it is the first contact and all stresses are still zero: 
-                    !    - this will give Traction = 0
-                    !    - In this case the standard contact model is used: (TotalVelocitySoil-TotalVelocitySys).dot. Unormal > 0
-                    !
-                    !If the standard contact model is used, Traction is set to zero (above) and the only condition used...
-                    ! ...to check for contact is:  (TotalVelocitySoil-TotalVelocitySys).dot. Unormal > 0
-                    !
-                    do I = 1, CalParams%NumberOfMaterials-1 
-                      if (MaterialNodes(I,nn)==1) then 
-                         AdhesionCoef = InterfaceNodesAdhesion(nn,I)
-						 exit
-					  else
-						  AdhesionCoef=1000
-                      end if
-                    end do                    
-                    ! Adhesion
-                    AdhesionFactor = AdhesionCoef * CalParams%TimeIncrement / (LumpedMassDry(IDof(1), IEnt) * (DiffDotUn + TINY))
+                  !get the traction at the node for this entity if the modified contact model is used
+                  if (CalParams%ApplyTractionContact) then               !MODIFIED (TRACTION) CONTACT MODEL IS USED
+                    call EntityNodeTraction(nn, ient, Unormal, Traction)
+                  else                                                   !STANDARD CONTACT MODEL IS USED
+                    Traction = 0.0                                       !set equal to zero so that (DiffDotUn > 0) is only criteria used below
+                  end if 
+                  !
+                  !If the modified contact model is used, correction is done when Traction < 0 (compression)
+                  ! The exeption is when it is the first contact and all stresses are still zero: 
+                  !    - this will give Traction = 0
+                  !    - In this case the standard contact model is used: (TotalVelocitySoil-TotalVelocitySys).dot. Unormal > 0
+                  !
+                  !If the standard contact model is used, Traction is set to zero (above) and the only condition used...
+                  ! ...to check for contact is:  (TotalVelocitySoil-TotalVelocitySys).dot. Unormal > 0
+                  !
+                  do I = 1, CalParams%NumberOfMaterials-1 
+                    if (MaterialNodes(I,nn)==1) then  
+                        AdhesionCoef = InterfaceNodesAdhesion(nn,I)
+                        exit
+                    else
+                      AdhesionCoef=1000
+                    end if
+                  end do                    
+          ! Adhesion
+          AdhesionFactor = AdhesionCoef * CalParams%TimeIncrement / (LumpedMassDry(IDof(1), IEnt) * (DiffDotUn + TINY))
                     
-                    if (DiffDotUn>0.0) then ! Standard formulation: DiffDotUn greater than 0 means approaching bodies
+          if (DiffDotUn>0.0) then ! Standard formulation: DiffDotUn greater than 0 means approaching bodies
 
-                      if (NVECTOR == 2) then ! 2D case
-                        ! VelDiff x Unormal
-                        CrossP(1) = 0.0
-                        CrossP(2) = 0.0
-                        CrossP(3) = VelDiff(1) * Unormal(2) - VelDiff(2) * Unormal(1)
-                      elseif (NVECTOR == 3) then ! 3D case
-                        !VelDiff x Unormal
-                        CrossP(1) = VelDiff(2) * Unormal(3) - VelDiff(3) * Unormal(2)
-                        CrossP(2) = VelDiff(3) * Unormal(1) - VelDiff(1) * Unormal(3)
-                        CrossP(3) = VelDiff(1) * Unormal(2) - VelDiff(2) * Unormal(1)
-                      else
-                        call GiveError('Dimension is not correct. It must be 2 or 3.')
-                      end if                        
+            if (NVECTOR == 2) then ! 2D case
+              ! VelDiff x Unormal
+              CrossP(1) = 0.0
+              CrossP(2) = 0.0
+              CrossP(3) = VelDiff(1) * Unormal(2) - VelDiff(2) * Unormal(1)
+            elseif (NVECTOR == 3) then ! 3D case
+              !VelDiff x Unormal
+              CrossP(1) = VelDiff(2) * Unormal(3) - VelDiff(3) * Unormal(2)
+              CrossP(2) = VelDiff(3) * Unormal(1) - VelDiff(1) * Unormal(3)
+              CrossP(3) = VelDiff(1) * Unormal(2) - VelDiff(2) * Unormal(1)
+            else
+              call GiveError('Dimension is not correct. It must be 2 or 3.')
+            end if                        
 
-                      vsize = sqrt( CrossP(1)*CrossP(1) + CrossP(2)*CrossP(2) + CrossP(3)*CrossP(3) )
-                      
-                      !CrossP/ |CrossP|
-                      Omega = 0.0  
-                      if (vsize /= 0) then
-                        Omega = CrossP/vsize
-                      end if
-                       
-                      do I = 1, CalParams%NumberOfMaterials-1 
-                        if (MaterialNodes(I,nn)==1) then 
-                          FrictionCoef = FrictionVector(nn,I)
+            vsize = sqrt( CrossP(1)*CrossP(1) + CrossP(2)*CrossP(2) + CrossP(3)*CrossP(3) )
+            
+            !CrossP/ |CrossP|
+            Omega = 0.0  
+            if (vsize /= 0) then
+              Omega = CrossP/vsize
+            end if
+             
+            do I = 1, CalParams%NumberOfMaterials-1 
+              if (MaterialNodes(I,nn)==1) then 
+                FrictionCoef = FrictionVector(nn,I)
 						  exit
-						else !node belongs to contact but no material is in neighbour element
-						  FrictionCoef = 10 ! A high value will enforce that the solution is vsys
-                        end if
-                      end do
+						  else !node belongs to contact but no material is in neighbour element
+						    FrictionCoef = 10 ! A high value will enforce that the solution is vsys
+              end if
+            end do
 
-                       Dmu = min(FrictionCoef + AdhesionFactor, vsize/DiffDotUn) ! Slope larger than friction coefficient, then bring back to limit (max tangential force)
+            Dmu = min(FrictionCoef + AdhesionFactor, vsize/DiffDotUn) ! Slope larger than friction coefficient, then bring back to limit (max tangential force)
 
-                       !Unormal X Omega - tangential direction normal to n-t-plane
-                       if (NVECTOR == 2) then ! 2D case
-                        !VelDiff x Unormal
-                        CrossP(1) = Unormal(2) * Omega(3)
-                        CrossP(2) = - Unormal(1) * Omega(3)
-                        CrossP(3) = Unormal(1) * Omega(2) - Unormal(2) * Omega(1)
-                      elseif (NVECTOR == 3)  then ! 3D case
-                        !VelDiff x Unormal
-                        CrossP(1) = Unormal(2) * Omega(3) - Unormal(3) * Omega(2)
-                        CrossP(2) = Unormal(3) * Omega(1) - Unormal(1) * Omega(3)
-                        CrossP(3) = Unormal(1) * Omega(2) - Unormal(2) * Omega(1)
-                      else
-                        call GiveError('Dimension is not correct. It must be 2 or 3.')
-                      end if
+            !Unormal X Omega - tangential direction normal to n-t-plane
+            if (NVECTOR == 2) then ! 2D case
+              !VelDiff x Unormal
+              CrossP(1) = Unormal(2) * Omega(3)
+              CrossP(2) = - Unormal(1) * Omega(3)
+              CrossP(3) = Unormal(1) * Omega(2) - Unormal(2) * Omega(1)
+            elseif (NVECTOR == 3)  then ! 3D case
+              !VelDiff x Unormal
+              CrossP(1) = Unormal(2) * Omega(3) - Unormal(3) * Omega(2)
+              CrossP(2) = Unormal(3) * Omega(1) - Unormal(1) * Omega(3)
+              CrossP(3) = Unormal(1) * Omega(2) - Unormal(2) * Omega(1)
+            else
+              call GiveError('Dimension is not correct. It must be 2 or 3.')
+            end if
                       
-                      do I = 1, NVECTOR
-                        ! correct the velocity for soil nodes
-                        TotalVelocitySoil(IDof(I),ient) =  TotalVelocitySoil(IDof(I),ient) - DiffDotUn*( Unormal(I) + Dmu*CrossP(I) )
-                        ! with the corrected, get the final acceleration
-                        AccelerationSoil(IDof(I),ient) = (TotalVelocitySoil(IDof(I),ient) - TotalVelocitySoilPrevious(IDof(I),ient)) / CalParams%TimeIncrement
-                      end do
-                     if ( CalParams%ApplyContactVelocityScaling ) then
-						  call MaxStrainRate(nn, TotalVelocitySoil(IDof(1):IDof(NVECTOR),ient), &
-							  TotalVelocitySoilPrevious(IDof(1):IDof(NVECTOR),ient), emax, &
-						       LumpedMassDry(IDof(1):IDof(NVECTOR), IEnt), LumpedMassSys(IDof(1):IDof(NVECTOR)))
-							   if ( (emax*CalParams%TimeIncrement) > CalParams%ContactScalingFactor ) then
-								   ScaleFactor= CalParams%ContactScalingFactor/ (emax*CalParams%TimeIncrement)
-								   do I = 1, NVECTOR
-									! correct the velocity for soil nodes
-									TotalVelocitySoil(IDof(I),ient) =  TotalVelocitySoilPrevious(IDof(I),ient) - ScaleFactor*DiffDotUn*( Unormal(I) + Dmu*CrossP(I) )
-									! with the corrected, get the final acceleration
-									AccelerationSoil(IDof(I),ient) = (TotalVelocitySoil(IDof(I),ient) - TotalVelocitySoilPrevious(IDof(I),ient)) / CalParams%TimeIncrement
-									end do
-							   end if
+            do I = 1, NVECTOR
+              ! correct the velocity for soil nodes
+              TotalVelocitySoil(IDof(I),ient) =  TotalVelocitySoil(IDof(I),ient) - DiffDotUn*( Unormal(I) + Dmu*CrossP(I) )
+              ! with the corrected, get the final acceleration
+              AccelerationSoil(IDof(I),ient) = (TotalVelocitySoil(IDof(I),ient) - TotalVelocitySoilPrevious(IDof(I),ient)) / CalParams%TimeIncrement
+            end do
+
+            if ( CalParams%ApplyContactVelocityScaling ) then
+						   call MaxStrainRate(nn, TotalVelocitySoil(IDof(1):IDof(NVECTOR),ient), &
+						   TotalVelocitySoilPrevious(IDof(1):IDof(NVECTOR),ient), emax, &
+						   LumpedMassDry(IDof(1):IDof(NVECTOR), IEnt), LumpedMassSys(IDof(1):IDof(NVECTOR)))
+						   
+               if ( (emax*CalParams%TimeIncrement) > CalParams%ContactScalingFactor ) then
+						   ScaleFactor= CalParams%ContactScalingFactor/ (emax*CalParams%TimeIncrement)
+
+                 do I = 1, NVECTOR
+                   ! correct the velocity for soil nodes
+                   TotalVelocitySoil(IDof(I),ient) =  TotalVelocitySoilPrevious(IDof(I),ient) - ScaleFactor*DiffDotUn*( Unormal(I) + Dmu*CrossP(I) )
+                   ! with the corrected, get the final acceleration
+                   AccelerationSoil(IDof(I),ient) = (TotalVelocitySoil(IDof(I),ient) - TotalVelocitySoilPrevious(IDof(I),ient)) / CalParams%TimeIncrement
+                 end do
+						   end if
 					  end if                     
-                   else
+                    else
                    
                      ! Adhesion factor takes into account that in case of separation, the adhesive force might
                      ! still hold back the body. In this case, slip / no-slip are still relevant.
@@ -1043,12 +1047,10 @@
        NContactElm = NContSur
        
        do ISurf = 1, NContSur
-          ContactSurfaceElmNodes (ISurf, 1)= &
-                                    INT(ContctSurfaceElmID(ISurf)) ! element ID
+          ContactSurfaceElmNodes (ISurf, 1)= INT(ContctSurfaceElmID(ISurf)) ! element ID
             ContactSurfaceElmNodes (ISurf, 2)= Sides (ISurf)
           do J = 1, 6
-            ContactSurfaceElmNodes (ISurf, J+2)= &
-                                              ContSurfaceNodes(ISurf, J)
+            ContactSurfaceElmNodes (ISurf, J+2)= ContSurfaceNodes(ISurf, J)
           end do
        end do
        
@@ -1097,6 +1099,9 @@
                   InterfaceNodes(NodID) = .true.
                 end do
                end do
+               
+        
+            
             NSideNodes = GetNSideNodes(ELEMENTNODES)
 
             allocate(BoundaryElements(Counters%NEl), stat = IError)
@@ -1152,18 +1157,20 @@
           ! local variables
           character :: BName*255
           integer(INTEGER_TYPE) :: IError, ISurf, J, NContSur, NodID, I, IEl, NPileelements, NFoundNodes, CheckNodeID, &
-                    ElementID, SideID, AdjacentElement, IVol, ISide, ContElem, INode, JNode, NSideNodes, &
+                    ElementID, SideID, AdjacentElement, IVol, ISide, ContElem, INode, JNode, NSideNodes, Aux, l, &
                     CheckNodeI, II, CountSurf, DummyElem, IMat, JMat, NeighbourElement, MaterialID1, MaterialID2, AI, IRef, JRef, KRef, NRef
           real(REAL_TYPE), dimension(:,:), allocatable :: TotSrfaceAndLoad, ContactVolumes, ContactVolumesDummy, NNormals, NNormals2,MatNodesCood, DVectors
           integer(INTEGER_TYPE), dimension(:,:), allocatable :: ContSurfaceNodes, ContVolSurf
-          integer(INTEGER_TYPE), dimension(:), allocatable :: ContctSurfaceElmID, BoundaryElements, Sides, NNodes, MatNodes
+          integer(INTEGER_TYPE), dimension(:), allocatable :: ContctSurfaceElmID, BoundaryElements, Sides, NNodes, MatNodes, Aux_array
           logical, dimension(:), allocatable :: Element, CheckedLoadedSurface, IsContactSurface
+          logical:: ElmFound
           integer(INTEGER_TYPE) :: NFoundSides
           real :: dummy ,dummy2, dummy3
 
           allocate(Element(Counters%NEl), stat=IError)
-          allocate(GlobContElement(Counters%NEl), stat=IError) 
-        
+          allocate(GlobContElement(Counters%NEl), stat=IError)    
+
+          
           if (allocated(ContactSurfaces) ) then
             deallocate(ContactSurfaces, stat = IError)
           end if
@@ -1210,7 +1217,7 @@
           DummyElem = 0
           do IEl = 1, NContVolElem
              NPileelements = NPileelements+1 
-             Element(ContactVolumes(IEl,1)) = .True. ! pile elemen      
+             Element(ContactVolumes(IEl,1)) = .True. ! pile element      
              GlobContElement(ContactVolumes(IEl,1)) = .True.
                if (abs(ElementMaterialID(ContactVolumes(IEl,1)))/=CalParams%MovingMesh%StructureMaterialID) then
                  call GiveWarning('Body contact can not be assigned to more than one material')
@@ -1432,9 +1439,49 @@
        do I = 1, NContactElm
            do J = 1, 2 ! corner nodes
                NodID = ContactSurfaceElmNodes (I, J+2)
-               InterfaceNodes(NodID) = .true.
+               InterfaceNodes(NodID) = .true.              
            end do
        end do
+       
+       if (CalParams%ApplyContactVelocityScaling) then !starts procedure to fill adjacent element ids to correct MP velocities
+           NFoundNodes=0
+        do I = 1, NContactElm
+           do J = 1, 2 ! corner nodes
+               NodID = ContactSurfaceElmNodes (I, J+2)
+               ContElem=GetNElmOfNode(NodID)
+               if ((I==1).and.(J==1)) then ! first time then allocate array
+                NFoundNodes=ContElem
+                allocate(AdjacentElementIDsForContact(NFoundNodes), stat=IError)
+                do IEl= 1, ContElem !loop elements connected to node
+                    AdjacentElementIDsForContact(IEl)=GetElmIOfNode(NodID, IEl) !gets the element ID
+                enddo
+                else !needs to asses if element has been saved first
+               do IEl= 1, ContElem !loop elements connected to node
+                   Aux=GetElmIOfNode(NodID, IEl) !Elm ID
+                   !first find out if element is already in array
+                   ElmFound=.false.
+                   do l=1, NFoundNodes
+                       if (AdjacentElementIDsForContact(l)==Aux) then !element found exit
+                           ElmFound=.true.
+                           exit
+                       endif
+                   enddo
+                   if (.not.ElmFound) then
+                                          !else resize array and add eNFoundNodes=NFoundNodes+1
+                       allocate(Aux_array(NFoundNodes), stat=IError)
+                       Aux_array=AdjacentElementIDsForContact
+                       deallocate(AdjacentElementIDsForContact, stat=IError)
+                       allocate(AdjacentElementIDsForContact(NFoundNodes+1), stat=IError)
+                       AdjacentElementIDsForContact(1:NFoundNodes)=Aux_array
+                       AdjacentElementIDsForContact(NFoundNodes+1)=Aux !saves element ID
+                       deallocate(Aux_array, stat=IError)
+                       NFoundNodes=NFoundNodes+1
+                 endif
+               enddo
+               endif               
+           end do
+           enddo
+       endif
        NSideNodes = GetNSideNodes(ELEMENTNODES)
 
        allocate(BoundaryElements(Counters%NEl), stat = IError)
@@ -1485,7 +1532,7 @@
                            ContactNodeNormals(1:2, ContactSurfaceElmNodes(I,2+J))=&
                                NNormals(ContactSurfaceElmNodes(I,2),1:2)
                        end do
-                   else !If the normal have been assigned then avoid writting the normal
+                   else !If the normal have been assigned then avoid writing the normal
                        do J=1,2
                            if (ContactNodeNormals(1, ContactSurfaceElmNodes(I,(2+J)))==0.0 .and. &
                                ContactNodeNormals(2, ContactSurfaceElmNodes(I,(2+J)))==0.0) then

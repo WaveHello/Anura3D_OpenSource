@@ -922,14 +922,15 @@
         
           real(REAL_TYPE), dimension(Counters%N,Counters%nEntity), intent(inout) :: Momentum       !CC added nEntity
           ! Local variables
-          integer(INTEGER_TYPE) :: I, IEl, IAEl, IPart, INode, iEntity, ParticleIndex, NoEn
+          integer(INTEGER_TYPE) :: I, IEl, IAEl, IPart, INode, iEntity, ParticleIndex, NoEn, iSide, NID1, NID2
           integer(INTEGER_TYPE), dimension(NVECTOR, ELEMENTNODES) :: IDof
           real(REAL_TYPE), dimension(NVECTOR) :: ParticleIncrementalVelocity
           real(REAL_TYPE), dimension(NVECTOR) :: ParticleAcceleration
           real(REAL_TYPE), dimension(NVECTOR) :: ParticleVelocity
           real(REAL_TYPE), dimension(NVECTOR, ELEMENTNODES, Counters%nEntity) :: NodAcc
           real(REAL_TYPE), dimension(ELEMENTNODES) :: ParticleShape
-          real(REAL_TYPE) :: Time, PartilceMass
+          real(REAL_TYPE) :: Time, ParticleMass, element_char_length, CoorDifference, Aux, waveSpeed
+          logical:: IsInContactBoundary = .false.
           
           !!CC - changed to function call - needs to be set to zero here
           Momentum = 0.0 
@@ -939,6 +940,35 @@
           do IAEl = 1, Counters%NAEl   ! Loop over all elements
             IEl = ActiveElement(IAEl)
 
+            ! Adding Luis code
+            IsInContactBoundary = .false.
+
+            ! Find if the element is in contact boundary
+            if (CalParams%ApplyContactVelocityScaling) then
+              do I = 1, size(AdjacentElementIDsForContact)
+                if (IEl == AdjacentElementIDsForContact(I)) then
+                  IsinContactBoundary = .true.
+                  
+                  !loop element edges
+                  element_char_length =100000000000000
+
+                  ! Loop through the nodes to the length of the sides
+                  do INode =  1,2 
+                    NID1 = ElementConnectivities(INode, IAEl)
+                    do iSide = 3, INode+1, -1
+                      NID2 = ElementConnectivities(iSide, IAEl)
+
+                      ! Calc the magnitude of the difference
+                      Aux = sqrt(DotProduct(NodalCoordinates(NID1, :) - NodalCoordinates(NID2, :), &
+                                NodalCoordinates(NID1, :) - NodalCoordinates(NID2, :), NVECTOR))
+
+                      if(Aux<element_char_length) element_char_length = Aux
+                    enddo
+                  enddo
+                  EXIT
+                endif
+              enddo
+            endif         
 
             do I = 1, NVECTOR
               IDof(I, 1:ELEMENTNODES) = ReducedDof(ElementConnectivities(1:ELEMENTNODES, IEl)) + I
@@ -949,7 +979,7 @@
               ParticleIndex = GetParticleIndex(IPart, IEl) ! Get the particle ID
               if ( (MaterialPointTypeArray(ParticleIndex)==MaterialPointTypeSolid) .or. (NFORMULATION==1) ) then ! NumbOfLayers = 1 or SOLID MatPoint
                  ParticleVelocity = VelocityArray(ParticleIndex,:)
-                 PartilceMass = MassArray(ParticleIndex)
+                 ParticleMass = MassArray(ParticleIndex)
                  ParticleShape = ShapeValuesArray(ParticleIndex,:)
                  ParticleIncrementalVelocity = 0.0
                  ParticleAcceleration = 0.0
@@ -959,7 +989,7 @@
                   iEntity = 1
                  end if 
                   
-                 do INode = 1, ELEMENTNODES  ! loop over element nodes
+                do INode = 1, ELEMENTNODES  ! loop over element nodes
                       
                   do I = 1, NVECTOR  
                     ! Particle accelerations
@@ -969,11 +999,25 @@
                   end do    
                 end do !Loop over nodes
                
-                ParticleVelocity = ParticleVelocity + ParticleIncrementalVelocity
+                ParticleVelocity = ParticleVelocity + ParticleIncrementalVelocity !Updated particle velocity
 
                 ! Corrects unrealistic velocities of MPs if they are exploding
+                if ((IsInContactBoundary).and.(iEntity == 1)) then
+                  
+                  ! Calc the magnitude of the particle velocities (2norm of the velocity )
+                  Aux = sqrt(DotProduct(ParticleVelocity, ParticleVelocity, NVECTOR))
+
+                  ! Get the wave speed for the particle 
+                  call GetWaveSpeedForTimeStepSize(ParticleIndex, IEl, waveSpeed)
+
+                  ! Update the particle velocities
+                  if (Aux>(waveSpeed)) then
+                    ParticleVelocity = (CalParams%ContactScalingFactor * element_char_length/Time) * ParticleVelocity/Aux
+                  endif
+                endif
+
                 do I = 1, NVECTOR ! nodal i-momentum
-                  Momentum(IDof(I,1:ELEMENTNODES), iEntity) = Momentum(IDof(I,1:ELEMENTNODES), iEntity) + PartilceMass * ParticleShape * ParticleVelocity(I)
+                  Momentum(IDof(I,1:ELEMENTNODES), iEntity) = Momentum(IDof(I,1:ELEMENTNODES), iEntity) + ParticleMass * ParticleShape * ParticleVelocity(I)
                 end do     
 
                 VelocityArray(ParticleIndex,:) = ParticleVelocity
