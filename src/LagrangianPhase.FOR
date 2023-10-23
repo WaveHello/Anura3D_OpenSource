@@ -102,8 +102,10 @@
           
            !if (CalParams%IStep /= 1) then 
           !----------------------- Nodal pressure smoothing ------------------------!
-          call GetNodalPressure(NodalWaterPressure)
-          call MapNodalPressureBackToMPs
+          if (CalParams%ApplyPorePressureSmoothing) then
+              call GetNodalPressure(NodalWaterPressure)
+              call MapNodalPressureBackToMPs
+          endif
           !end if
           !--------------------- End Nodal pressure smoothing ----------------------!
 

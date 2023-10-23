@@ -443,6 +443,7 @@
 					 NCorrectedNormals !Number of normals to be modified in the contact
 
           logical :: UpdatedMPMwithMixed,&
+                     ApplyPorePressureSmoothing,&
                      ApplyContactMeshBoundary, &
                      ApplyQuasiStatic, & ! True - apply quasti-static convergence criteria
                      TwoLayerApplyUpdatePermeability, & ! True - update permeability according to porosity,  False - use initial intrinsic permeability
@@ -819,6 +820,7 @@
 
         ! logicals
         CalParams%UpdatedMPMwithMixed = .false.
+        CalParams%ApplyPorePressureSmoothing = .false.
         CalParams%ApplyContactMeshBoundary = .false.
         CalParams%ApplyQuasiStatic = .false.
         CalParams%TwoLayerApplyUpdatePermeability = .false.
@@ -1092,8 +1094,13 @@
               call Assert( ios == 0, messageIOS//trim(BName) )
               call Assert( DumI(1) == 0 .or. DumI(1) == 1, 'CPS file: ' //trim(BName)// ' must be 0 or 1.' )
               if ( DumI(1) == 1 ) CalParams%UpdatedMPMwithMixed = .true.
+            
+            else if (trim(BName) == '$$APPLY_PORE_PRESSURE_SMOOTHING') then
+                read(FileUnit, *, iostat=ios) DumI(1)
+              call Assert( ios == 0, messageIOS//trim(BName) )
+              call Assert( DumI(1) == 0 .or. DumI(1) == 1, 'CPS file: ' //trim(BName)// ' must be 0 or 1.' )
+              if ( DumI(1) == 1 ) CalParams%ApplyPorePressureSmoothing = .true.
               
-     
             ! GRAVITY DATA
             else if (trim(BName)=='$$GRAVITY_ACCELERATION') then ! R [ 0.0 <= R ]
               read(FileUnit, *, iostat=ios) DumR(1)
@@ -2730,6 +2737,9 @@ subroutine ReadPrescribedAccelerationOrVelocityFromFile()
            ! Writing Updated MPM Mixed flag  
           call WriteLogic(FileUnit, '$$USE_UPDATED_MPM_MIXED', [CalParams%UpdatedMPMwithMixed], 1, .true.)
 
+          !Wrting Pressure Smoothing Flag
+          call WriteLogic(FileUnit, '$$APPLY_PORE_PRESSURE_SMOOTHING', [CalParams%ApplyPorePressureSmoothing], 1, .true.)
+          
           ! GRAVITY DATA
           call WriteReal(FileUnit, '$$GRAVITY_ACCELERATION', [CalParams%GravityData%GAccel], 1, .true.)
           call WriteReal(FileUnit, '$$GRAVITY_VECTOR', [CalParams%GravityData%GravityVector(1:NDIM)], NDIM, .true.)
