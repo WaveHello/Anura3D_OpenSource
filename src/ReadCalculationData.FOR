@@ -442,7 +442,8 @@
                      FeedbackLevel, &
 					 NCorrectedNormals !Number of normals to be modified in the contact
 
-          logical :: ApplyContactMeshBoundary, &
+          logical :: UpdatedMPMwithMixed,&
+                     ApplyContactMeshBoundary, &
                      ApplyQuasiStatic, & ! True - apply quasti-static convergence criteria
                      TwoLayerApplyUpdatePermeability, & ! True - update permeability according to porosity,  False - use initial intrinsic permeability
                      TwoLayerApplyErgunLaw, & !True - use Ergun Flow law,  False - use Darcy law
@@ -796,7 +797,8 @@
         CalParams%GroupThreshold = 40
         CalParams%RecursionThreshold = 60
         CalParams%NVirtualParticles = 1
-        CalParams%ComputationMethod = 0        
+        CalParams%ComputationMethod = 0
+        
         CalParams%TrajectoryType = -1
         CalParams%NumberOfPhases = 1
         CalParams%NumberOfMaterials = -1
@@ -816,6 +818,7 @@
 #endif       
 
         ! logicals
+        CalParams%UpdatedMPMwithMixed = .false.
         CalParams%ApplyContactMeshBoundary = .false.
         CalParams%ApplyQuasiStatic = .false.
         CalParams%TwoLayerApplyUpdatePermeability = .false.
@@ -1082,7 +1085,15 @@
                                  //MPM_MP_INTEGRATION_SPECIFIER// ' or ' //FEM_SPECIFIER// ' or ' //UL_FEM_SPECIFIER// '.' )
               end if
               if (IsFollowUpPhase()) call CheckChangeFEMtoMPM()
+            
+            ! For using the updated MPM Mixed scheme
+            else if (trim(BName) == '$$USE_UPDATED_MPM_MIXED') then
+              read(FileUnit, *, iostat=ios) DumI(1)
+              call Assert( ios == 0, messageIOS//trim(BName) )
+              call Assert( DumI(1) == 0 .or. DumI(1) == 1, 'CPS file: ' //trim(BName)// ' must be 0 or 1.' )
+              if ( DumI(1) == 1 ) CalParams%UpdatedMPMwithMixed = .true.
               
+     
             ! GRAVITY DATA
             else if (trim(BName)=='$$GRAVITY_ACCELERATION') then ! R [ 0.0 <= R ]
               read(FileUnit, *, iostat=ios) DumR(1)
@@ -2714,7 +2725,10 @@ subroutine ReadPrescribedAccelerationOrVelocityFromFile()
               call WriteString(FileUnit, '$$COMPUTATION_METHOD', FEM_SPECIFIER, 1, .true.)
             case(UL_FEM) 
               call WriteString(FileUnit, '$$COMPUTATION_METHOD', UL_FEM_SPECIFIER, 1, .true.)
-          end select
+            end select
+            
+           ! Writing Updated MPM Mixed flag  
+          call WriteLogic(FileUnit, '$$USE_UPDATED_MPM_MIXED', [CalParams%UpdatedMPMwithMixed], 1, .true.)
 
           ! GRAVITY DATA
           call WriteReal(FileUnit, '$$GRAVITY_ACCELERATION', [CalParams%GravityData%GAccel], 1, .true.)

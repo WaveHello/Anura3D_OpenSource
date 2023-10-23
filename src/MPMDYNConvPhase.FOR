@@ -366,7 +366,7 @@
 
       ! Update particle stress data for fully filled elements
         ! Update 1 MPM Mixed
-       if (IsMPMWithMixedIntegration() .and. .not.IsMPMSkipConvection()) then ! Not needed for pure MPM and FEM
+       if (IsMPMWithMixedIntegration() .and. .not.IsMPMSkipConvection() .and. .not. CalParams%UpdatedMPMwithMixed) then ! Not needed for pure MPM and FEM  or Updated MPM Mixed
          call AssignStressesToParticles() ! Need to check for parallelization
          call AssignStateParametersToParticles()  
        end if

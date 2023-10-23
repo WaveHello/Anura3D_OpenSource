@@ -346,15 +346,14 @@
                  !           end do
                  !       end if
                  !   end if                     
-                 !   else
-                   
-                     ! Adhesion factor takes into account that in case of separation, the adhesive force might
-                     ! still hold back the body. In this case, slip / no-slip are still relevant.
-                     if (abs(AdhesionFactor)>=1.0) then
-                       ! Bodies stick to each other
-                       ! Set velocity of contacting entities to the system velocity
-                     end if
-                   !end if  !(Traction == 0 .and. DiffDotUn > 0 .or......)
+                 else
+                    ! Adhesion factor takes into account that in case of separation, the adhesive force might
+                    ! still hold back the body. In this case, slip / no-slip are still relevant.
+                    if (abs(AdhesionFactor)>=1.0) then
+                      ! Bodies stick to each other
+                      ! Set velocity of contacting entities to the system velocity
+                    end if
+                 end if  !(Traction == 0 .and. DiffDotUn > 0 .or......)
                 end if     !(TotalVelocitySoil(IDof,ient) /= TotalVelocitySys(IDof)...)
               end if       !(EntityNodes(ient,nn) = 1)
             end do         !ient=1,nEntity
