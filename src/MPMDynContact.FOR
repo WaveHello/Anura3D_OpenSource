@@ -269,83 +269,84 @@
                       AdhesionCoef=1000
                     end if
                   end do                    
-          ! Adhesion
-          AdhesionFactor = AdhesionCoef * CalParams%TimeIncrement / (LumpedMassDry(IDof(1), IEnt) * (DiffDotUn + TINY))
+                  ! Adhesion
+                  AdhesionFactor = AdhesionCoef * CalParams%TimeIncrement / (LumpedMassDry(IDof(1), IEnt) * (DiffDotUn + TINY))
                     
-          if (DiffDotUn>0.0) then ! Standard formulation: DiffDotUn greater than 0 means approaching bodies
+                  if (DiffDotUn>0.0) then ! Standard formulation: DiffDotUn greater than 0 means approaching bodies
 
-            if (NVECTOR == 2) then ! 2D case
-              ! VelDiff x Unormal
-              CrossP(1) = 0.0
-              CrossP(2) = 0.0
-              CrossP(3) = VelDiff(1) * Unormal(2) - VelDiff(2) * Unormal(1)
-            elseif (NVECTOR == 3) then ! 3D case
-              !VelDiff x Unormal
-              CrossP(1) = VelDiff(2) * Unormal(3) - VelDiff(3) * Unormal(2)
-              CrossP(2) = VelDiff(3) * Unormal(1) - VelDiff(1) * Unormal(3)
-              CrossP(3) = VelDiff(1) * Unormal(2) - VelDiff(2) * Unormal(1)
-            else
-              call GiveError('Dimension is not correct. It must be 2 or 3.')
-            end if                        
-
-            vsize = sqrt( CrossP(1)*CrossP(1) + CrossP(2)*CrossP(2) + CrossP(3)*CrossP(3) )
-            
-            !CrossP/ |CrossP|
-            Omega = 0.0  
-            if (vsize /= 0) then
-              Omega = CrossP/vsize
-            end if
-             
-            do I = 1, CalParams%NumberOfMaterials-1 
-              if (MaterialNodes(I,nn)==1) then 
-                FrictionCoef = FrictionVector(nn,I)
-						  exit
-						  else !node belongs to contact but no material is in neighbour element
-						    FrictionCoef = 10 ! A high value will enforce that the solution is vsys
-              end if
-            end do
-
-            Dmu = min(FrictionCoef + AdhesionFactor, vsize/DiffDotUn) ! Slope larger than friction coefficient, then bring back to limit (max tangential force)
-
-            !Unormal X Omega - tangential direction normal to n-t-plane
-            if (NVECTOR == 2) then ! 2D case
-              !VelDiff x Unormal
-              CrossP(1) = Unormal(2) * Omega(3)
-              CrossP(2) = - Unormal(1) * Omega(3)
-              CrossP(3) = Unormal(1) * Omega(2) - Unormal(2) * Omega(1)
-            elseif (NVECTOR == 3)  then ! 3D case
-              !VelDiff x Unormal
-              CrossP(1) = Unormal(2) * Omega(3) - Unormal(3) * Omega(2)
-              CrossP(2) = Unormal(3) * Omega(1) - Unormal(1) * Omega(3)
-              CrossP(3) = Unormal(1) * Omega(2) - Unormal(2) * Omega(1)
-            else
-              call GiveError('Dimension is not correct. It must be 2 or 3.')
-            end if
-                      
-            do I = 1, NVECTOR
-              ! correct the velocity for soil nodes
-              TotalVelocitySoil(IDof(I),ient) =  TotalVelocitySoil(IDof(I),ient) - DiffDotUn*( Unormal(I) + Dmu*CrossP(I) )
-              ! with the corrected, get the final acceleration
-              AccelerationSoil(IDof(I),ient) = (TotalVelocitySoil(IDof(I),ient) - TotalVelocitySoilPrevious(IDof(I),ient)) / CalParams%TimeIncrement
-            end do
-
-            if ( CalParams%ApplyContactVelocityScaling ) then
-						   call MaxStrainRate(nn, TotalVelocitySoil(IDof(1):IDof(NVECTOR),ient), &
-						   TotalVelocitySoilPrevious(IDof(1):IDof(NVECTOR),ient), emax, &
-						   LumpedMassDry(IDof(1):IDof(NVECTOR), IEnt), LumpedMassSys(IDof(1):IDof(NVECTOR)))
-						   
-               if ( (emax*CalParams%TimeIncrement) > CalParams%ContactScalingFactor ) then
-						   ScaleFactor= CalParams%ContactScalingFactor/ (emax*CalParams%TimeIncrement)
-
-                 do I = 1, NVECTOR
-                   ! correct the velocity for soil nodes
-                   TotalVelocitySoil(IDof(I),ient) =  TotalVelocitySoilPrevious(IDof(I),ient) - ScaleFactor*DiffDotUn*( Unormal(I) + Dmu*CrossP(I) )
-                   ! with the corrected, get the final acceleration
-                   AccelerationSoil(IDof(I),ient) = (TotalVelocitySoil(IDof(I),ient) - TotalVelocitySoilPrevious(IDof(I),ient)) / CalParams%TimeIncrement
-                 end do
-						   end if
-					  end if                     
+                    if (NVECTOR == 2) then ! 2D case
+                      ! VelDiff x Unormal
+                      CrossP(1) = 0.0
+                      CrossP(2) = 0.0
+                      CrossP(3) = VelDiff(1) * Unormal(2) - VelDiff(2) * Unormal(1)
+                    elseif (NVECTOR == 3) then ! 3D case
+                      !VelDiff x Unormal
+                      CrossP(1) = VelDiff(2) * Unormal(3) - VelDiff(3) * Unormal(2)
+                      CrossP(2) = VelDiff(3) * Unormal(1) - VelDiff(1) * Unormal(3)
+                      CrossP(3) = VelDiff(1) * Unormal(2) - VelDiff(2) * Unormal(1)
                     else
+                      call GiveError('Dimension is not correct. It must be 2 or 3.')
+                    end if                        
+
+                    vsize = sqrt( CrossP(1)*CrossP(1) + CrossP(2)*CrossP(2) + CrossP(3)*CrossP(3) )
+            
+                    !CrossP/ |CrossP|
+                    Omega = 0.0  
+                    if (vsize /= 0) then
+                      Omega = CrossP/vsize
+                    end if
+             
+                    do I = 1, CalParams%NumberOfMaterials-1 
+                      if (MaterialNodes(I,nn)==1) then 
+                        FrictionCoef = FrictionVector(nn,I)
+					    exit
+					  else !node belongs to contact but no material is in neighbour element
+                        FrictionCoef = 10 ! A high value will enforce that the solution is vsys
+                      end if
+                    end do
+
+                    Dmu = min(FrictionCoef + AdhesionFactor, vsize/DiffDotUn) ! Slope larger than friction coefficient, then bring back to limit (max tangential force)
+
+                    !Unormal X Omega - tangential direction normal to n-t-plane
+                    if (NVECTOR == 2) then ! 2D case
+                      !VelDiff x Unormal
+                      CrossP(1) = Unormal(2) * Omega(3)
+                      CrossP(2) = - Unormal(1) * Omega(3)
+                      CrossP(3) = Unormal(1) * Omega(2) - Unormal(2) * Omega(1)
+                    elseif (NVECTOR == 3)  then ! 3D case
+                      !VelDiff x Unormal
+                      CrossP(1) = Unormal(2) * Omega(3) - Unormal(3) * Omega(2)
+                      CrossP(2) = Unormal(3) * Omega(1) - Unormal(1) * Omega(3)
+                      CrossP(3) = Unormal(1) * Omega(2) - Unormal(2) * Omega(1)
+                    else
+                      call GiveError('Dimension is not correct. It must be 2 or 3.')
+                    end if
+                      
+                    do I = 1, NVECTOR
+                      ! correct the velocity for soil nodes
+                      TotalVelocitySoil(IDof(I),ient) =  TotalVelocitySoil(IDof(I),ient) - DiffDotUn*( Unormal(I) + Dmu*CrossP(I) )
+                      ! with the corrected, get the final acceleration
+                      AccelerationSoil(IDof(I),ient) = (TotalVelocitySoil(IDof(I),ient) - TotalVelocitySoilPrevious(IDof(I),ient)) / CalParams%TimeIncrement
+                    end do
+
+                 !   if ( CalParams%ApplyContactVelocityScaling ) then
+						           !call MaxStrainRate(nn, TotalVelocitySoil(IDof(1):IDof(NVECTOR),ient), &
+						           !TotalVelocitySoilPrevious(IDof(1):IDof(NVECTOR),ient), emax, &
+						           !LumpedMassDry(IDof(1):IDof(NVECTOR), IEnt), LumpedMassSys(IDof(1):IDof(NVECTOR)))
+						           !
+                 !       if ( (emax*CalParams%TimeIncrement) > CalParams%ContactScalingFactor ) then
+                 !   
+                 !           ScaleFactor= CalParams%ContactScalingFactor/ (emax*CalParams%TimeIncrement)
+                 !
+                 !           do I = 1, NVECTOR
+                 !               ! correct the velocity for soil nodes
+                 !               TotalVelocitySoil(IDof(I),ient) =  TotalVelocitySoilPrevious(IDof(I),ient) - ScaleFactor*DiffDotUn*( Unormal(I) + Dmu*CrossP(I) )
+                 !               ! with the corrected, get the final acceleration
+                 !               AccelerationSoil(IDof(I),ient) = (TotalVelocitySoil(IDof(I),ient) - TotalVelocitySoilPrevious(IDof(I),ient)) / CalParams%TimeIncrement
+                 !           end do
+                 !       end if
+                 !   end if                     
+                 !   else
                    
                      ! Adhesion factor takes into account that in case of separation, the adhesive force might
                      ! still hold back the body. In this case, slip / no-slip are still relevant.
@@ -353,7 +354,7 @@
                        ! Bodies stick to each other
                        ! Set velocity of contacting entities to the system velocity
                      end if
-                   end if  !(Traction == 0 .and. DiffDotUn > 0 .or......)
+                   !end if  !(Traction == 0 .and. DiffDotUn > 0 .or......)
                 end if     !(TotalVelocitySoil(IDof,ient) /= TotalVelocitySys(IDof)...)
               end if       !(EntityNodes(ient,nn) = 1)
             end do         !ient=1,nEntity
