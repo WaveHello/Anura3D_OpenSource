@@ -329,23 +329,23 @@
                       AccelerationSoil(IDof(I),ient) = (TotalVelocitySoil(IDof(I),ient) - TotalVelocitySoilPrevious(IDof(I),ient)) / CalParams%TimeIncrement
                     end do
 
-                 !   if ( CalParams%ApplyContactVelocityScaling ) then
-						           !call MaxStrainRate(nn, TotalVelocitySoil(IDof(1):IDof(NVECTOR),ient), &
-						           !TotalVelocitySoilPrevious(IDof(1):IDof(NVECTOR),ient), emax, &
-						           !LumpedMassDry(IDof(1):IDof(NVECTOR), IEnt), LumpedMassSys(IDof(1):IDof(NVECTOR)))
-						           !
-                 !       if ( (emax*CalParams%TimeIncrement) > CalParams%ContactScalingFactor ) then
-                 !   
-                 !           ScaleFactor= CalParams%ContactScalingFactor/ (emax*CalParams%TimeIncrement)
-                 !
-                 !           do I = 1, NVECTOR
-                 !               ! correct the velocity for soil nodes
-                 !               TotalVelocitySoil(IDof(I),ient) =  TotalVelocitySoilPrevious(IDof(I),ient) - ScaleFactor*DiffDotUn*( Unormal(I) + Dmu*CrossP(I) )
-                 !               ! with the corrected, get the final acceleration
-                 !               AccelerationSoil(IDof(I),ient) = (TotalVelocitySoil(IDof(I),ient) - TotalVelocitySoilPrevious(IDof(I),ient)) / CalParams%TimeIncrement
-                 !           end do
-                 !       end if
-                 !   end if                     
+                    if ( CalParams%ApplyContactVelocityScaling ) then
+						           call MaxStrainRate(nn, TotalVelocitySoil(IDof(1):IDof(NVECTOR),ient), &
+						           TotalVelocitySoilPrevious(IDof(1):IDof(NVECTOR),ient), emax, &
+						           LumpedMassDry(IDof(1):IDof(NVECTOR), IEnt), LumpedMassSys(IDof(1):IDof(NVECTOR)))
+						           
+                        if ( (emax*CalParams%TimeIncrement) > CalParams%ContactScalingFactor ) then
+                    
+                            ScaleFactor= CalParams%ContactScalingFactor/ (emax*CalParams%TimeIncrement)
+                 
+                            do I = 1, NVECTOR
+                                ! correct the velocity for soil nodes
+                                TotalVelocitySoil(IDof(I),ient) =  TotalVelocitySoilPrevious(IDof(I),ient) - ScaleFactor*DiffDotUn*( Unormal(I) + Dmu*CrossP(I) )
+                                ! with the corrected, get the final acceleration
+                                AccelerationSoil(IDof(I),ient) = (TotalVelocitySoil(IDof(I),ient) - TotalVelocitySoilPrevious(IDof(I),ient)) / CalParams%TimeIncrement
+                            end do
+                        end if
+                    end if                     
                  else
                     ! Adhesion factor takes into account that in case of separation, the adhesive force might
                     ! still hold back the body. In this case, slip / no-slip are still relevant.

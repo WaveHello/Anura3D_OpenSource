@@ -384,6 +384,7 @@
                               ShrinkageMateriaPointPositionFactor, &
                               GammaWater, &
 							  ContactScalingFactor, &
+                              ConvContactScalingFactor,& ! Contact Velocity scaling factor for use in correction scheme in MPMDYNConvPhase
                               ManuallyDefinedVectors(MAXNUMBERSOILLAYERS,1+vsize) !manually modified normal vectors
 
 
@@ -510,6 +511,7 @@
                      ApplyPartialSaturation = .false.,& !True if partial saturation is taken into account in 2-phase single-point formulation
                      ApplySmootheningLiquidPressureIncrement = .false.,& !True if liquid pressure incement is smoothened, useful in unsaturated formulation
 			         ApplyContactVelocityScaling= .false.,& !True for scaling wrong velocities at the contact
+                     ApplyConvContactVelocityScaling =  .false.,& ! Flag for correcting Velocities in the MPMDynConvPhase Step
 					 ApplyContactNormalCorrection= .false. !Allows to modify some normal vectors in the contact algorithm
 
 
@@ -1531,7 +1533,20 @@
               call Assert( ios == 0, messageIOS//trim(BName) )
               call Assert( DumI(1) == 0 .or. DumI(1) == 1, 'CPS file: ' //trim(BName)// ' must be 0 or 1.' )
               if ( DumI(1) == 1 ) CalParams%ApplyContactVelocityScaling = .true.
-			  
+        
+            else if (trim(BName)=='$$CONV_VELOCITY_SCALING_FACTOR'  ) then ! Set in the CPS file
+              read(FileUnit, *, iostat=ios) DumR(1)
+              call Assert( ios == 0, messageIOS//trim(BName) )
+              CalParams%ConvContactScalingFactor = DumR(1) !Note that the scaling factor must be restricted between 1 and 0, I'm allowing to play with it
+              
+            else if (trim(BName)=='$$APPLY_CONV_CONTACT_VELOCITY_SCALING' ) then ! I [ 0, 1 ]
+              read(FileUnit, *, iostat=ios) DumI(1)
+              call Assert( ios == 0, messageIOS//trim(BName) )
+              call Assert( DumI(1) == 0 .or. DumI(1) == 1, 'CPS file: ' //trim(BName)// ' must be 0 or 1.' )
+              if ( DumI(1) == 1 ) CalParams%ApplyConvContactVelocityScaling = .true.
+            
+            
+            
 			else if (trim(BName)=='$$VELOCITY_SCALING_FACTOR'  ) then ! Set in the CPS file
               read(FileUnit, *, iostat=ios) DumR(1)
               call Assert( ios == 0, messageIOS//trim(BName) )
@@ -2823,7 +2838,11 @@ subroutine ReadPrescribedAccelerationOrVelocityFromFile()
               do I = 1, CalParams%NumberSoilLayers
                 write(FileUnit, *) CalParams%ManuallyDefinedVectors(I,1:(1+NVECTOR))
               end do
-            end if 
+           end if 
+           
+          call WriteLogic(FileUnit, '$$APPLY_CONV_CONTACT_VELOCITY_SCALING', [CalParams%ApplyConvContactVelocityScaling], 1, .true.)
+		  call WriteReal(FileUnit, '$$CONV_VELOCITY_SCALING_FACTOR', [CalParams%ConvContactScalingFactor], 1, .true.)
+          
           ! APPLY EXCAVATION
           call WriteInteger(FileUnit, '$$EXCAVATION', [CalParams%NumberExcavatedVolumes], 1, .true.) 
           do I = 1, CalParams%NumberExcavatedVolumes

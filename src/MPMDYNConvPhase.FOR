@@ -949,7 +949,7 @@
             IsInContactBoundary = .false.
 
             ! Find if the element is in contact boundary
-            if (CalParams%ApplyContactVelocityScaling) then
+            if (CalParams%ApplyConvContactVelocityScaling) then
               do I = 1, size(AdjacentElementIDsForContact)
                 if (IEl == AdjacentElementIDsForContact(I)) then
                   IsinContactBoundary = .true.
@@ -1017,7 +1017,7 @@
 
                   ! Update the particle velocities
                   if (Aux>(waveSpeed)) then
-                    ParticleVelocity = (CalParams%ContactScalingFactor * element_char_length/Time) * ParticleVelocity/Aux
+                    ParticleVelocity = (CalParams%ConvContactScalingFactor * element_char_length/Time) * ParticleVelocity/Aux
                   endif
                 endif
 
