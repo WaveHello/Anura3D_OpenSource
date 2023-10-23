@@ -197,8 +197,8 @@
           do IAEl = 1, Counters%NAEl     ! Loop over all active elements for computation of stresses
             IEl = ActiveElement(IAEl)
             ! Update 2 MPM Mixed
-            NElemPart = NPartEle(IEL)
-            !NElemPart = NumberOfIntegrationPoints(IEl)    ! Get the number of integration per element (Gaussian integration points or number of material points)
+            !NElemPart = NPartEle(IEL)
+            NElemPart = NumberOfIntegrationPoints(IEl)    ! Get the number of integration per element (Gaussian integration points or number of material points)
            
             ! Calculate stresses in integration/material points
             do Int = 1, NElemPart ! Loop over all integration/material points of the element
