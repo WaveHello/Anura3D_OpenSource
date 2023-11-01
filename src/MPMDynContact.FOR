@@ -1443,7 +1443,7 @@
            end do
        end do
        
-       if (CalParams%ApplyContactVelocityScaling) then !starts procedure to fill adjacent element ids to correct MP velocities
+       if (CalParams%ApplyConvContactVelocityScaling) then !starts procedure to fill adjacent element ids to correct MP velocities
            NFoundNodes=0
         do I = 1, NContactElm
            do J = 1, 2 ! corner nodes

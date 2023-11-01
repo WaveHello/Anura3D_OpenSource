@@ -466,10 +466,12 @@
        endif
 
        ! Smoothing of particle stresses for fully filled elements
-       if (IsMPMWithMixedIntegration() .and. .not.IsMPMSkipConvection()) then ! Not needed for pure MPM and FEM
+       ! Update 3 MPM Mixed
+       if (IsMPMWithMixedIntegration() .and. .not.IsMPMSkipConvection() .and. .not. CalParams%UpdatedMPMwithMixed) then ! Not needed for pure MPM and FEM and for Updated MPM Mixed
          call StressAndPorePressureSmoothening()
          call StateParametersSmoothening ()
        else
+           
          ! Store initial stresses of next step
          call SetInitialStressForNextLoadStep()
        end if
@@ -982,7 +984,8 @@
             
             do IPart = 1, NPartEle(IEl)   ! Loop over all particles in element
               ParticleIndex = GetParticleIndex(IPart, IEl) ! Get the particle ID
-              if ( (MaterialPointTypeArray(ParticleIndex)==MaterialPointTypeSolid) .or. (NFORMULATION==1) ) then ! NumbOfLayers = 1 or SOLID MatPoint
+              
+              if ( (MaterialPointTypeArray(ParticleIndex)==MaterialPointTypeSolid) .or. (NFORMULATION==1) ) then ! Check that the MP represents a solid or that the formulation is Mixed formulation
                  ParticleVelocity = VelocityArray(ParticleIndex,:)
                  ParticleMass = MassArray(ParticleIndex)
                  ParticleShape = ShapeValuesArray(ParticleIndex,:)
@@ -1016,7 +1019,8 @@
                   call GetWaveSpeedForTimeStepSize(ParticleIndex, IEl, waveSpeed)
 
                   ! Update the particle velocities
-                  if (Aux>(waveSpeed)) then
+                  !if (Aux>waveSpeed) then
+                  if (Aux>element_char_length/Time) then
                     ParticleVelocity = (CalParams%ConvContactScalingFactor * element_char_length/Time) * ParticleVelocity/Aux
                   endif
                 endif
@@ -2348,9 +2352,9 @@
               ParticlesVols = 0.0
               ParticleVol = 0.0
 
-              if (CalParams%ApplyEmptyElements) then
+              if (CalParams%ApplyEmptyElements) then ! Applies to empty and partially filled elements
                 AverageWeight = 0.0
-                if (NMaterialParticlesEle(IEl)>0) then
+                if (NMaterialParticlesEle(IEl)>0) then ! Check if the element is actually empty or partially filled
                   do IPart = 1, NElemPart
                     ParticleIndex = GetParticleIndex(IPart, IEl) ! Get the particle ID
                     if (IsMaterialParticle(ParticleIndex)) then

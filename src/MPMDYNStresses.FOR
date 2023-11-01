@@ -196,6 +196,7 @@
           if(NFORMULATION==1) then       ! one set of material points (1-point formulation)
           do IAEl = 1, Counters%NAEl     ! Loop over all active elements for computation of stresses
             IEl = ActiveElement(IAEl)
+            
             ! Update 2 MPM Mixed
             if (CalParams%UpdatedMPMwithMixed) then 
                 ! Using the updated MPM mixed, every MP is evaluated

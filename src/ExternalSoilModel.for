@@ -1077,7 +1077,7 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
                                     m_vec, n_vec, DE_m, a, dSig
 
     ! Local matrix values
-    double precision, dimension(6,6):: DE, DE_inv
+    double precision, dimension(6,6):: DE
 
     !------------End local Variables----------!
 
@@ -1136,6 +1136,9 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
     ! Calc strain invariants
     call Get_strain_invariants(EpsPu, epsv_p, epsq_p)
 
+    ! Turn off strain rate affects
+    ApplyStrainRateUpdate = .false.
+    
     ! Calc derivatives
     call Get_dD_to_dEpsq(D_min, h, I_0, k_D, epsq_p, epsv_p, &
                                 EpsPu, I, ApplyStrainRateUpdate, a) !a=dD/dEpsq^p
@@ -1197,10 +1200,6 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
     MaxIter = 100000
     counter = 0
     
-    !if (NOEL ==1) then
-    !    codeLine = 1 ! Just code line so I can count the number of hits
-    !end if
-    !ApplyStrainRateUpdate = .False.
     do while (abs(F) >= FTOL .and. counter <= MaxIter) 
         !---------------------Begin Compute derivatives--------------------------!
         ! Trying 
@@ -2444,7 +2443,7 @@ end subroutine Stress_Drift_Correction
     end SUBROUTINE UMAT_MohrCoulombStrainSoftening
 
 !***********************************************************************
-      Subroutine MOHRStrainSoftening(IntGlo,D1,D2,GG,cp,cr,phip,phir, &
+      Subroutine MOHRStrainSoftening(IntGlo,D1,D2, GG,cp,cr,phip,phir, &
        psip,psir,factor,c,phi,psi,Sig0,DSigE,EpsP,DEps,DEpsP,SigC,IPL)
         !**********************************************************************
         !
@@ -2484,16 +2483,17 @@ end subroutine Stress_Drift_Correction
         integer, intent(in) :: IntGlo !Global ID of Gauss point or particle
         double precision, intent(in) :: D1,D2,GG !Elastic Parameters
         double precision, intent(in) :: cp,cr,phip,phir,psip,psir,factor !Softening parameter
-        double precision, intent(in), dimension(6) :: Sig0 !Initial Stress
-        double precision, intent(in), dimension(6) :: DEps !Incremental total strain
         !Inout variables
+        double precision, intent(inout), dimension(6) :: DEps !Incremental total strain
         double precision, intent(inout):: c,phi,psi !cohesion,friction angle and dilatancy angle
         double precision, intent(inout), dimension(6) :: EpsP !Accumulated Plastic Strain
+        double precision, intent(inout), dimension(6) :: Sig0 !Initial Stress
         double precision, intent(inout), dimension(6) :: SigC !Final Stress
         double precision, intent(inout), dimension(6) :: DSigE !Incremental Elastic Stress
+        double precision, intent(inout), dimension(6) :: DEpsP !Incremental plastic strain
+
         !Out variables
         integer, intent(out) :: IPL
-        double precision, intent(out), dimension(6) :: DEpsP !Incremental plastic strain
 
         !Initialization
         DEpsPEq = 0.0d0
@@ -2516,7 +2516,7 @@ end subroutine Stress_Drift_Correction
 
         !Tolerances
         SSTOL = 0.01d0 !Tolerance Relative Error (10-3 to 10-5)
-        YTOL = 0.0001d0 !Tolerance Error on the Yield surface (10-6 to 10-9)
+        YTOL = 1e-6 !Tolerance Error on the Yield surface (10-6 to 10-9)
         SPTOL = 0.01d0 !Tolerance Softening Parameters (0.0001d0)
         ctol = abs(cp-cr)*SPTOL
         phitol = abs(phip-phir)*SPTOL
@@ -2545,167 +2545,236 @@ end subroutine Stress_Drift_Correction
         else
             IPL = 2 !IPL=2 Softening Conditions --> changes of the strength parameters
         end if
+    
+        call MCSS_Ortiz_Simo_Integration(GG, D1, D2, IntGlo, Sig0, c, phi, psi, factor, DEps, EpsP, dEpsP, cr, phir, psir, cp, phip, &
+                                              psip, ctol, phitol, psitol, YTOL)
+        
+        ! State parameters {phi, psi, c} updated inside ortiz-simo
+        
+        ! Final Parameter update
+        SigC = Sig0
+        
+        ! EpsP updated inside of the integration
+        ! dEpsP updated inside of ortiz-Simo
+        dSigE = dEps - dEpsP
+        
 
-        !Determine the proportion (alpha) of the stress increment that lies within the yield function.
-        !The PEGASUS ALGORITHM SCHEME FOR CONVENTIONAL ELASTOPLASTIC MODELS has been used
-        call DetermineYieldFunctionValue(IntGlo,Sig0,c,phi,F0)
+    end subroutine MOHRStrainSoftening
+      
+    Subroutine MCSS_Ortiz_Simo_Integration(G, D1, D2, IntGlo, Sig, c, phi, psi, factor, dEps, EpsP, dEpsP, cr, phir, psir, cp, phip, &
+                                              psip, ctol, phitol, psitol, FTOL)
+          ! List the input variables
+              ! G: Shear modulus
+              ! D1, D2: Components of the elastic stiffness  matrix
+              ! IntGlo: Global iD of the Gauss point or particle
+              ! Sig: Current stress state
+              ! c: Cohesion
+              ! phi: Friction angle
+              ! psi: Dilatancy angle
+              ! factor: Softening parameter
+              ! dEps: Total strain increment
+              ! EpsP:  Accumulated plastic strain
+              ! cr: residual cohesion value 
+              ! phir: residual friction angle
+              ! psir: residual dilatancy angle
+              ! cp: peak cohesion value
+              ! phip: peak friction angle
+              ! psip: peak dilatancy angle
+              ! ctol: cohesion tolerance around the residual value (cr)
+              ! phitol: friction angle tolerance around the residual value (phir)
+              ! psitol: dilatnacy angle tolerance around the residual value (psir)
+      
+          ! -------------------------- Variable Definitions --------------------------
+          ! ------------- Scalar Values -------------
+          ! In 
+          double precision, intent(in) :: G, D1, D2, factor, cr, phir, psir, cp, phip, psip, ctol, phitol, psitol, FTOL
+          integer :: IntGlo
+          
+          ! In/Out 
+          double precision, intent(inout) :: c, phi, psi
+          ! Out 
+          ! double precision, intent(out) ::
+      
+          ! ------------- Vector Values -------------
+          ! In 
+          !double precision, intent(inout), dimension(6) :: 
+          ! In/Out 
+          double precision, intent(inout), dimension(6) :: Sig, dEps, EpsP, dEpsP
+      
+          ! ------------- Local Variables -------------
+          ! Variable definitions
+              ! F: Yield surface value
+              ! cu:  Updated cohesion value
+              ! phiu: Updated friction angle value
+              ! psiu: updated dilatancy value
+              ! p: Mean stress 
+              ! J: Deviatoric stress 
+              ! Lode: Lode angle
+              ! S3TA: ??
+              ! dummyVal_1, dummyVal_2, dummyVal_3: Free variables
+              ! H: Hardening parameter (dF/dLambda)
+              ! D1, D2: Dummy values  to store stfiffness matrix components
+              ! epsPEq: Equivalent plastic  strain (constant scaled norm of the plastic strain)
+              ! dLambda: Increment of the plastic multiplier
+              ! Maxiter: The maximum number of time the gradient descent  method should be used
+      
+              ! dummyVec_6d: length 6 free  vector
+              ! dEpsPu: Updated increment of plastic strain
+              ! EpsPu: Updated value of the total plastic strain
+              ! Sigu: Updated stress value
+              ! dSigu: Updated increment of stress
+              ! m_vec: Normal to the plastic potential (dP/dSig)
+              ! n_vec: Normal to the Yield surface (dF/dSig)
+              ! DE_m: Elastic stiffness matrix times the plastic potential normal
+              ! DEpsPEqDPS: Derivative of the Equivalent plastic strain  wrt to the plastic strain (dEpsPEq/dEpsP)
+              ! DSPDPEq: Derivative of the state  parameters wrt the equivalent strain (dXs/dEpsEq)
+      
+              ! dummyVec_3d: length 3 free vector
+      
+              ! dFdSP: Derivative of the yield surface wrt  to the  state parameters (dF/dXs)
+      
+              ! DE: Stiffness matricx
+      
+          ! Local scalar values
+      
+          double precision :: F, cu, Phiu, Psiu , J, Lode, S3TA, dummyVal_1, dummyVal_2, dummyVal_3, H, epsPEq, dLambda
+          integer:: MaxIter
+      
+          ! Local vector values
+          double precision, dimension(6):: dummyVec_6d, dEpsPu, EpsPu, Sigu, dSigu, &
+                                          m_vec, n_vec, DE_m, DEpsPEqDPS, DSPDPEq
+      
+          double precision, dimension(3):: dummyVec_3d
+      
+          double precision, dimension(2):: dFdSP ! Derivative of the yield function with respect to the softening parameters (phi, c)
+      
+          ! Local matrix values
+          double precision, dimension(6,6):: DE
+      
+          ! -------------------------- Begin Calculations --------------------------
+      
+      
+          ! Store variables for updating
+          Sigu = Sigu
+          EpsPu = EpsP
+      
+          cu = c ! Updated cohesion
+          Phiu = Phi! Updated friction angle
+          Psiu = Psi ! Updated dilatancy
+      
+          ! Form the stiffness matix
+          DE = 0.0
+          DE(1:3,1:3) = D2
+          DE(1,1) = D1
+          DE(2,2) = D1
+          DE(3,3) = D1
+          DE(4,4) = G
+          DE(5,5) = G
+          DE(6,6) = G 
+      
+          ! Keep the State varaibles constant
+      
+          ! Calc the elastic predictor for the stresses (Assumes that all of strain increment is elastic therfore there is  no change in the equivalent plastic strain)
+          call MatVec_MohrCoulombStrainSoftening(DE, 6, dEps, 6, dSigu)
+      
+          ! Update the stresses
+          Sigu = Sigu + dSigu
+      
+          ! Evalue the yield surface
+          call DetermineYieldFunctionValue(IntGlo, Sigu, cu, phiu, F)
+      
+          if (abs(F) < FTOL) then
+              ! Prediction of the stress and strain values are correct and the values can be updated and returned
+      
+              ! Update Sig, EpsP, dEpsP
+              Sig = Sigu
+              EpsP(:) = 0
+              dEpsP(:) = 0
+      
+              ! Update yield surface values
+              c = cu
+              phi = phiu
+              psi = psiu
+      
+              ! Exit the subroutine
+              return
+          end if
+      
+          ! Max number of plastic descent iterations
+          MaxIter = 100000
+      
+          do while(abs(F) >= FTOL .and. counter <= MaxIter)
+              call CalculateInvariants(IntGlo, Sigu, p, J, Lode, S3TA)
+      
+              ! Calc the equivalent plastic strain
+              call CalculateEpsPEq(EpsPu, epsPEq)     
+      
+              ! Calc n_vec, m_vec
+              call CalculateDerivativesYieldFunctAndPlasticPotential(Sigu, p, J, Lode, S3TA, cu, phiu, psiu, n_vec, m_vec)
+      
+              ! dF/dXs
+              call CalculateDerivativesYieldFunctSofteningParameters(p, J, Lode, S3TA, cu, phiu, dFdSP)
+      
+              ! dXs/dEpsPEq
+              call CalculateDerivativesStrSoftParamRespectEquivalentPlasticStrain(factor,cp,cr,&
+                                      phip,phir,psip,psir,EpsPEq,DSPDPEq)
+      
+              ! Calc dEpsPEq/dEpsP
+              call CalculateDerivativesEquivalentPlasticStrainRespectPlasticStrain(EpsPu, EpsPEq, DEpsPEqDPS)
+      
+              ! Calc D * m
+              call MatVec_MohrCoulombStrainSoftening(DE, 6, m_vec, 6, DE_m)
+      
+              ! Compute n_vec.DE.m_vec
+              call DotProduct_2(n_vec, DE_m, 6, dummyVal_1)
+      
+              ! Make a 1x3 vector to store dF/dXs
+              dummyVec_3d = 0
+              dummyVec_3d([0:1]) = dFdSP([0:1]) 
+      
+              ! Calc the dot product between dF/dXs.dXs/dEpsPEq
+              call DotProduct_2(dummyVec_3d, DSPDPEq, 6, dummyVal_2)
+      
+              ! Calc the dot product between dEpsPEq/dEpsP.dP/dSig
+              call DotProduct_2(DEpsPEqDPS, m_vec, 6, dummyVal_3)
+      
+              ! Need to calc the hardening/softening parameter (H)
+              ! H = dF/dXs.dXs/dEpsEq * dEpsEq/dEpsP.dP/dSig
+              H = dummyVal_2 * dummyVal_3
+      
+              ! calc dLambda (Increment of the plastic multiplier)
+              dLambda = F/(dummyVal_1 - H)
+      
+              ! Compute the stress update
+              Sigu = Sigu - dLambda * DE_m
+      
+              ! Accumulate plastic strain
+              EpsPu = EpsPu + dLambda * m_vec
+      
+              ! Calc the equivalent plastic strain
+              call CalculateEpsPEq(EpsPu, epsPEq)     
+      
+              ! Update the state parameters (c, phi, psi)
+              call CalculateSofteningParameters(epsPEq,factor,cp,cr,phip,phir,psip,psir,cu,phiu,psiu)
+      
+              ! Calc the yield function value
+              call DetermineYieldFunctionValue(IntGlo,Sigu,cu,phiu,F)
+      
+              ! Update the counter
+              counter = counter + 1
+          end do
+      
+          ! Retun the integrated parameters
+          Sig = Sigu
+          dEpsP = EpsPu-EpsP
+          EpsP = EpsPu
+      
+          c = cu
+          Phi = Phiu
+          Psi = Psiu
+      
+    end Subroutine MCSS_Ortiz_Simo_Integration
 
-        if (F0 < -YTOL) then !In this Time increment there is part of elastic behavior
-            call DetermineElasticProportionPegasusMethod(IntGlo,Sig0,DSigE,DEps,c,phi,YTOL,alpha)
-        else  
-            alpha = 0.0d0 !In this time increment all is plastic behavior
-        end if
-
-        !Calculate the direction of the stress path--> missing
-        !It is assumed that the direction is always outside the yield surface.
-
-        !Determine the elastic portion of the stress increment
-        DSigE = alpha * DSigE !Correct Incremental Elastic Stress
-
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        !Determine the plastic portion of the stress increment.
-        !The method used is the MODIFIED EULER INTEGRATION SCHEME with error control
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-        !Initialise parameters
-        SigYield = Sig0 + DSigE !Sigma on the Yield surface
-        DEpsS = (1.0d0-alpha) * DEps !Incremental Plastic Strain
-
-        T = 0.0d0
-        DT = 1.0d0
-
-        !Start the plastification
-        Do while (T <= 1.0d0)
-            m = 0 !Counter
-            Rn = 100
-
-            call CalculateEpsPEq(EpsP,EpsPEq) !Determine Equivalent plastic Strain (EpsPEq)
-
-            Do while (Rn > SSTOL.and.m < 1000)
-                !1)Calculation of the portion of the plastic strain increment (DEpsPP)
-                DEpsSS = DT * DEpsS !Portion of the plastic strain increment
-
-                !Calculate a first estimate of the associated stress 
-                !hardening/softening parameter changes
-                call CalculateDerivativesStrSoftParamRespectEquivalentPlasticStrain(factor,cp,cr,phip,phir,psip,psir,&
-                    EpsPEq,DSPDPEq)
-                call CalculateDerivativesEquivalentPlasticStrainRespectPlasticStrain(EpsP,EpsPEq,DEpsPEqDPS)
-                call DetermineDSigAndDEpsP(IntGlo,D1,D2,GG,c,phi,psi,SigYield,DEpsPEqDPS,DSPDPEq,DEpsSS,DSigP1,DEpsPP1)
-                EpsP1 = EpsP + DEpsPP1
-
-                call CalculateEpsPEq(EpsP1,EpsPEq1) !Determine Equivalent plastic Strain (EpsPEq)
-
-                !if (IPL == 1) then !Residual conditions --> no changes of the strength parameters
-                !    c1 = c
-                !    phi1 = phi
-                !    psi1 = psi
-                !else !IPL=2 Softening Conditions --> changes of the strength parameters
-                    call CalculateSofteningParameters(EpsPEq1,factor,cp,cr,phip,phir,psip,psir,c1,phi1,psi1)
-                !end if
-
-                !2)Calculate a second estimate of the associated stress 
-                !hardening/softening parameter changes
-                SigYield2 = SigYield + DSigP1
-
-                call CalculateDerivativesStrSoftParamRespectEquivalentPlasticStrain(factor,cp,cr,phip,phir,psip,psir,&
-                    EpsPEq1,DSPDPEq1)
-                call CalculateDerivativesEquivalentPlasticStrainRespectPlasticStrain(EpsP1,EpsPEq1,DEpsPEqDPS1)
-                call DetermineDSigAndDEpsP(IntGlo,D1,D2,GG,c1,phi1,psi1,SigYield2,DEpsPEqDPS1,DSPDPEq1,DEpsSS,DSigP2,DEpsPP2)
-                EpsP2 = EpsP + DEpsPP2
-
-                call CalculateEpsPEq(EpsP2,EpsPEq2) !Determine Equivalent plastic Strain (EpsPEq)
-
-                !if (IPL == 1) then !Residual conditions --> no changes of the strength parameters
-                !    c2 = c
-                !    phi2 = phi
-                !    psi2 = psi
-                !else  !IPL=2 Softening Conditions --> changes of the strength parameters
-                    call CalculateSofteningParameters(EpsPEq2,factor,cp,cr,phip,phir,psip,psir,c2,phi2,psi2)
-                !end if
-
-                !3)Obtain a more accurate modified Euler estimate of the changes in stress,
-                !plastic strain and hardening/softening parameters
-                DSigPP = 0.5d0 * (DSigP1 + DSigP2)
-
-                !Calculation of the relative error
-                Er = 0.5d0 * (DSigP1 - DSigP2)
-                moduleEr = sqrt(Er(1)*Er(1)+Er(2)*Er(2)+ Er(3)*Er(3)+ Er(4)*Er(4)+Er(5)*Er(5)+Er(6)*Er(6))
-
-                sumSg = SigYield + DSigPP
-                moduleSigDSig = sqrt(sumSg(1)*sumSg(1) + sumSg(2)*sumSg(2) + sumSg(3)*sumSg(3)+ &
-                                    sumSg(4)*sumSg(4) + sumSg(5)*sumSg(5) + sumSg(6)*sumSg(6))
-
-                !Check the relative error (Rn) of the new stresses, with the defined tolerance (SSTOL)
-                Rn = (moduleEr/moduleSigDSig)
-
-                ! check whether decreasing of DT is possible, if not exit loop
-                if (DT == DTmin) then
-                exit
-                end if
-            
-                !4)If Rn>SSTOL, the loop is not finished and the substep is recalculated smaller
-                if (Rn > SSTOL) then
-                    beta = max (0.9d0*(sqrt(SSTOL/Rn)), 0.1d0)
-                    beta = min (beta, 1.1d0)
-                    DT = max (DT*beta, DTmin)
-                    m = m + 1 !Update counter
-                end if
-
-            end do
-
-            !Update the accumulated stresses, plastic strain and softening parameters
-            SigYield = SigYield + DSigPP
-            DEpsPP = 0.5d0 * (DEpsPP1 + DEpsPP2)
-            DEpsP = DEpsP + DEpsPP
-            EpsP = EpsP + DEpsPP
-
-            call CalculateEpsPEq(EpsP,EpsPEq) !Determine Equivalent plastic Strain (EpsPEq)
-
-            call CalculateSofteningParameters(EpsPEq,factor,cp,cr,phip,phir,psip,psir,c,phi,psi)
-
-            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            !!!!!!!!!!!!!!!!!!!!!!! END OF STEP CORRECTION!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            !Check if we are on/in the yield surface, otherwise we are still outside (F>0)
-            !and a correction is needed.
-            call DetermineYieldFunctionValue(IntGlo,SigYield,c,phi,F)
-            n=0 !Counter
-            do while (abs(F) > YTOL.and.n < 10) !The correction is needed
-                n = n + 1
-                call CalculateEpsPEq(EpsP,EpsPEq)             !Determine Equivalent plastic Strain (EpsPEq)
-                call CalculateDerivativesStrSoftParamRespectEquivalentPlasticStrain(factor,cp,cr,phip,phir,psip,psir,& 
-                    EpsPEq,DSPDPEq)
-                call CalculateDerivativesEquivalentPlasticStrainRespectPlasticStrain(EpsP,EpsPEq,DEpsPEqDPS)
-                call EndOfStepCorrection(IntGlo,D1,D2,GG,IPL,F,SigYield,DSPDPEq,DEpsPEqDPS,EpsP,c,phi,psi)
-            end do
-            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-            !The substep is updated
-            T1 = T + DT
-
-            !If T1>1 the calculation is finished
-            If (T1 >= 1d0) then
-                SigC = SigYield   !Determine Final stresses
-                return
-            end if
-
-            !If T1<1, calculation of the next substep DT
-            beta = min (0.9d0*(sqrt(SSTOL/Rn)), 1.1d0)
-            if (m > 1) then ! the previous step failed
-                beta = min (beta, 1.0d0)
-                DT = beta * DT
-                it = it+1
-            else
-                DT = beta * DT
-                it = 0
-            end if
-            DT = max (DT, DTmin)
-            DT = min (DT, 1.0d0-T1)
-            T = T1
-            
-        end do  !If T=1 the loop is finished
-
-      end subroutine MOHRStrainSoftening
- 
       Subroutine DetermineElasticProportionPegasusMethod(IntGlo,Sig,DSig,DEps,c,phi,YTOL,alpha)
         !**********************************************************************
         !
