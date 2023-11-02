@@ -2508,6 +2508,7 @@ end subroutine Stress_Drift_Correction
             phi = min(phi,phip)
             psi = min(psi,psip)
         end if
+        
         if (c < cr.or.phi < phir.or.psi < psir) then
             c = max(c,cr)
             phi = max(phi,phir)
@@ -2516,7 +2517,7 @@ end subroutine Stress_Drift_Correction
 
         !Tolerances
         SSTOL = 0.01d0 !Tolerance Relative Error (10-3 to 10-5)
-        YTOL = 1e-6 !Tolerance Error on the Yield surface (10-6 to 10-9)
+        YTOL = 1e-8 !Tolerance Error on the Yield surface (10-6 to 10-9)
         SPTOL = 0.01d0 !Tolerance Softening Parameters (0.0001d0)
         ctol = abs(cp-cr)*SPTOL
         phitol = abs(phip-phir)*SPTOL
@@ -2546,6 +2547,7 @@ end subroutine Stress_Drift_Correction
             IPL = 2 !IPL=2 Softening Conditions --> changes of the strength parameters
         end if
     
+        
         call MCSS_Ortiz_Simo_Integration(GG, D1, D2, IntGlo, Sig0, c, phi, psi, factor, DEps, EpsP, dEpsP, cr, phir, psir, cp, phip, &
                                               psip, ctol, phitol, psitol, YTOL)
         
@@ -2617,7 +2619,8 @@ end subroutine Stress_Drift_Correction
               ! epsPEq: Equivalent plastic  strain (constant scaled norm of the plastic strain)
               ! dLambda: Increment of the plastic multiplier
               ! Maxiter: The maximum number of time the gradient descent  method should be used
-      
+              ! counter: Track current number of iterations
+          
               ! dummyVec_6d: length 6 free  vector
               ! dEpsPu: Updated increment of plastic strain
               ! EpsPu: Updated value of the total plastic strain
@@ -2638,13 +2641,13 @@ end subroutine Stress_Drift_Correction
           ! Local scalar values
       
           double precision :: F, cu, Phiu, Psiu , J, Lode, S3TA, dummyVal_1, dummyVal_2, dummyVal_3, H, epsPEq, dLambda
-          integer:: MaxIter
+          integer:: MaxIter, counter
       
           ! Local vector values
           double precision, dimension(6):: dummyVec_6d, dEpsPu, EpsPu, Sigu, dSigu, &
-                                          m_vec, n_vec, DE_m, DEpsPEqDPS, DSPDPEq
+                                          m_vec, n_vec, DE_m, DEpsPEqDPS
       
-          double precision, dimension(3):: dummyVec_3d
+          double precision, dimension(3):: dummyVec_3d, DSPDPEq
       
           double precision, dimension(2):: dFdSP ! Derivative of the yield function with respect to the softening parameters (phi, c)
       
@@ -2655,7 +2658,7 @@ end subroutine Stress_Drift_Correction
       
       
           ! Store variables for updating
-          Sigu = Sigu
+          Sigu = Sig
           EpsPu = EpsP
       
           cu = c ! Updated cohesion
@@ -2702,7 +2705,8 @@ end subroutine Stress_Drift_Correction
       
           ! Max number of plastic descent iterations
           MaxIter = 100000
-      
+          counter = 0
+          
           do while(abs(F) >= FTOL .and. counter <= MaxIter)
               call CalculateInvariants(IntGlo, Sigu, p, J, Lode, S3TA)
       
@@ -2729,11 +2733,12 @@ end subroutine Stress_Drift_Correction
               call DotProduct_2(n_vec, DE_m, 6, dummyVal_1)
       
               ! Make a 1x3 vector to store dF/dXs
-              dummyVec_3d = 0
-              dummyVec_3d([0:1]) = dFdSP([0:1]) 
+              dummyVec_3d(:) = 0
+              dummyVec_3d(1) = dFdSP(1)
+              dummyVec_3d(2) = dFdSP(2)
       
               ! Calc the dot product between dF/dXs.dXs/dEpsPEq
-              call DotProduct_2(dummyVec_3d, DSPDPEq, 6, dummyVal_2)
+              call DotProduct_2(dummyVec_3d, DSPDPEq, 3, dummyVal_2)
       
               ! Calc the dot product between dEpsPEq/dEpsP.dP/dSig
               call DotProduct_2(DEpsPEqDPS, m_vec, 6, dummyVal_3)
@@ -2744,6 +2749,7 @@ end subroutine Stress_Drift_Correction
       
               ! calc dLambda (Increment of the plastic multiplier)
               dLambda = F/(dummyVal_1 - H)
+              !dLambda = F/(dummyVal_1)
       
               ! Compute the stress update
               Sigu = Sigu - dLambda * DE_m
