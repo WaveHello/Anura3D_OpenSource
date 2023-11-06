@@ -218,13 +218,13 @@
             end do
             
             !loop through all entities
-            do ient=1,Counters%nEntity
+            do ient=1,Counters%nEntity ! Loop through the entities (2 entities for contact - One is the soil and the other is the impacting object)
               !
-              if (EntityNodes(ient,nn) == 1) then             !this node (nn) belongs to the entity (ient)
+              if (EntityNodes(ient,nn) == 1) then !if the selected node (nn) belongs to the selected entity (ient)
 
-                ApplyContact = .false.
+                ApplyContact = .false. ! Reset the flag to false
                 do I = 1, NVECTOR
-                  if (TotalVelocitySoil(IDof(I), ient) /= TotalVelocitySys(IDof(I))) then
+                  if (TotalVelocitySoil(IDof(I), ient) /= TotalVelocitySys(IDof(I))) then ! From Bardenhagen (2001) Compare body velocity (TotalVelocitySoil(IDOF(I), ientity) and center of mass velocity (TotalSystemVelocity)
                     ApplyContact = .true.
                     exit
                   end if
@@ -241,7 +241,7 @@
                   DiffDotUn = 0.0
                   do I = 1, NVECTOR
                     ! Calculate velocity difference between entity and system
-                    VelDiff(I) = TotalVelocitySoil(IDof(I), ient) - TotalVelocitySys(IDof(I))
+                    VelDiff(I) = TotalVelocitySoil(IDof(I), ient) - TotalVelocitySys(IDof(I)) ! v^{alpha} - v^{cm}
                     ! VelDiff.dot.Unormal
                     DiffDotUn = DiffDotUn + VelDiff(I) * Unormal(I)
                   end do  
@@ -388,7 +388,7 @@
                           
           !EntityNodes
           do iael=1,Counters%Nael                       !loop through all elements
-            iel = ActiveElement(iael)
+            iel = ActiveElement(iael)                   
             do ient=1,Counters%nEntity                    !loop through all entities
               if (EntityElements(ient,iel) == 1) then !entity contains this element
                 do inode=1,ELEMENTNODES              !loop through element nodes

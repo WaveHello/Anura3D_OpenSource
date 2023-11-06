@@ -1069,6 +1069,7 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
     ! Local scalar values
     double precision:: I_f, F, p, q, epsv_p, epsq_p, eta_yu, Du, Mu, dummyVal, a_Dot_m, L, H_term, &
                        D1, D2, b, dLambda, dD
+
     logical:: ApplyStrainRateUpdate = .false.
     integer:: counter, MaxIter
 
@@ -1101,9 +1102,10 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
         eta_yu = Mu-du*(1.0 * No)
     endif
 
+    ! Turn off strain rate affects
+    ApplyStrainRateUpdate = .false.
+
     !--------------------Compute elastic predictor---------------------------!
-    ! Calc the elastic strain predictor dEpsE = dEps - dEpsP
-    !dEpsE = dEps - dEpsPu ! use the entire strain
     dEpsE = dEps ! This is Luis's option for predicting the elastic strain
 
     !-----------Ensemble elastic matrix------------------!
@@ -1126,47 +1128,18 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
     Sigu = Sigu + dSig
 
     !-----------------End Compute elastic predictor------------------------!
-
-    !------------------------Update eta_y----------------------------------!
-    ! Update plastic strain
-    ! There is no plastic strain increment if the whole thing was elastic
-    !EpsPu = EpsPu + dEpsPu
-    dEpsPu(:) = 0
-    
-    ! Calc strain invariants
-    call Get_strain_invariants(EpsPu, epsv_p, epsq_p)
-
-    ! Turn off strain rate affects
-    ApplyStrainRateUpdate = .false.
-    
-    ! Calc derivatives
-    call Get_dD_to_dEpsq(D_min, h, I_0, k_D, epsq_p, epsv_p, &
-                                EpsPu, I, ApplyStrainRateUpdate, a) !a=dD/dEpsq^p
-    
-    a(:) = 0.0
-    !call Get_dD_to_dI(D_min, h, I_0, k_D, epsq_p, I, b) !b=dXs/dI in place of dXs/dErate
-
-    ! Reset the increment of dilatancy
-    dD = 0.0
-
-    !call DotProduct_2(a, dEpsPu, 6, dD) !plastic hard/softening
-
-    !dD = dD + b*dI ! rate hard/softening
-
-    Du = Du + dD
-
-    eta_yu = Mu - Du * (1.0 -No)
-    !----------------------End Update eta_y--------------------------------!
-
+    ! Since all strain is assumed to be elastic no plastic strain increment
 
     !-------------------Begin Yielding Check--------------------------!
 
     ! Compute stress invariants
     call Get_invariants(Sigu, p, q, dummyVal)
     
-    ! Update M??
+    ! M = M_tc*(1 + 0.25(cos(1.5 * theta + 0.25 *pi))
     call Get_M(M_tc, dummyVal, Mu)
     
+    eta_yu = Mu - Du * (1.0 -No)
+
     ! Compute the value of the yield Function
     call YieldFunction(q, p, eta_yu, F)
 
@@ -1200,17 +1173,22 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
     MaxIter = 100000
     counter = 0
     
+    call Get_dD_to_dEpsP(D_min, h, I_0, k_D, epsq_p, epsv_p, &
+                                dEpsPu, I, ApplyStrainRateUpdate, a) !a=dD/dEpsP
+
+    ! Compute stress invariants
+    call Get_invariants(Sigu, p, q, dummyVal)
+    
     do while (abs(F) >= FTOL .and. counter <= MaxIter) 
         !---------------------Begin Compute derivatives--------------------------!
-        ! Trying 
         call Get_dF_to_dSigma(Mu, eta_yu, Sigu, n_vec) !n=dF/dSig
         call Get_dP_to_dSigma(Du, Sigu, m_vec) !m=dP/dSig
-        L = -p * (1-No) !dF/Xs == Xi in Ortiz & Simo
-        !L = p ! dF/dXs with Xs = eta_y
+        L = -p * (1-No) !dF/Xs = dF/dDp = Xi in Ortiz & Simo
+        
         !-----------------------End Compute derivatives--------------------------!
 
         !----------------Compute Denominator of dLambda--------------------------!
-        ! Denominator = v:D:r - Xi.h == n_vec:DE:m_vec - L.H_term
+        ! Denominator = v:D:r - Xi.h == n_vec:DE:m_vec - H_term
         
         ! Compute DE.m_vec
         call MatVec(DE, 6, m_vec, 6,  DE_m)
@@ -1218,17 +1196,17 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
         ! Compute n_vec.DE.m_vec
         call DotProduct_2(n_vec, DE_m, 6, dummyVal)
 
-        ! compute h == H_term = -L.a.m
+        ! compute Xi.h = H_term = L.a.m
         call DotProduct_2(a, m_vec, 6, a_Dot_m)
-        H_term = -L * a_Dot_m
+        H_term = L * a_Dot_m
 
         !--------------End Compute Denominator of dLambda-----------------------!
 
         ! Compute the change in the plastic potential (lambda)
-        dLambda = F/(dummyVal - L * H_term) 
+        dLambda = F/(dummyVal - H_term) 
 
         ! Compute the stress update
-        Sigu = Sigu - dLambda * (DE_m)
+        Sigu = Sigu - dLambda * DE_m
 
         ! Compute stress invariants
         call Get_invariants(Sigu, p, q, dummyVal)
@@ -1241,17 +1219,16 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
         
         ! Accumulate plastic strain
         EpsPu = EpsPu + dEpsPu
-        
+    
         ! Calc strain invariants
         call Get_strain_invariants(EpsPu, epsv_p, epsq_p)
         
-        ! Calc derivatives
-        call Get_dD_to_dEpsq(D_min, h, I_0, k_D, epsq_p, epsv_p, &
-                                dEpsPu, I, ApplyStrainRateUpdate, a) !a=dD/dEpsq^p
+        ! Calc a = dD/dEpsP
+        call Get_dD_to_dEpsP(D_min, h, I_0, k_D, epsq_p, epsv_p, &
+                                dEpsPu, I, ApplyStrainRateUpdate, a) !a=dD/dEpsP
         
         ! Update dilatancy
         dD = 0.0
-        a(:) = 0.0
         !call DotProduct_2(a, dEpsPu, 6, dD) !plastic hard/softening
         Du = Du + dD
         
@@ -1260,9 +1237,6 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
 
         ! Calc the yield function
         call YieldFunction(q, p, eta_yu, F)
-        
-        ! Update tracking stateV
-        num_OS_Iterations = num_OS_Iterations + 1
         
         ! Update Counter to end while loop
         Counter = Counter + 1
@@ -1349,7 +1323,7 @@ subroutine Euler_Algorithm(G_0, nu, M_tc, M, No,  D_min, h, Dpart, Gs,&
     call Get_dF_to_dSigma(M_tc, eta_y, Sig, n_vec) !n=dFdSig
     call Get_dP_to_dSigma(Dp, Sig, m_vec) !m=dP/dSig
     L = -p*(1.0-No) !L=dF/dXs
-    call Get_dD_to_dEpsq(D_min, h, I_0, k_D, epsq_p, epsv_p, &
+    call Get_dD_to_dEpsP(D_min, h, I_0, k_D, epsq_p, epsv_p, &
                         EpsP, I, ApplyStrainRateUpdate, a) !a=dD/dEpsq^p   
     call Get_dD_to_dI(D_min, h, I_0, k_D, epsq_p, I, b) !b=dXs/dI in place of dXs/dErate
     !________________________________________________________________________
@@ -1500,7 +1474,7 @@ subroutine Stress_Drift_Correction(G_0, nu, M_tc, M, No, D_min, h, Dpart, Gs, &
         call Get_dF_to_dSigma(M_tc, eta_y, Sig, n_vec) !n=dFdSig
         call Get_dP_to_dSigma(Dp, Sig, m_vec) !m=dP/dSig
         L=-p*(1.0-No) !L=dF/dXs
-        call Get_dD_to_dEpsq(D_min, h, I_0, k_D, epsq_p, epsv_p, &
+        call Get_dD_to_dEpsP(D_min, h, I_0, k_D, epsq_p, epsv_p, &
                             EpsP, I_f, ApplyStrainRateUpdate, a) !a=dD/dEpsq^p
         call Get_dD_to_dI(D_min, h, I_0, k_D, epsq_p, I_f, b) !b=dXs/dI in place of dXs/dErate
         !________________________________________________________________________
@@ -1786,7 +1760,7 @@ end subroutine Stress_Drift_Correction
     
     
     
-    subroutine Get_dD_to_dEpsq(D_min, h, I_0, k_D, epsq_p, epsv_p, &
+    subroutine Get_dD_to_dEpsP(D_min, h, I_0, k_D, epsq_p, epsv_p, &
 						        EpsP, I, ApplyStrainRateUpdate, a)
    	!************************************************************************
 	! Returns the derivative of the Dilation with respect to the plastic    *
@@ -1834,7 +1808,7 @@ end subroutine Stress_Drift_Correction
     
     a=dDdEpsq_p*dEpsq_pdEpsp
     !______________________________________________________________________    
-	end subroutine Get_dD_to_dEpsq
+	end subroutine Get_dD_to_dEpsP
 	
 	subroutine Get_dEpsq_to_dEps(Epsq, Eps, dEqdEpsq)
 	!************************************************************************
@@ -2565,6 +2539,8 @@ end subroutine Stress_Drift_Correction
       
     Subroutine MCSS_Ortiz_Simo_Integration(G, D1, D2, IntGlo, Sig, c, phi, psi, factor, dEps, EpsP, dEpsP, cr, phir, psir, cp, phip, &
                                               psip, ctol, phitol, psitol, FTOL)
+    ! Determine the change in stress (Sig) and the ratio of plastic to elastic strains
+    
           ! List the input variables
               ! G: Shear modulus
               ! D1, D2: Components of the elastic stiffness  matrix

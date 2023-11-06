@@ -470,8 +470,11 @@
        if (IsMPMWithMixedIntegration() .and. .not.IsMPMSkipConvection() .and. .not. CalParams%UpdatedMPMwithMixed) then ! Not needed for pure MPM and FEM and for Updated MPM Mixed
          call StressAndPorePressureSmoothening()
          call StateParametersSmoothening ()
+
+       else if (IsMPMWithMixedIntegration() .and. .not.IsMPMSkipConvection() .and.  CalParams%UpdatedMPMwithMixed) then
+         call StressAndPorePressureSmoothening() ! If using updated MPM-Mixed only smooth the stresses
+
        else
-           
          ! Store initial stresses of next step
          call SetInitialStressForNextLoadStep()
        end if
