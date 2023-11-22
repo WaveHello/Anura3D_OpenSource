@@ -175,197 +175,362 @@
 
         end subroutine InitialiseContactArrays
 
-
         subroutine ApplyMPMDynamicContact()
-        !**********************************************************************
-        !
-        !    Function:  Do velocity correction to entity boundary nodes
-        !     
-        ! Note : This function works only if Number of Layers = 1
-        !
-        !**********************************************************************
+          !**********************************************************************
+          !
+          ! Function:  Do velocity correction to entity boundary nodes. 
+          ! Base algorithm follows Bardenhagen et al. (2001) w/ extensions:
+          !   - Adhesion contact from Al-Kafaji (2013) - http://dx.doi.org/10.18419/opus-496
+          !   - Contact Detection methoed presented by Ma et al. (2010) - https://cdn.techscience.cn/files/tCMES/2010/v55n1/cmes.2010.055.061.pdf
+          !     
+          ! Note : This function works only if Number of Layers = 1 (Means that it only works for single point MPM)
+          ! Original Author: luisez
+          ! Creation date: 2020??
+          ! Last Modified: 11/10/2023
+          ! Modified by: user:WaveHello
+          !**********************************************************************
 
-        implicit none
-        
-        ! local variables
-        integer(INTEGER_TYPE), dimension(Counters%nEntity,Counters%NodTot) :: EntityNodes      !for each entity a list of the global nodes belonging to elements containing particles belonging to this entity 
-        integer(INTEGER_TYPE), dimension(CalParams%NumberOfMaterials,Counters%NodTot) :: MaterialNodes      
-        real(REAL_TYPE), dimension(NVECTOR) :: Unormal      !unit normal vector at node for specific entity
-        real(REAL_TYPE), dimension(NVECTOR) :: VelDiff      !Difference in entity and system velocity
-        real(REAL_TYPE), dimension(3) :: CrossP      !cross product
-        real(REAL_TYPE), dimension(3) :: Omega      !
-        real(REAL_TYPE) :: AdhesionFactor, FrictionCoef, AdhesionCoef 
-        integer(INTEGER_TYPE) :: I, nn, ient, n  
-        integer(INTEGER_TYPE), dimension(NVECTOR) :: IDof
-        real(REAL_TYPE) :: DiffDotUn, Traction, vsize, Dmu, emax, ScaleFactor
-        logical :: ApplyContact
-        
-        if (.not.(NFORMULATION==1)) RETURN
-        if (.not.CalParams%ApplyContactAlgorithm) RETURN
-          
-        ! set up EntityNodes matrix for current particle configuration
-        call SetEntityNod(EntityNodes)
-        call SetMaterialNod(MaterialNodes)  
-        
-        ! loop through all nodes in model, in global coordinate system
-        DO nn=1,Counters%NodTot
-        
-          if (InterfaceNodes(nn)) then  ! in case of pile driving the contact surface is defined
-            
-            !get storage position of node degree-of-freedoms
-            do I = 1, NVECTOR
-              IDof(I) = ReducedDof(nn) + I
-            end do
-            
-            !loop through all entities
-            do ient=1,Counters%nEntity ! Loop through the entities (2 entities for contact - One is the soil and the other is the impacting object)
-              !
-              if (EntityNodes(ient,nn) == 1) then !if the selected node (nn) belongs to the selected entity (ient)
+          implicit none
 
-                ApplyContact = .false. ! Reset the flag to false
+          !---------Local variables---------
+          !---Scalar values---
+          ! AdhesionCoef: ??? 
+          ! AdhesionFactor: ??? adhesion correction of entity (body) velocity (last term in eqn (A.52) AL-Kafaji (2013)) 
+          ! FrictionCoef: Friction coefficient between entities (mu in Bardenhagen (2001))
+          ! DiffDotUn: Stores entity (body) velocity minus system (center of mass) velocity dotted with the node normal (VelDiff.Unormal})
+          ! Traction: Traction in the direction of Unormal - Improvement of Bardenhagen (2001) to reduce spurios contact
+          ! vsize: norm of a vector
+          ! Dmu: selected friction coeff (mu' in Bardenhagen (2001))
+          ! emax: Max strain rate - (Used for velocity scaling from Bardenhagen (2001))
+          ! ScaleFactor: Safety scaling on the emax value
+
+          ! I: 
+          ! nn: Selected node
+          ! ient: selected entity
+          ! n:
+
+          ! ApplyContact: Boolean that is set to true if velocity difference is detected   
+          !---Vector Values----
+          ! IDof: Degrees of freedom a selected node
+          ! VelDiff: Difference between the entity (body) and the system (center of mass) velocity
+          ! Unormal: Normal vector to a node - calculated with Subroutine ContactNodeNormals
+          ! CrossP: tangent vector to the selected node -> Omega x Unormal (denoted \vec{t}^alpha in Bardenhagen et al. (2001))
+          ! Omega: Crossed with Unormal to get tangential direction to the node   
+          !----Matrix Values----
+          ! EntityNodes: Matrix where each column is a integer array flagged 1 if a node belongs to an entity and 0 otherwise. Number of columns is the number of entities (num  entities == 2 for current contact scheme)
+          ! MaterialNodes: Matrix where each column is an integrer array flagged 1 if the node belonds to the material
+
+
+          ! Scalar values
+          real(REAL_TYPE) :: AdhesionCoef, AdhesionFactor, FrictionCoef, nearestMPDist
+          real(REAL_TYPE) :: DiffDotUn, Traction, vsize, Dmu, emax, ScaleFactor
+
+          integer(INTEGER_TYPE) :: I, nn, ient, n  
+          logical :: ApplyContact
+
+          ! Vector Values
+          integer(INTEGER_TYPE), dimension(NVECTOR) :: IDof
+          real(REAL_TYPE), dimension(NVECTOR) :: VelDiff      
+          real(REAL_TYPE), dimension(NVECTOR) :: Unormal      
+          real(REAL_TYPE), dimension(3) :: CrossP, Omega  
+          ! Matrix Values
+          integer(INTEGER_TYPE), dimension(Counters%nEntity,Counters%NodTot) :: EntityNodes      
+          integer(INTEGER_TYPE), dimension(CalParams%NumberOfMaterials,Counters%NodTot) :: MaterialNodes  
+
+          ! Global Variables
+          ! NFORMULATION: Defines if the model is single point (==1) or double point  (==2_
+          ! CalParams%ApplyContactAlgorithm: Flag for if the contact algorithm is in use (True if in use)
+          ! Counters%NodTot: Total number of nodes in the model
+          ! InterfaceNodes: Array of Booleans that is the length of the Counters%NodTot that is True if the node is on the contact surface
+          ! ReducedDof: Integer array containing the degrees of freedom for each node ??? (A guess haven't confirmed)
+          ! NVECTOR: Dimension of the model For 2D: 2 For 3D: 3
+
+          if (.not.(NFORMULATION==1)) RETURN
+          if (.not.CalParams%ApplyContactAlgorithm) RETURN
+
+          call SetEntityNod(EntityNodes) ! Get the nodes belonging to each entity (There are 2 enties for the current contact algorithm implementation. eg. CPT and the entire soil domain)
+          call SetMaterialNod(MaterialNodes)  ! Get the materials that each entity belongs to
+                
+          do nn=1,Counters%NodTot  ! loop through all nodes in model, in global coordinate system
+              if (InterfaceNodes(nn)) then ! For pile driving (eg. CPT, FFP) contact nodes are already defined -> Only check for contact at contact nodes
                 do I = 1, NVECTOR
-                  if (TotalVelocitySoil(IDof(I), ient) /= TotalVelocitySys(IDof(I))) then ! From Bardenhagen (2001) Compare body velocity (TotalVelocitySoil(IDOF(I), ientity) and center of mass velocity (TotalSystemVelocity)
-                    ApplyContact = .true.
-                    exit
-                  end if
+                    IDof(I) = ReducedDof(nn) + I ! Check the degrees of freedom available to the node
                 end do
-                  
-                if (ApplyContact) then   !there is contact at this node because the entity velocity is different from system velocity
 
-                  Unormal(:) = ContactNodeNormals(:, nn)
-               
-                  if (ient == SOFT_ENTITY) then ! if it is a soil node (entity 1) then change direction
-                    Unormal = - Unormal
-                  end if
+                do ient=1,Counters%nEntity ! 2 entities for contact - One is the entire soil domain and the other is the contacting object/entity
 
-                  DiffDotUn = 0.0
-                  do I = 1, NVECTOR
-                    ! Calculate velocity difference between entity and system
-                    VelDiff(I) = TotalVelocitySoil(IDof(I), ient) - TotalVelocitySys(IDof(I)) ! v^{alpha} - v^{cm}
-                    ! VelDiff.dot.Unormal
-                    DiffDotUn = DiffDotUn + VelDiff(I) * Unormal(I)
-                  end do  
-                    
-                  !get the traction at the node for this entity if the modified contact model is used
-                  if (CalParams%ApplyTractionContact) then               !MODIFIED (TRACTION) CONTACT MODEL IS USED
-                    call EntityNodeTraction(nn, ient, Unormal, Traction)
-                  else                                                   !STANDARD CONTACT MODEL IS USED
-                    Traction = 0.0                                       !set equal to zero so that (DiffDotUn > 0) is only criteria used below
-                  end if 
-                  !
-                  !If the modified contact model is used, correction is done when Traction < 0 (compression)
-                  ! The exeption is when it is the first contact and all stresses are still zero: 
-                  !    - this will give Traction = 0
-                  !    - In this case the standard contact model is used: (TotalVelocitySoil-TotalVelocitySys).dot. Unormal > 0
-                  !
-                  !If the standard contact model is used, Traction is set to zero (above) and the only condition used...
-                  ! ...to check for contact is:  (TotalVelocitySoil-TotalVelocitySys).dot. Unormal > 0
-                  !
-                  do I = 1, CalParams%NumberOfMaterials-1 
-                    if (MaterialNodes(I,nn)==1) then  
-                        AdhesionCoef = InterfaceNodesAdhesion(nn,I)
-                        exit
-                    else
-                      AdhesionCoef=1000
-                    end if
-                  end do                    
-                  ! Adhesion
-                  AdhesionFactor = AdhesionCoef * CalParams%TimeIncrement / (LumpedMassDry(IDof(1), IEnt) * (DiffDotUn + TINY))
-                    
-                  if (DiffDotUn>0.0) then ! Standard formulation: DiffDotUn greater than 0 means approaching bodies
+                    if (EntityNodes(ient,nn) == 1) then !if the selected node (nn) belongs to the selected entity (ient)
+                      ApplyContact = .false. 
 
-                    if (NVECTOR == 2) then ! 2D case
-                      ! VelDiff x Unormal
-                      CrossP(1) = 0.0
-                      CrossP(2) = 0.0
-                      CrossP(3) = VelDiff(1) * Unormal(2) - VelDiff(2) * Unormal(1)
-                    elseif (NVECTOR == 3) then ! 3D case
-                      !VelDiff x Unormal
-                      CrossP(1) = VelDiff(2) * Unormal(3) - VelDiff(3) * Unormal(2)
-                      CrossP(2) = VelDiff(3) * Unormal(1) - VelDiff(1) * Unormal(3)
-                      CrossP(3) = VelDiff(1) * Unormal(2) - VelDiff(2) * Unormal(1)
-                    else
-                      call GiveError('Dimension is not correct. It must be 2 or 3.')
-                    end if                        
+                      do I = 1, NVECTOR
+                          ! If one of the componets don't match contact needs to be evalutated
+                          if (TotalVelocitySoil(IDof(I), ient) /= TotalVelocitySys(IDof(I))) then 
+                            ApplyContact = .true.
+                            exit 
+                          end if
+                      end do
 
-                    vsize = sqrt( CrossP(1)*CrossP(1) + CrossP(2)*CrossP(2) + CrossP(3)*CrossP(3) )
-            
-                    !CrossP/ |CrossP|
-                    Omega = 0.0  
-                    if (vsize /= 0) then
-                      Omega = CrossP/vsize
-                    end if
-             
-                    do I = 1, CalParams%NumberOfMaterials-1 
-                      if (MaterialNodes(I,nn)==1) then 
-                        FrictionCoef = FrictionVector(nn,I)
-					    exit
-					  else !node belongs to contact but no material is in neighbour element
-                        FrictionCoef = 10 ! A high value will enforce that the solution is vsys
-                      end if
-                    end do
+                      if (ApplyContact) then   !there is contact at this node because the entity velocity is different from system velocity
+                          
+                          Unormal(:) = ContactNodeNormals(:, nn)
+                          if (ient == SOFT_ENTITY) then ! if it is a soil node (entity 1) then change direction
+                            Unormal = - Unormal
+                          end if
 
-                    Dmu = min(FrictionCoef + AdhesionFactor, vsize/DiffDotUn) ! Slope larger than friction coefficient, then bring back to limit (max tangential force)
+                          DiffDotUn = 0.0
+                          do I = 1, NVECTOR
+                            ! Calculate velocity difference between entity and system (or the selected body and the center of mass velocity)
+                            VelDiff(I) = TotalVelocitySoil(IDof(I), ient) - TotalVelocitySys(IDof(I))
+                            ! VelDiff.dot.Unormal
+                            DiffDotUn = DiffDotUn + VelDiff(I) * Unormal(I)
+                          end do
 
-                    !Unormal X Omega - tangential direction normal to n-t-plane
-                    if (NVECTOR == 2) then ! 2D case
-                      !VelDiff x Unormal
-                      CrossP(1) = Unormal(2) * Omega(3)
-                      CrossP(2) = - Unormal(1) * Omega(3)
-                      CrossP(3) = Unormal(1) * Omega(2) - Unormal(2) * Omega(1)
-                    elseif (NVECTOR == 3)  then ! 3D case
-                      !VelDiff x Unormal
-                      CrossP(1) = Unormal(2) * Omega(3) - Unormal(3) * Omega(2)
-                      CrossP(2) = Unormal(3) * Omega(1) - Unormal(1) * Omega(3)
-                      CrossP(3) = Unormal(1) * Omega(2) - Unormal(2) * Omega(1)
-                    else
-                      call GiveError('Dimension is not correct. It must be 2 or 3.')
-                    end if
-                      
-                    do I = 1, NVECTOR
-                      ! correct the velocity for soil nodes
-                      TotalVelocitySoil(IDof(I),ient) =  TotalVelocitySoil(IDof(I),ient) - DiffDotUn*( Unormal(I) + Dmu*CrossP(I) )
-                      ! with the corrected, get the final acceleration
-                      AccelerationSoil(IDof(I),ient) = (TotalVelocitySoil(IDof(I),ient) - TotalVelocitySoilPrevious(IDof(I),ient)) / CalParams%TimeIncrement
-                    end do
+                          if (CalParams%ApplyTractionContact) then               !Get Traction 
+                            call EntityNodeTraction(nn, ient, Unormal, Traction)
+                          else                                                   !STANDARD CONTACT MODEL IS USED
+                            Traction = 0.0                                       !set equal to zero so that (DiffDotUn > 0) is only criteria used below
+                          end if
 
-                    if ( CalParams%ApplyContactVelocityScaling ) then
-						           call MaxStrainRate(nn, TotalVelocitySoil(IDof(1):IDof(NVECTOR),ient), &
-						           TotalVelocitySoilPrevious(IDof(1):IDof(NVECTOR),ient), emax, &
-						           LumpedMassDry(IDof(1):IDof(NVECTOR), IEnt), LumpedMassSys(IDof(1):IDof(NVECTOR)))
-						           
-                        if ( (emax*CalParams%TimeIncrement) > CalParams%ContactScalingFactor ) then
-                    
-                            ScaleFactor= CalParams%ContactScalingFactor/ (emax*CalParams%TimeIncrement)
-                 
+                          ! Set the distance condition to be False
+
+                          if (CalParams%ApplyContactRadius) then
+                            ! Calc the nearest distance
+                            call CalcMinEntityDistToNode(nn, nearestMPDist)
+                          else
+                              nearestMPDist = 0.0
+                              
+                              ! Set contact radius to high number to make code enter contact correction
+                              CalParams%ContactRadius = 10
+                          endif
+
+                          do I = 1, CalParams%NumberOfMaterials-1 
+                            if (MaterialNodes(I,nn)==1) then  
+                                AdhesionCoef = InterfaceNodesAdhesion(nn,I)
+                                exit
+                            else
+                                AdhesionCoef=1000
+                            end if
+                          end do   
+
+                          ! Adhesion
+                          AdhesionFactor = AdhesionCoef * CalParams%TimeIncrement / (LumpedMassDry(IDof(1), IEnt) * (DiffDotUn + TINY)) 
+                        
+                          if (traction < 0.0 .and. nearestMPDist < CalParams%ContactRadius .or. DiffDotUn>0.0 .and. traction == 0.0 .and. nearestMPDist < CalParams%ContactRadius) then  
+                          !if (contactFlag == 1) then
+                            !if (DiffDotUn>0.0) then ! Standard formulation: DiffDotUn greater than 0 means approaching bodies
+                            
+                            !If the modified contact model is used, correction is done when Traction < 0 (compression)
+                            ! The exeption is when it is the first contact and all stresses are still zero: 
+                            !    - this will give Traction = 0
+                            !    - In this case the standard contact model is used: (TotalVelocitySoil-TotalVelocitySys).dot. Unormal > 0
+                            !
+                            !If the standard contact model is used, Traction is set to zero (above) and the only condition used...
+                            ! ...to check for contact is:  (TotalVelocitySoil-TotalVelocitySys).dot. Unormal > 0
+                            if (NVECTOR == 2) then ! 2D case
+                                ! VelDiff x Unormal
+                                CrossP(1) = 0.0
+                                CrossP(2) = 0.0
+                                CrossP(3) = VelDiff(1) * Unormal(2) - VelDiff(2) * Unormal(1)
+                            elseif (NVECTOR == 3) then ! 3D case
+                                !VelDiff x Unormal
+                                CrossP(1) = VelDiff(2) * Unormal(3) - VelDiff(3) * Unormal(2)
+                                CrossP(2) = VelDiff(3) * Unormal(1) - VelDiff(1) * Unormal(3)
+                                CrossP(3) = VelDiff(1) * Unormal(2) - VelDiff(2) * Unormal(1)
+                            else
+                                call GiveError('Dimension is not correct. It must be 2 or 3.')
+                            end if 
+
+                            vsize = sqrt( CrossP(1)*CrossP(1) + CrossP(2)*CrossP(2) + CrossP(3)*CrossP(3) )
+                            !CrossP/ |CrossP|
+                            Omega = 0.0  
+          
+                            if (vsize /= 0) then
+                                Omega = CrossP/vsize
+                            end if
+          
+                            do I = 1, CalParams%NumberOfMaterials-1 
+                                if (MaterialNodes(I,nn)==1) then 
+                                  FrictionCoef = FrictionVector(nn,I)
+                                  exit
+                                else !node belongs to contact but no material is in neighbour element
+                                  FrictionCoef = 10 ! A high value will enforce that the solution is vsys
+                                end if
+                            end do
+                            Dmu = min(FrictionCoef + AdhesionFactor, vsize/DiffDotUn) ! Slope larger than friction coefficient, then bring back to limit (max tangential force)
+                            !Unormal X Omega - tangential direction normal to n-t-plane
+                            if (NVECTOR == 2) then ! 2D case
+                                !VelDiff x Unormal
+                                CrossP(1) = Unormal(2) * Omega(3)
+                                CrossP(2) = - Unormal(1) * Omega(3)
+                                CrossP(3) = Unormal(1) * Omega(2) - Unormal(2) * Omega(1)
+                            elseif (NVECTOR == 3)  then ! 3D case
+                                !VelDiff x Unormal
+                                CrossP(1) = Unormal(2) * Omega(3) - Unormal(3) * Omega(2)
+                                CrossP(2) = Unormal(3) * Omega(1) - Unormal(1) * Omega(3)
+                                CrossP(3) = Unormal(1) * Omega(2) - Unormal(2) * Omega(1)
+                            else
+                                call GiveError('Dimension is not correct. It must be 2 or 3.')
+                            end if
+
                             do I = 1, NVECTOR
                                 ! correct the velocity for soil nodes
-                                TotalVelocitySoil(IDof(I),ient) =  TotalVelocitySoilPrevious(IDof(I),ient) - ScaleFactor*DiffDotUn*( Unormal(I) + Dmu*CrossP(I) )
+                                TotalVelocitySoil(IDof(I),ient) =  TotalVelocitySoil(IDof(I),ient) - DiffDotUn*( Unormal(I) + Dmu*CrossP(I) )
                                 ! with the corrected, get the final acceleration
                                 AccelerationSoil(IDof(I),ient) = (TotalVelocitySoil(IDof(I),ient) - TotalVelocitySoilPrevious(IDof(I),ient)) / CalParams%TimeIncrement
                             end do
-                        end if
-                    end if                     
-                 else
-                    ! Adhesion factor takes into account that in case of separation, the adhesive force might
-                    ! still hold back the body. In this case, slip / no-slip are still relevant.
-                    if (abs(AdhesionFactor)>=1.0) then
-                      ! Bodies stick to each other
-                      ! Set velocity of contacting entities to the system velocity
-                    end if
-                 end if  !(Traction == 0 .and. DiffDotUn > 0 .or......)
-                end if     !(TotalVelocitySoil(IDof,ient) /= TotalVelocitySys(IDof)...)
-              end if       !(EntityNodes(ient,nn) = 1)
-            end do         !ient=1,nEntity
-          end if ! interface node
-        end do             !nn=1,NodTot
-              
-        if (IsFEMComputation()) then
-          TotalVelocitySoil = TotalVelocitySoilPrevious ! global coordinate system (not changed), not used for MPM
-        end if 
-          
+
+                            if ( CalParams%ApplyContactVelocityScaling ) then
+                                            call MaxStrainRate(nn, TotalVelocitySoil(IDof(1):IDof(NVECTOR),ient), &
+                                            TotalVelocitySoilPrevious(IDof(1):IDof(NVECTOR),ient), emax, &
+                                            LumpedMassDry(IDof(1):IDof(NVECTOR), IEnt), LumpedMassSys(IDof(1):IDof(NVECTOR)))
+                            
+                                if ( (emax*CalParams%TimeIncrement) > CalParams%ContactScalingFactor ) then
+                                  ScaleFactor= CalParams%ContactScalingFactor/ (emax*CalParams%TimeIncrement)
+                                  
+                                  ! Adding this lien to
+                                  ScaleFactor = max(ScaleFactor, 1.0)
+                                  do I = 1, NVECTOR
+                                      ! correct the velocity for soil nodes
+                                      TotalVelocitySoil(IDof(I),ient) =  TotalVelocitySoilPrevious(IDof(I),ient) - ScaleFactor*DiffDotUn*( Unormal(I) + Dmu*CrossP(I) )
+                                      ! with the corrected, get the final acceleration
+                                      AccelerationSoil(IDof(I),ient) = (TotalVelocitySoil(IDof(I),ient) - TotalVelocitySoilPrevious(IDof(I),ient)) / CalParams%TimeIncrement
+                                  end do
+                                end if
+                            end if 
+
+                          else
+                            ! Adhesion factor takes into account that in case of separation, the adhesive force might
+                            ! still hold back the body. In this case, slip / no-slip are still relevant.
+                            if (abs(AdhesionFactor)>=1.0) then
+                                ! Bodies stick to each other
+                                ! Set velocity of contacting entities to the system velocity
+                                ! @@@@ There is no correction here at this time @@@@ !!!
+                            end if ! end if updating the velocities if the adhesionfactor is high (Not implemented)
+
+                          end if  !ends check on if contact should be applied (Traction < 0.0 .and. DiffDotUn > 0 .or. DiffDotUn > 0 .and. Traction == 0.0) 
+                      end if  !end if body velocity is different than system velocity (TotalVelocitySoil(IDof,ient) /= TotalVelocitySys(IDof)...)
+                    end if !end if  checking if node, nn, is in the selected entity (EntityNodes(ient,nn) = 1)
+                end do  !end do looping through nEntities
+              end if !ends if(Interface node(nn))
+          end do !nn=1,NodTot
         end subroutine ApplyMPMDynamicContact
+
         
+        
+        subroutine CalcMinEntityDistToNode(nn, minDist)
+          !**********************************************************************
+          !
+          ! Function: Calculation the minimum distance between two entities along node normals 
+          ! Following the recommendation of 
+          ! Original Author: user:WaveHello
+          ! Creation date: 11/14/2023
+          ! Last Modified: 11/21/2023
+          !**********************************************************************
+              
+              implicit none
+
+              ! In - nn: Node of interest
+              ! Out - minDist: Minimum distance between entities in the region of the node (nn) along Unormal
+              ! In varaibles
+              integer(INTEGER_TYPE), intent(in) :: nn
+              
+              ! Out variables
+              real(Real_TYPE), intent(out) :: minDist
+              
+              !!! Local variables
+              ! IELNode: Index for looping through the number of nodes attached to the element
+              ! IEL: Index for a selected element
+              ! IPart: Index for looping through the number of material points in an element
+              ! EntityIndex:
+
+              ! Not Needed
+              ! ient, 
+              ! Scalar values
+              integer(INTEGER_TYPE) ::  IElNode, IEL, IPart, EntityIndex, IEntity, ParticleIndex, NAdjacentElementsNode, k
+              real(Real_Type) :: dist
+
+              ! Vector Values
+              real(Real_TYPE), dimension(Counters%nEntity) :: minEntityMPDist
+              real(REAL_TYPE), dimension(NVECTOR) :: Unormal
+              real(Real_TYPE), dimension(NVECTOR) :: localUnormal
+              real(Real_Type), dimension(NVECTOR) :: distVector
+
+              ! Matrix Values
+
+
+              !--------------------------------------------------------------------
+
+
+              ! Get the number of elements attached to the node
+              NAdjacentElementsNode = GetNElmOfNode(nn)
+
+              ! Calculate the normal to the node
+              Unormal(:) = ContactNodeNormals(:, nn)
+              
+              ! Get the global coordinate of the node__________!
+
+              ! Init Variables
+              minEntityMPDist(:) = -1e9
+
+
+              do IElNode = 1, NAdjacentElementsNode
+                  ! Select the connected element
+                  IEL = GetElmIOfNode(nn, IElNode)
+
+                      ! Loop through the MPs in the selected element
+                      do IPart = 1, NPartEle(IEL)
+                          ! Init variables
+                          EntityIndex = 2 ! Enity Index corresponds to hard entity (eg. Pile)
+
+                          ! Get the particle ID
+                          ParticleIndex = GetParticleIndex(IPart, IEl) 
+
+                          ! Check the entity of the particle (Needed to determine the Unormal direction)
+                          IEntity = EntityIDArray(ParticleIndex) 
+
+                          if (IEntity == SOFT_ENTITY) then
+                              !localUnormal = -Unormal
+                              localUnormal = Unormal
+                              ! Set the entity index to correspond to soft entity
+                              EntityIndex = 1
+                          else
+                              localUnormal = Unormal
+                          end if
+
+                          ! Ma et al. found the length of the particle but I think that's because they used GIMP particles
+                          
+                          ! Reset distance variables
+                          distVector(:) = 0.0
+                          dist = 0.0
+                          
+                          ! Determine the dist from nn to the MP
+                          distVector = GlobPosArray(ParticleIndex, :) - NodalCoordinates(nn, :)
+
+                          ! Project the distance onto Unormal 
+                          do k = 1, NVECTOR
+                              dist = dist + distVector(k) * localUnormal(k)
+                          enddo
+
+                          ! Store the minimum distance (overwriting if the calculated distance is smaller)
+                          if (abs(dist) < abs(minEntityMPDist(entityIndex))) then
+                              minEntityMPDist(entityIndex) = dist
+                          end if
+
+                          !! Reset varaibles
+                          !localUnormal = Unormal ! Reset Unormal
+                          !distVector(:) = 0.0
+                          !dist = 0.0
+                          
+                      end do ! End loop over particles in selected element
+              end do ! end loop over elements
+              
+              ! Calc the min distance
+              minDist = abs(minEntityMPDist(HARD_ENTITY)- minEntityMPDist(SOFT_ENTITY))
+
+          end subroutine CalcMinEntityDistToNode
+
+        
+        !
 
         subroutine SetEntityNod(EntityNodes)
         !**********************************************************************

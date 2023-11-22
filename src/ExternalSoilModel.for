@@ -2379,7 +2379,7 @@ end subroutine Stress_Drift_Correction
         ! elastic stress
         Call AddVec_MohrCoulombStrainSoftening( STRESS, dSig, 1d0, 1d0, 6, Sig )
         
-        call MOHRStrainSoftening(IntGlo,F1,F2,G,cp,cr,phip,phir,psip,psir,factor,c,phi,psi,stress,dSig,EpsP,DSTRAN,dEpsP,Sig,IPL)
+        call MOHRStrainSoftening(IntGlo,F1,F2,G,cp,cr,phip,phir,psip,psir,factor,c,phi,psi,stress,EpsP,DSTRAN,dEpsP,Sig,IPL)
 
         !*
         !* ... stress state parameters update
@@ -2418,13 +2418,12 @@ end subroutine Stress_Drift_Correction
 
 !***********************************************************************
       Subroutine MOHRStrainSoftening(IntGlo,D1,D2, GG,cp,cr,phip,phir, &
-       psip,psir,factor,c,phi,psi,Sig0,DSigE,EpsP,DEps,DEpsP,SigC,IPL)
+       psip,psir,factor,c,phi,psi,Sig0,EpsP,DEps,DEpsP,SigC,IPL)
         !**********************************************************************
         !
         ! Elastoplastic constitutive model with STRAIN SOFTENING, based on the 
         ! MOHR-COULOMB criterion (considering modifications of Abbo & Sloan (1995))
-        ! Explicit MODIFIED EULER INTEGRATION SCHEME with automatic error control.
-        ! Final correction of the yield surface drift (END OF STEP CORRECTION).
+        ! Following Ortiz and Simo (1986) to determine stress update
         !
         !**********************************************************************
 
@@ -2463,7 +2462,6 @@ end subroutine Stress_Drift_Correction
         double precision, intent(inout), dimension(6) :: EpsP !Accumulated Plastic Strain
         double precision, intent(inout), dimension(6) :: Sig0 !Initial Stress
         double precision, intent(inout), dimension(6) :: SigC !Final Stress
-        double precision, intent(inout), dimension(6) :: DSigE !Incremental Elastic Stress
         double precision, intent(inout), dimension(6) :: DEpsP !Incremental plastic strain
 
         !Out variables
@@ -2526,20 +2524,25 @@ end subroutine Stress_Drift_Correction
                                               psip, ctol, phitol, psitol, YTOL)
         
         ! State parameters {phi, psi, c} updated inside ortiz-simo
-        
-        ! Final Parameter update
-        SigC = Sig0
-        
         ! EpsP updated inside of the integration
         ! dEpsP updated inside of ortiz-Simo
-        dSigE = dEps - dEpsP
         
-
+        ! Update the Stress
+        SigC = Sig0
+        
+        ! Increment of elastic stress not updated
     end subroutine MOHRStrainSoftening
       
     Subroutine MCSS_Ortiz_Simo_Integration(G, D1, D2, IntGlo, Sig, c, phi, psi, factor, dEps, EpsP, dEpsP, cr, phir, psir, cp, phip, &
                                               psip, ctol, phitol, psitol, FTOL)
-    ! Determine the change in stress (Sig) and the ratio of plastic to elastic strains
+        !**********************************************************************
+        ! Function:  To update the stress (Sig) and plastic strain (EpsP)
+        ! Follows Ortiz and Simo (1986) https://doi.org/10.1002/nme.1620230303
+        !
+        ! Last Modified: 11/10/2023
+        ! Author: Jonathan J. Moore
+        !**********************************************************************
+    ! Subroutine: Determines the change in stress (Sig), increment of plastic strain dEpsP
     
           ! List the input variables
               ! G: Shear modulus
@@ -2653,7 +2656,8 @@ end subroutine Stress_Drift_Correction
       
           ! Keep the State varaibles constant
       
-          ! Calc the elastic predictor for the stresses (Assumes that all of strain increment is elastic therfore there is  no change in the equivalent plastic strain)
+          ! Calc the elastic predictor for the stresses 
+          ! (Assumes that all of strain increment is elastic therfore there is no change in the equivalent plastic strain)
           call MatVec_MohrCoulombStrainSoftening(DE, 6, dEps, 6, dSigu)
       
           ! Update the stresses

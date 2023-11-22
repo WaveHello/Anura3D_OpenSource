@@ -435,6 +435,7 @@
                 call Assert( trim(DumS) == 'x-direction' .or. trim(DumS) == 'y-direction' .or. trim(DumS) == 'z-direction', &
                              'GOM-ERROR: $$MOVING_MESH_DIRECTION must be "x-direction", "y-direction" or "z-direction" (only for 3D)!' )
                 GeoParams%MovingMeshDirection = DumS
+                
               else if (trim(BName)=='$$MOVING_MESH_REFERENCE_MATERIAL_INDEX') then 
                 read(FileUnit,*,iostat=ios) DumI(1)
                 call Assert( ios == 0, messageIOS // trim(BName) )
