@@ -385,7 +385,9 @@
                               GammaWater, &
 							  ContactScalingFactor, &
                               ConvContactScalingFactor,& ! Contact Velocity scaling factor for use in correction scheme in MPMDYNConvPhase
-                              ContactRadius,&
+                              ContactRadius,& ! Constrain on dist from MP to node that contact can occur over
+                              AreaVelocityScalingFactor,&
+                              AreaVelocityScalingCornerNodes(MAXAREAVELOCITYCORNERNODES),& ! Corner nodes for MP velocity correction in an area
                               ManuallyDefinedVectors(MAXNUMBERSOILLAYERS,1+vsize) !manually modified normal vectors
 
 
@@ -442,8 +444,9 @@
                      NumberSkipConvection, &
                      DumpElement, &
                      FeedbackLevel, &
-					 NCorrectedNormals !Number of normals to be modified in the contact
-
+					 NCorrectedNormals,& !Number of normals to be modified in the contact
+                     NAreaVelocityCornerNodes ! Number of corner nodes
+          
           logical :: UpdatedMPMwithMixed,&
                      ApplyPorePressureSmoothing,&
                      ApplyContactMeshBoundary, &
@@ -514,7 +517,8 @@
 			         ApplyContactVelocityScaling= .false.,& !True for scaling wrong velocities at the contact
                      ApplyConvContactVelocityScaling =  .false.,& ! Flag for correcting Velocities in the MPMDynConvPhase Step
                      ApplyContactRadius = .false., &
-					 ApplyContactNormalCorrection= .false. !Allows to modify some normal vectors in the contact algorithm
+					 ApplyAreaVelocityScaling = .false., & ! Flag controlling if MP velocities should be corrected in an area
+                     ApplyContactNormalCorrection= .false. !Allows to modify some normal vectors in the contact algorithm
 
 
           character(len=64) :: CPSversion = 'not defined'
@@ -1564,7 +1568,32 @@
                 read(FileUnit, *, iostat=ios) DumR(1)
                 call Assert( ios == 0, messageIOS//trim(BName) )
                 CalParams%ContactRadius = DumR(1) 
-                              
+            
+            else if (trim(BName) == '$$APPLY_AREA_VELOCITY_SCALING') THEN
+                read(FileUnit, *, iostat=ios) DumI(1)
+                call Assert( ios == 0, messageIOS//trim(BName) )
+                call Assert( DumI(1) == 0 .or. DumI(1) == 1, 'CPS file: ' //trim(BName)// ' must be 0 or 1.' )
+                if ( DumI(1) == 1 ) CalParams%ApplyAreaVelocityScaling = .true.
+            
+            else if (trim(BName) == '$$AREA_VELOCITY_SCALING_FACTOR') THEN
+                read(FileUnit, *, iostat=ios) DumR(1)
+                call Assert( ios == 0, messageIOS//trim(BName) )
+                CalParams%AreaVelocityScalingFactor = DumR(1) 
+            
+            else if (trim(BName)=='$$NUMBER_OF_AREA_CORNER_NODES' ) then
+              read(FileUnit, *, iostat=ios)  CalParams%NAreaVelocityCornerNodes
+              call Assert( ios == 0, messageIOS//trim(BName) )
+              
+            else if (trim(BName) == '$$AREA_VELOCITY_SCALING_CORNER_NODES') then
+                if(CalParams%NAreaVelocityCornerNodes >0) then
+                    do I = 1, CalParams%NAreaVelocityCornerNodes
+                        read(FileUnit,*,iostat=ios) DumI(1)
+                        call Assert( ios == 0, messageIOS // trim(BName) // '(' // trim(String(I)) // ')' )
+                        call Assert( DumI(1) > 0, 'CPS-ERROR: all node numbers of $$AREA_VELOCITY_SCALING_CORNER_NODES must be positive!' )
+                        CalParams%AreaVelocityScalingCornerNodes(I) = DumI(1)
+                    end do
+                end if
+                
 			else if (trim(BName)=='$$APPLY_CONTACT_NORMAL_CORRECTION') then ! I [ 0, 1 ]
               read(FileUnit, *, iostat=ios) DumI(1)
               call Assert( ios == 0, messageIOS//trim(BName) )
@@ -2850,7 +2879,18 @@ subroutine ReadPrescribedAccelerationOrVelocityFromFile()
               do I = 1, CalParams%NumberSoilLayers
                 write(FileUnit, *) CalParams%ManuallyDefinedVectors(I,1:(1+NVECTOR))
               end do
-           end if 
+           end if
+          
+          ! Area Velocity Scaling writes
+		  call WriteLogic(FileUnit, '$$APPLY_AREA_VELOCITY_SCALING', [CalParams%ApplyAreaVelocityScaling], 1, .true.)
+          call WriteReal(FileUnit, '$$AREA_VELOCITY_SCALING_FACTOR', [CalParams%AreaVelocityScalingFactor], 1, .true.)
+          call WriteInteger(FileUnit, '$$NUMBER_OF_AREA_CORNER_NODES', [CalParams%NAreaVelocityCornerNodes], 1, .true.)
+          if (CalParams%NAreaVelocityCornerNodes>0) then
+              write(FileUnit, '(A)') '$$AREA_VELOCITY_SCALING_CORNER_NODES'
+              do I = 1, CalParams%NAreaVelocityCornerNodes
+                  write(FileUnit, *) CalParams%AreaVelocityScalingCornerNodes(I) ! Print the corner nodes of the Area to the CPS file
+              end do
+          end if
            
           call WriteLogic(FileUnit, '$$APPLY_CONV_CONTACT_VELOCITY_SCALING', [CalParams%ApplyConvContactVelocityScaling], 1, .true.)
 		  call WriteReal(FileUnit, '$$CONV_VELOCITY_SCALING_FACTOR', [CalParams%ConvContactScalingFactor], 1, .true.)

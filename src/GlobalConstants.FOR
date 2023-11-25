@@ -256,7 +256,7 @@
         integer(INTEGER_TYPE), parameter :: MAXOUTPUTREALTIME = 99
         integer(INTEGER_TYPE), parameter :: MAXNUMBERSOILLAYERS = 10
         integer(INTEGER_TYPE), parameter :: MAXOUTPUTSURFACES = 50
-      
+        integer(INTEGER_TYPE), parameter :: MAXAREAVELOCITYCORNERNODES = 8
         ! Used file units
         integer(INTEGER_TYPE), parameter :: TMP_UNIT= 21
         integer(INTEGER_TYPE), parameter :: OUTunit = 22

@@ -441,23 +441,27 @@
               ! IELNode: Index for looping through the number of nodes attached to the element
               ! IEL: Index for a selected element
               ! IPart: Index for looping through the number of material points in an element
-              ! EntityIndex:
+              ! IEntity: Entity of the material point (1 for Soft_Entity and 2 for Hard_Entity-> Contacting body)
+              ! ParticleIndex: Particle Id
+              ! NAdjacentElementsNode: Number of elements attached to a node
+              ! k: Index for lopping over Unormal and distVector components to calculate dot product
+              ! dist: Distance between a node and a material point along Unormal
+
+              ! minEntityMPDist: Contains the distance between node and the closest MP. Element 1 is for Soft_Entity distances and Element 2 is for Hard_Entity
+              ! Unormal: Normal to the Hard_Entity
+              ! distVector: Distance from MP to Node in x, y coordinates with origin at node of interest
 
               ! Not Needed
-              ! ient, 
+              ! ient, localUnormal, EntityIndex
+
               ! Scalar values
-              integer(INTEGER_TYPE) ::  IElNode, IEL, IPart, EntityIndex, IEntity, ParticleIndex, NAdjacentElementsNode, k
+              integer(INTEGER_TYPE) ::  IElNode, IEL, IPart, IEntity, ParticleIndex, NAdjacentElementsNode, k
               real(Real_Type) :: dist
 
               ! Vector Values
               real(Real_TYPE), dimension(Counters%nEntity) :: minEntityMPDist
               real(REAL_TYPE), dimension(NVECTOR) :: Unormal
-              real(Real_TYPE), dimension(NVECTOR) :: localUnormal
               real(Real_Type), dimension(NVECTOR) :: distVector
-
-              ! Matrix Values
-
-
               !--------------------------------------------------------------------
 
 
@@ -467,11 +471,8 @@
               ! Calculate the normal to the node
               Unormal(:) = ContactNodeNormals(:, nn)
               
-              ! Get the global coordinate of the node__________!
-
               ! Init Variables
-              minEntityMPDist(:) = -1e9
-
+              minEntityMPDist(:) = 1e9
 
               do IElNode = 1, NAdjacentElementsNode
                   ! Select the connected element
@@ -479,23 +480,12 @@
 
                       ! Loop through the MPs in the selected element
                       do IPart = 1, NPartEle(IEL)
-                          ! Init variables
-                          EntityIndex = 2 ! Enity Index corresponds to hard entity (eg. Pile)
 
                           ! Get the particle ID
                           ParticleIndex = GetParticleIndex(IPart, IEl) 
 
-                          ! Check the entity of the particle (Needed to determine the Unormal direction)
+                          ! Get the entity of the particle (Unormal Direction is not flipped for soft entity (I was getting confused when it flipped))
                           IEntity = EntityIDArray(ParticleIndex) 
-
-                          if (IEntity == SOFT_ENTITY) then
-                              !localUnormal = -Unormal
-                              localUnormal = Unormal
-                              ! Set the entity index to correspond to soft entity
-                              EntityIndex = 1
-                          else
-                              localUnormal = Unormal
-                          end if
 
                           ! Ma et al. found the length of the particle but I think that's because they used GIMP particles
                           
@@ -508,18 +498,13 @@
 
                           ! Project the distance onto Unormal 
                           do k = 1, NVECTOR
-                              dist = dist + distVector(k) * localUnormal(k)
+                              dist = dist + distVector(k) * Unormal(k)
                           enddo
 
                           ! Store the minimum distance (overwriting if the calculated distance is smaller)
-                          if (abs(dist) < abs(minEntityMPDist(entityIndex))) then
-                              minEntityMPDist(entityIndex) = dist
+                          if (abs(dist) < abs(minEntityMPDist(IEntity))) then
+                              minEntityMPDist(IEntity) = dist
                           end if
-
-                          !! Reset varaibles
-                          !localUnormal = Unormal ! Reset Unormal
-                          !distVector(:) = 0.0
-                          !dist = 0.0
                           
                       end do ! End loop over particles in selected element
               end do ! end loop over elements
@@ -1601,53 +1586,54 @@
        allocate(InterfaceNodes(Counters%NodTot), stat = IError)
        InterfaceNodes = .false.
 
-       do I = 1, NContactElm
-           do J = 1, 2 ! corner nodes
-               NodID = ContactSurfaceElmNodes (I, J+2)
-               InterfaceNodes(NodID) = .true.              
-           end do
-       end do
+      do I = 1, NContactElm
+          do J = 1, 2 ! corner nodes
+              NodID = ContactSurfaceElmNodes (I, J+2)
+              InterfaceNodes(NodID) = .true.              
+          end do
+      end do
        
-       if (CalParams%ApplyConvContactVelocityScaling) then !starts procedure to fill adjacent element ids to correct MP velocities
-           NFoundNodes=0
+      if (CalParams%ApplyConvContactVelocityScaling) then !starts procedure to fill adjacent element ids to correct MP velocities
+        NFoundNodes=0
         do I = 1, NContactElm
-           do J = 1, 2 ! corner nodes
-               NodID = ContactSurfaceElmNodes (I, J+2)
-               ContElem=GetNElmOfNode(NodID)
-               if ((I==1).and.(J==1)) then ! first time then allocate array
-                NFoundNodes=ContElem
-                allocate(AdjacentElementIDsForContact(NFoundNodes), stat=IError)
-                do IEl= 1, ContElem !loop elements connected to node
-                    AdjacentElementIDsForContact(IEl)=GetElmIOfNode(NodID, IEl) !gets the element ID
-                enddo
-                else !needs to asses if element has been saved first
-               do IEl= 1, ContElem !loop elements connected to node
-                   Aux=GetElmIOfNode(NodID, IEl) !Elm ID
-                   !first find out if element is already in array
-                   ElmFound=.false.
-                   do l=1, NFoundNodes
-                       if (AdjacentElementIDsForContact(l)==Aux) then !element found exit
-                           ElmFound=.true.
-                           exit
-                       endif
-                   enddo
-                   if (.not.ElmFound) then
-                                          !else resize array and add eNFoundNodes=NFoundNodes+1
-                       allocate(Aux_array(NFoundNodes), stat=IError)
-                       Aux_array=AdjacentElementIDsForContact
-                       deallocate(AdjacentElementIDsForContact, stat=IError)
-                       allocate(AdjacentElementIDsForContact(NFoundNodes+1), stat=IError)
-                       AdjacentElementIDsForContact(1:NFoundNodes)=Aux_array
-                       AdjacentElementIDsForContact(NFoundNodes+1)=Aux !saves element ID
-                       deallocate(Aux_array, stat=IError)
-                       NFoundNodes=NFoundNodes+1
-                 endif
-               enddo
-               endif               
-           end do
-           enddo
-       endif
-       NSideNodes = GetNSideNodes(ELEMENTNODES)
+          do J = 1, 2 ! corner nodes
+            NodID = ContactSurfaceElmNodes (I, J+2)
+            ContElem=GetNElmOfNode(NodID)
+            if ((I==1).and.(J==1)) then ! first time then allocate array
+              NFoundNodes=ContElem
+              allocate(AdjacentElementIDsForContact(NFoundNodes), stat=IError)
+              do IEl= 1, ContElem !loop elements connected to node
+                AdjacentElementIDsForContact(IEl)=GetElmIOfNode(NodID, IEl) !gets the element ID
+              enddo
+            else !needs to asses if element has been saved first
+              do IEl= 1, ContElem !loop elements connected to node
+                Aux=GetElmIOfNode(NodID, IEl) !Elm ID
+                !first find out if element is already in array
+                ElmFound=.false.
+                do l=1, NFoundNodes
+                  if (AdjacentElementIDsForContact(l)==Aux) then !element found exit
+                    ElmFound=.true.
+                    exit
+                  end if
+                end do
+                if (.not.ElmFound) then
+                  !else resize array and add eNFoundNodes=NFoundNodes+1
+                  allocate(Aux_array(NFoundNodes), stat=IError)
+                  Aux_array=AdjacentElementIDsForContact
+                  deallocate(AdjacentElementIDsForContact, stat=IError)
+                  allocate(AdjacentElementIDsForContact(NFoundNodes+1), stat=IError)
+                  AdjacentElementIDsForContact(1:NFoundNodes)=Aux_array
+                  AdjacentElementIDsForContact(NFoundNodes+1)=Aux !saves element ID
+                  deallocate(Aux_array, stat=IError)
+                  NFoundNodes=NFoundNodes+1
+                end if
+              end do
+            end if               
+          end do
+        end do
+      end if
+
+      NSideNodes = GetNSideNodes(ELEMENTNODES)
 
        allocate(BoundaryElements(Counters%NEl), stat = IError)
        BoundaryElements = 0
@@ -1723,6 +1709,9 @@
                
          end subroutine ContactSurfaceNodes_2D
     
+         
+         subroutine MaxStrainRate(NodeID, CorrectedVelocity, UncVelocity, emax, LMass, SysMass)
+
          !*************************************************************************************
          !    SUBROUTINE: MaxStrainRate
          !
@@ -1738,7 +1727,6 @@
          !>   @param[in] CorrectedVelocity : Corrected velocity with the contact algoritm
          !
          !*************************************************************************************
-         subroutine MaxStrainRate(NodeID, CorrectedVelocity, UncVelocity, emax, LMass, SysMass)
          implicit none
          integer(INTEGER_TYPE), intent(in):: NodeID
          integer(INTEGER_TYPE)::  NelmofNode, ielm, j
