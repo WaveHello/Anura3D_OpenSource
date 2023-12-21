@@ -1905,7 +1905,7 @@
               do INode = 1, ELEMENTVERTICES ! loop vertice nodes of each element
                   
                 NodeID = ElementConnectivities(INode, IElement)
-                Vertices(INode, :) = NodeCoord(NodeID, :)
+                Vertices(INode, :) = NodeCoord(NodeID, :) ! 
                 
               end do
             

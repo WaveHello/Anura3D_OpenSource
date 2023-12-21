@@ -80,7 +80,7 @@
         !               
         !               - update particle velocity
         !               - update particle displacements and global position
-        !               - map the new particles ve  locities to the nodes
+        !               - map the new particles velocities to the nodes
         !               - update the nodal coordinates from the new nodal velocities
         !               - calculate particle strains 
         !               - calculate stresses for integration points

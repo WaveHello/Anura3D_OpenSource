@@ -773,7 +773,7 @@
           ! determine bounding box of the considered area
           do I = 1, (NDIM * (NDIM - 1) + GeoParams%ExtraNodesMovingMesh)! loop dimension
             BoxNodeCoordinates(:) = BoxAreaCoordinates(I, :) ! extract single node from the array
-            call CheckMinMax(BoxNodeCoordinates, BoxMinimum, BoxMaximum)
+            call CheckMinMax(BoxNodeCoordinates, BoxMinimum, BoxMaximum) ! BoxMinimum and BoxMaximum get updated from there init values
           end do
 
           do I = 1, size(AreaNodeAssignment, 2) ! loop total number of nodes

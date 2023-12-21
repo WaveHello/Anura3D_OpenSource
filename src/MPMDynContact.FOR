@@ -233,6 +233,7 @@
           real(REAL_TYPE), dimension(NVECTOR) :: VelDiff      
           real(REAL_TYPE), dimension(NVECTOR) :: Unormal      
           real(REAL_TYPE), dimension(3) :: CrossP, Omega  
+          
           ! Matrix Values
           integer(INTEGER_TYPE), dimension(Counters%nEntity,Counters%NodTot) :: EntityNodes      
           integer(INTEGER_TYPE), dimension(CalParams%NumberOfMaterials,Counters%NodTot) :: MaterialNodes  
@@ -442,7 +443,7 @@
               ! IEL: Index for a selected element
               ! IPart: Index for looping through the number of material points in an element
               ! IEntity: Entity of the material point (1 for Soft_Entity and 2 for Hard_Entity-> Contacting body)
-              ! ParticleIndex: Particle Id
+              ! ParticleIndex: Global Particle Id of the Material point
               ! NAdjacentElementsNode: Number of elements attached to a node
               ! k: Index for lopping over Unormal and distVector components to calculate dot product
               ! dist: Distance between a node and a material point along Unormal
