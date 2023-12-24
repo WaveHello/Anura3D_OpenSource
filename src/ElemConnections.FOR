@@ -1504,14 +1504,17 @@
 
         end subroutine FillElementElementAdjacencies
 
-        
+          !**********************************************************************
+          !
+          !   SUBROUTINE:  SortElementElementAdjacencies()
+          !   
+          !   DESCRIPTION:
+          !   Sort the element element adjacencies (ElementElementAdjacencies).
+          !   The list of adjacent elements is sorted per element.
+          !
+          !**********************************************************************
         subroutine SortElementElementAdjacencies()
-          !**********************************************************************
-          !
-          !    Function:  Sort the element element adjacencies (ElementElementAdjacencies).
-          !               The list of adjacent elements is sorted per element.
-          !
-          !**********************************************************************
+
           
           implicit none
 
@@ -1525,21 +1528,21 @@
         end subroutine SortElementElementAdjacencies
 
         
-
+        !**********************************************************************
+        !    SUBROUTINE : CheckMinMax
+        !
+        !    DESCRIPTION :
+        !>   Checks Value(:) against the bounding box, Minimum(:) and Maximum(:),  
+        !>   and adjusts the bounding box if the values lie outside
+        !     
+        !>   @param[in] Value(:) : Values to be checked
+        !
+        !>   @param[inout] Minimum(:) : Bounding box minimum coordinates
+        !>   @param[inout] Maximum(:) : Bounding box maximum coordinates
+        !
+        !**********************************************************************
         subroutine CheckMinMax(Value, Minimum, Maximum)
-          !**********************************************************************
-          !    SUBROUTINE : CheckMinMax
-          !
-          !    DESCRIPTION :
-          !>   Checks Value(:) against the bounding box, Minimum(:) and Maximum(:),  
-          !>   and adjusts the bounding box if the values lie outside
-          !     
-          !>   @param[in] Value(:) : Values to be checked
-          !
-          !>   @param[inout] Minimum(:) : Bounding box minimum coordinates
-          !>   @param[inout] Maximum(:) : Bounding box maximum coordinates
-          !
-          !**********************************************************************
+
       
             real(REAL_TYPE), dimension(:), intent(in) :: Value
             real(REAL_TYPE), dimension(:), intent(inout) :: Minimum, Maximum
@@ -1561,23 +1564,23 @@
      
         end subroutine CheckMinMax
 
+        !*************************************************************************************   
+        !    FUNCTION:     GetBoundingBoxPoint
+        ! 
+        !    DESCRIPTION:        
+        !>   Returns the coordinates of a corner point PointID of the bounding box defined by MinX, ... , MaxZ.
+        !
+        !>   @note : 3D function
+        !
+        !>   @param[in] PointID : 1 to 8
+        !>   @param[in] Minimum : Bounding box minimum value
+        !>   @param[in] Maximum : Bounding box maximum value
+        !
+        !>   @return CheckBoundingBoxPoint : Returns the corner points of the bounding box
+        !
+        !*************************************************************************************
         function GetBoundingBoxPoint(PointID, Minimum, Maximum) ! 3D function
-          !*************************************************************************************   
-          !    FUNCTION:     GetBoundingBoxPoint
-          ! 
-          !    DESCRIPTION:        
-          !>   Returns the coordinates of a corner point PointID of the bounding box defined by MinX, ... , MaxZ.
-          !
-          !>   @note : 3D function
-          !
-          !>   @param[in] PointID : 1 to 8
-          !>   @param[in] Minimum : Bounding box minimum value
-          !>   @param[in] Maximum : Bounding box maximum value
-          !
-          !>   @return CheckBoundingBoxPoint : Returns the corner points of the bounding box
-          !
-          !*************************************************************************************
-
+        
           implicit none
           
             integer(INTEGER_TYPE), parameter :: IDim = 3 ! 3D function only
@@ -1624,25 +1627,25 @@
 
         end function GetBoundingBoxPoint
 
-        
+        !**********************************************************************
+        !
+        !    Subroutine:  ActiveElementsBoundingBox
+        !                - Determines the bounding box of the activated elements.
+        !
+        ! I   NodTot : Total number of nodes
+        ! I   IDim : Dimension of the mesh
+        ! I   NodeCoord : Global nodal coordinates
+        ! I   NEl : Number of elements
+        ! I   IElTyp : Number of nodes per element
+        ! I   ICon : Element node connectivities
+        ! I   IsElm : Element switches
+        !
+        ! O   Minimum : Minimum coordinates
+        ! O   Maximum : Maximum coordinates
+        !
+        !**********************************************************************
         subroutine ActiveElementsBoundingBox(NodTot, IDim, NodeCoord, NEl, IElTyp, ICon, IsElm, Minimum, Maximum)
-          !**********************************************************************
-          !
-          !    Function:  Determines the bounding box of the activated elements.
-          !
-          ! I   NodTot : Total number of nodes
-          ! I   IDim : Dimension of the mesh
-          ! I   NodeCoord : Global nodal coordinates
-          ! I   NEl : Number of elements
-          ! I   IElTyp : Number of nodes per element
-          ! I   ICon : Element node connectivities
-          ! I   IsElm : Element switches
-          !
-          ! O   Minimum : Minimum coordinates
-          ! O   Maximum : Maximum coordinates
-          !
-          !**********************************************************************
-      
+          
           implicit none
           
             integer(INTEGER_TYPE), intent(in) :: NodTot, IDim, NEl, IElTyp
@@ -1668,10 +1671,10 @@
         end subroutine ActiveElementsBoundingBox
 
         
-        subroutine ElementBoundingBox(ElementID, NodTot, IDim, NodeCoord, NEl, IElTyp, ICon, Minimum, Maximum)
           !**********************************************************************
           !
-          !    Function:  Determines the bounding box of the element with ElementID.
+          !    Subroutine: ElementBoundingBox
+          !                - Determines the bounding box of the element with ElementID.
           !
           ! I   ElementID : ID of the considered element
           ! I   NodTot : Total number of nodes
@@ -1685,7 +1688,8 @@
           ! O   Maximum : Maximum coordinates
           !
           !**********************************************************************
-      
+        subroutine ElementBoundingBox(ElementID, NodTot, IDim, NodeCoord, NEl, IElTyp, ICon, Minimum, Maximum)
+
           implicit none
           
             integer(INTEGER_TYPE), intent(in) :: NodTot, IDim, NEl, IElTyp, ElementID
@@ -1705,20 +1709,19 @@
      
         end subroutine ElementBoundingBox
         
-
-        subroutine CylinderBoundingBox(RotationOrigin, RotationAxis, StartRotationVector, EndRotationVector, &
-                                       Minimum, Maximum, MinAxis, MinRadius, StartAngle, MaxAxis, MaxRadius, EndAngle) ! 3D function
           !**********************************************************************
           !
-          !    Function:  Translates a bounding box given by MinX, ... , MaxZ into
-          !               a bounding box in cylindrical format (MinAxis, ... , EndAngle).
+          !    Subroutine:  CylinderBoundingBox
+          !                 - Translates a bounding box given by MinX, ... , MaxZ into
+          !                   a bounding box in cylindrical format (MinAxis, ... , EndAngle).
           !
-          !               Note: The bounding box is assumed to lie inside the positive sector
-          !                     of the local coordinate system defined by RotationOrigin,
-          !                     RotationAxis, StartRotationVector and EndRotationVector.
-          !                     The bounding box is limited by StartRotationVector and
-          !                     EndRotationVector.
-          !     Note: 3D Function
+          !    @note: The bounding box is assumed to lie inside the positive sector
+          !           of the local coordinate system defined by RotationOrigin,
+          !           RotationAxis, StartRotationVector and EndRotationVector.
+          !           The bounding box is limited by StartRotationVector and 
+          !           EndRotationVector.
+          !
+          !    @note: 3D Function
           !
           ! I   RotationOrigin : Origin of the cylinder
           ! I   RotationAxis : Axis of the cylinder
@@ -1734,7 +1737,8 @@
           ! O   EndAngle : Angle between the bounding box and EndRotationVector
           !
           !**********************************************************************
-
+        subroutine CylinderBoundingBox(RotationOrigin, RotationAxis, StartRotationVector, EndRotationVector, &
+                                       Minimum, Maximum, MinAxis, MinRadius, StartAngle, MaxAxis, MaxRadius, EndAngle)
           implicit none
             
             integer(INTEGER_TYPE), parameter :: IDim = 3 ! 3D function only        
@@ -1921,7 +1925,7 @@
           !
           !    Function:  Determines the space spanned by each element
           !
-          !>  @note : in 2D surface, in 3D volumen
+          !>  @note : in 2D surface, in 3D volume
           !
           ! I    NodeCoord : Global nodal coordinates
           ! I    ICon : Element connectivities ICon(I, J)
@@ -1976,7 +1980,6 @@
         
         end subroutine DetermineElementSpace
         
-
 !---------------------------------------------------------------------------------
         subroutine DetermineElementMatrix(NodeCoord, EleMat, EleVec)
           !**********************************************************************
@@ -2820,7 +2823,6 @@
         end subroutine GetMinAltitudeTetra       
 
         
-
         subroutine GetMinAltitudeTri(NodeNr, NodeCoord, Lmin) 
           !**********************************************************************
           !

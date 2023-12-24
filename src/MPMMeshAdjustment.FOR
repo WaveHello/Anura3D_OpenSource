@@ -8,7 +8,7 @@
     !
     !
 	!	Anura3D - Numerical modelling and simulation of large deformations 
-    !   and soil–water–structure interaction using the material point method (MPM)
+    !   and soilï¿½waterï¿½structure interaction using the material point method (MPM)
     !
     !	Copyright (C) 2023  Members of the Anura3D MPM Research Community 
     !   (See Contributors file "Contributors.txt")
@@ -780,7 +780,7 @@
 
             NodeCoordinates(:) = InitialNodeCoordinates(I, :)
            
-            if ( IsNodeInside(NodeCoordinates, BoxMinimum, BoxMaximum) ) then
+            if ( is_point_inside_box(NodeCoordinates, BoxMinimum, BoxMaximum) ) then
               AreaNodeAssignment(IDMovingMesh, I) = AreaNodeAssignment(IDMovingMesh, I) + IDArea
             end if
                         
@@ -821,37 +821,43 @@
         end function CheckIsModifiedMeshAdjustment
 
         
-
-        logical function IsNodeInside(Node, Minimum, Maximum)
         !*************************************************************************************
-        !    FUNCTION: IsNodeInside
+        !    FUNCTION: is_point_inside_box
         ! 
         !    DESCRIPTION:
-        !>   Checks whether node lies inside or on the box spanned by <Minimum, Maximum>
+        !>   Checks whether point lies inside or on the box spanned by <Minimum, Maximum>
         !
-        !>   @param[in] Node(:) : coordinates of the node that is checked
-        !>   @param[in] Minimum(:) : minimum coordinates of a bounding box
-        !>   @param[in] Maximum(:) : maximum coordinates of a bounding box
-        !
-        !>   @return IsNodeInside : .true. if inside or on boundary, .false. if outside
+        !>   @param[in] point(:) : coordinates of the point that is checked
+        !>   @param[in] min_box_coord(:) : minimum coordinates of a bounding box
+        !>   @param[in] max_box_coord(:) : maximum coordinates of a bounding box
+        !    @param[in] offset: allowed offset from the box to account for float precision
+        !>   @return is_point_inside_box : .true. if inside or on boundary, .false. if outside
         !
         !*************************************************************************************
+        logical function is_point_inside_box(point, min_box_coord, max_box_coord, offset_in)
+        
         implicit none
 
-          real(REAL_TYPE), intent(in), dimension(:) :: Node
-          real(REAL_TYPE), intent(in), dimension(:) :: Minimum, Maximum
+          real(REAL_TYPE), intent(in), dimension(:) :: point
+          real(REAL_TYPE), intent(in), dimension(:) :: min_box_coord, max_box_coord
+          real(REALTYPE), optional :: offset_in
+
           ! local variables
           integer(INTEGER_TYPE) :: I
-          real(REAL_TYPE) :: Offset
+          real(REAL_TYPE) :: offset
           
-          Offset = 1.e-10
-        
-          IsNodeInside = .true.
-          do I = 1, size(Node)
-            IsNodeInside = IsNodeInside .and. ( ( Node(I) >= (Minimum(I) - Offset) ) .and. ( Node(I) <= (Maximum(I) + Offset) ) )                
+          if(present(offset_in)) then
+            offset = offset_in 
+          else
+            offset = 1.e-10
+          endif
+          
+          is_point_inside_box = .true.
+          do I = 1, size(point)
+            is_point_inside_box = is_point_inside_box .and. ( ( point(I) >= (min_box_coord(I) - offset) ) .and. ( point(I) <= (max_box_coord(I) + offset) ) )                
           end do
           
-        end function IsNodeInside
+        end function is_point_inside_box
         
 
 
