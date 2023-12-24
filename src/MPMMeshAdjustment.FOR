@@ -780,7 +780,7 @@
 
             NodeCoordinates(:) = InitialNodeCoordinates(I, :)
            
-            if ( is_point_inside_box(NodeCoordinates, BoxMinimum, BoxMaximum) ) then
+            if ( check_point_in_box(NodeCoordinates, BoxMinimum, BoxMaximum) ) then
               AreaNodeAssignment(IDMovingMesh, I) = AreaNodeAssignment(IDMovingMesh, I) + IDArea
             end if
                         
@@ -822,7 +822,7 @@
 
         
         !*************************************************************************************
-        !    FUNCTION: is_point_inside_box
+        !    FUNCTION: check_point_in_box
         ! 
         !    DESCRIPTION:
         !>   Checks whether point lies inside or on the box spanned by <Minimum, Maximum>
@@ -830,11 +830,12 @@
         !>   @param[in] point(:) : coordinates of the point that is checked
         !>   @param[in] min_box_coord(:) : minimum coordinates of a bounding box
         !>   @param[in] max_box_coord(:) : maximum coordinates of a bounding box
-        !    @param[in] offset: allowed offset from the box to account for float precision
-        !>   @return is_point_inside_box : .true. if inside or on boundary, .false. if outside
+        !>   @param[in] (optional) offset_in: allowed offset from the box to account for float precision
+        !
+        !>   @return check_point_in_box : .true. if inside or on boundary, .false. if outside
         !
         !*************************************************************************************
-        logical function is_point_inside_box(point, min_box_coord, max_box_coord, offset_in)
+        logical function check_point_in_box(point, min_box_coord, max_box_coord, offset_in)
         
         implicit none
 
@@ -852,12 +853,17 @@
             offset = 1.e-10
           endif
           
-          is_point_inside_box = .true.
+          ! if ((size(point) /= size(min_box_coord)) .or. size(point) /= size(max_box_coord)) then
+          !   ! Throw an error
+          !   !TODO: Create an error condition here
+          ! endif
+
+          check_point_in_box = .true.
           do I = 1, size(point)
-            is_point_inside_box = is_point_inside_box .and. ( ( point(I) >= (min_box_coord(I) - offset) ) .and. ( point(I) <= (max_box_coord(I) + offset) ) )                
+            check_point_in_box = check_point_in_box .and. ( ( point(I) >= (min_box_coord(I) - offset) ) .and. ( point(I) <= (max_box_coord(I) + offset) ) )                
           end do
           
-        end function is_point_inside_box
+        end function check_point_in_box
         
 
 
