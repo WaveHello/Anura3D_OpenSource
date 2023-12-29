@@ -10,3 +10,4 @@
 *.user
 Release/
 Debug/
+**.suo
