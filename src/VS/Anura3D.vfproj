@@ -46,6 +46,7 @@
 		<File RelativePath="..\ReadMaterialData.FOR"/>
 		<File RelativePath="..\ReadMPMData.FOR"/></Filter>
 		<Filter Name="MaterialModels">
+		<File RelativePath="..\ESM_MCSS.f90"/>
 		<File RelativePath="..\ExternalSoilModel.for"/>
 		<File RelativePath="..\Liquid.FOR"/></Filter>
 		<Filter Name="MPMModules">

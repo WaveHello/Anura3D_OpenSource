@@ -1586,9 +1586,13 @@
         subroutine InitialiseNumberOfActiveElements()
         !**********************************************************************
         !
-        ! Function:  Calculate the number of active elements
-        !
-        ! O   NEl : Total number of elements
+        ! Function:  Calculates the number of active elements and sets logical 
+        !            array IsActiveElement
+        !  
+        ! O   IsActiveElement: Logical array with length total_num_elements
+        !                     with index set to true if that element is active 
+        !                     this time step
+        ! O   Counters%NAEL  : Number of active elements  
         !
         !**********************************************************************
         

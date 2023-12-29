@@ -8,7 +8,7 @@
     !
     !
 	!	Anura3D - Numerical modelling and simulation of large deformations 
-    !   and soil–water–structure interaction using the material point method (MPM)
+    !   and soilï¿½waterï¿½structure interaction using the material point method (MPM)
     !
     !	Copyright (C) 2023  Members of the Anura3D MPM Research Community 
     !   (See Contributors file "Contributors.txt")
@@ -31,7 +31,7 @@
     !   This file incorporates work covered by the following copyright and 
     !   permission notice:
     !  
-    !   Copyright © 2017-2020 Bentley Systems, Incorporated. All rights reserved.
+    !   Copyright ï¿½ 2017-2020 Bentley Systems, Incorporated. All rights reserved.
     !
     !   Permission is hereby granted, free of charge, to any person obtaining a copy 
     !   of this software and associated documentation files (the "Software"), to deal 
@@ -252,7 +252,7 @@
         real(REAL_TYPE) function CalculateDeterminant(CheckMatrix, MatrixDimension)
         !**********************************************************************
         !
-        !    Function: Returns the determinante of the quadratic matrix CheckMatrix
+        !    Function: Returns the determinant of the quadratic matrix CheckMatrix
         !              whose dimensions are provided by MatrixDimension.
         !     
         !     CheckMatrix : Matrix whose determinante is calculated
@@ -336,6 +336,10 @@
         IS0ARR = temp
       end function IS0ARR
       
+      ! Add function to determine:
+      ! - Eigenvalues
+      ! - Eigenvectors
+      ! - Eigenvectors and Eigenvectors 
       
     end module ModMatrixMath
 

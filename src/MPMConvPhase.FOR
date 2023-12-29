@@ -837,15 +837,20 @@
         subroutine SetActiveElement()
         !**********************************************************************
         !
-        !  Function : To set the active elements
+        !  Function : Creates array of active element ids (Active Elements) and 
+        !             calls DetermineActiveNodes()
+        !  
+        !  Calls: 
+        !        - subroutine DetermineActiveNodes()
         !
-        !  ActiveElement: Active element vector
+        !  O ActiveElement: 1D array of active element IDs
         !
         !**********************************************************************
         implicit none
         
           integer(INTEGER_TYPE) :: IAEl, IEl, IError
-        
+          ! Uses:
+          ! IsActiveElement - array
           if (allocated(ActiveElement) ) then
             deallocate(ActiveElement, stat = IError)
           end if
@@ -860,7 +865,8 @@
               ActiveElement(IAEl) = IEl
             end if
           end do
- 
+          
+          ! TODO: WaveHello - Pull this out this would be terrible to debug
           call DetermineActiveNodes()
           
         end subroutine SetActiveElement

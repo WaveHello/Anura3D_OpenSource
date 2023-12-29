@@ -898,6 +898,7 @@
     
     
        logical function IsMPMComputation()
+          !! Returns True if Model is MPM, False if FEM 
           IsMPMComputation =  &
             (CalParams%ComputationMethod==MPM_MIXED_INTEGRATION).or. &
             (CalParams%ComputationMethod==MPM_MP_INTEGRATION)

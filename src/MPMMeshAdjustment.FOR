@@ -841,7 +841,7 @@
 
           real(REAL_TYPE), intent(in), dimension(:) :: point
           real(REAL_TYPE), intent(in), dimension(:) :: min_box_coord, max_box_coord
-          real(REALTYPE), optional :: offset_in
+          real, optional :: offset_in ! Could not define type at run time for optional argument
 
           ! local variables
           integer(INTEGER_TYPE) :: I
