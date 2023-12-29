@@ -63,6 +63,7 @@
       use ModMeshInfo
       use ModReadMPMData
       use ModGlobalConstants
+      use ModGeometryMath, only : check_point_in_box
       
       implicit none
 
@@ -764,7 +765,7 @@
           ! Local variables
           integer(INTEGER_TYPE) :: I, IDArea
           real(REAL_TYPE), dimension(NVECTOR) :: NodeCoordinates, BoxNodeCoordinates, BoxMinimum, BoxMaximum
-
+          logical, dimension(size(AreaNodeAssignment, 2)) :: AreaNodeMask
           BoxMinimum = 1.E200
           BoxMaximum = -1.E200
 
@@ -776,6 +777,14 @@
             call CheckMinMax(BoxNodeCoordinates, BoxMinimum, BoxMaximum) ! BoxMinimum and BoxMaximum get updated from there init values
           end do
 
+          ! ! Check which nodes are in the box
+          ! AreaNodeMask = check_points_in_box(InitialNodeCoordinates, BoxMinimum, BoxMaximum)
+          
+          ! ! Assign IDArea where the mask is true
+          ! where(AreaNodeMask)
+          !   AreaNodeAssignment(IDMovingMesh, :) = AreaNodeAssignment(IDMovingMesh, :) + IDArea
+          ! end where
+
           do I = 1, size(AreaNodeAssignment, 2) ! loop total number of nodes
 
             NodeCoordinates(:) = InitialNodeCoordinates(I, :)
@@ -783,7 +792,6 @@
             if ( check_point_in_box(NodeCoordinates, BoxMinimum, BoxMaximum) ) then
               AreaNodeAssignment(IDMovingMesh, I) = AreaNodeAssignment(IDMovingMesh, I) + IDArea
             end if
-                        
           end do
         
         end subroutine CheckNodeInArea
@@ -818,54 +826,7 @@
             end if
           end do
         
-        end function CheckIsModifiedMeshAdjustment
-
-        
-        !*************************************************************************************
-        !    FUNCTION: check_point_in_box
-        ! 
-        !    DESCRIPTION:
-        !>   Checks whether point lies inside or on the box spanned by <Minimum, Maximum>
-        !
-        !>   @param[in] point(:) : coordinates of the point that is checked
-        !>   @param[in] min_box_coord(:) : minimum coordinates of a bounding box
-        !>   @param[in] max_box_coord(:) : maximum coordinates of a bounding box
-        !>   @param[in] (optional) offset_in: allowed offset from the box to account for float precision
-        !
-        !>   @return check_point_in_box : .true. if inside or on boundary, .false. if outside
-        !
-        !*************************************************************************************
-        logical function check_point_in_box(point, min_box_coord, max_box_coord, offset_in)
-        
-        implicit none
-
-          real(REAL_TYPE), intent(in), dimension(:) :: point
-          real(REAL_TYPE), intent(in), dimension(:) :: min_box_coord, max_box_coord
-          real, optional :: offset_in ! Could not define type at run time for optional argument
-
-          ! local variables
-          integer(INTEGER_TYPE) :: I
-          real(REAL_TYPE) :: offset
-          
-          if(present(offset_in)) then
-            offset = offset_in 
-          else
-            offset = 1.e-10
-          endif
-          
-          ! if ((size(point) /= size(min_box_coord)) .or. size(point) /= size(max_box_coord)) then
-          !   ! Throw an error
-          !   !TODO: Create an error condition here
-          ! endif
-
-          check_point_in_box = .true.
-          do I = 1, size(point)
-            check_point_in_box = check_point_in_box .and. ( ( point(I) >= (min_box_coord(I) - offset) ) .and. ( point(I) <= (max_box_coord(I) + offset) ) )                
-          end do
-          
-        end function check_point_in_box
-        
-
+        end function CheckIsModifiedMeshAdjustment  
 
         integer(INTEGER_TYPE) function GetAreaID(IDArea)
         !*************************************************************************************

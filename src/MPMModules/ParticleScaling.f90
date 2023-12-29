@@ -42,10 +42,10 @@ module MODParticleScaling
     !     $Date:  2023-12-29 1:32 +0500 (WaveHello, 29 Dec 2023) $
     !
     !**********************************************************************
-    use ModGlobalConstants, only :: INTEGER_TYPE, REAL_TYPE
+    use ModGlobalConstants, only : INTEGER_TYPE, REAL_TYPE
     ! Add files to the geometry module
     use ModMatrixMath, only 
-    use ModGeometryMath, only :: check_points_in_box
+    use ModGeometryMath, only : check_points_in_box
     implicit none
     
 contains

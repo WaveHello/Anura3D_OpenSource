@@ -695,15 +695,60 @@ contains
 
    end function CheckInsideSubTriangle
 
+   !*************************************************************************************
+   !    FUNCTION: check_point_in_box
+   ! 
+   !    DESCRIPTION:
+   !>   Checks whether point lies inside or on the box spanned by <Minimum, Maximum>
+   !
+   !>   @param[in] point(:) : coordinates of the point that is checked
+   !>   @param[in] min_box_coord(:) : minimum coordinates of a bounding box
+   !>   @param[in] max_box_coord(:) : maximum coordinates of a bounding box
+   !>   @param[in] (optional) offset_in: allowed offset from the box to account for float precision
+   !
+   !>   @return check_point_in_box : .true. if inside or on boundary, .false. if outside
+   !
+   !*************************************************************************************
+   logical function check_point_in_box(point, min_box_coord, max_box_coord, offset_in)
+        
+   implicit none
+
+     real(REAL_TYPE), intent(in), dimension(:) :: point
+     real(REAL_TYPE), intent(in), dimension(:) :: min_box_coord, max_box_coord
+     real, optional :: offset_in ! Could not define type at run time for optional argument
+
+     ! local variables
+     integer(INTEGER_TYPE) :: I
+     real(REAL_TYPE) :: offset
+     
+     if(present(offset_in)) then
+       offset = offset_in 
+     else
+       offset = 1.e-10
+     endif
+     
+     if ((size(point) /= size(min_box_coord)) .or. size(point) /= size(max_box_coord)) then
+       ! Throw an error
+       !TODO: Create an error condition here
+     endif
+
+     check_point_in_box = .true.
+     do I = 1, size(point)
+       check_point_in_box = check_point_in_box .and. ( ( point(I) >= (min_box_coord(I) - offset) ) .and. ( point(I) <= (max_box_coord(I) + offset) ) )                
+     end do
+     
+   end function check_point_in_box
+
    function check_points_in_box(points, min_box_coord, max_box_coord, offset_in) result(inside)
       !!author: WaveHello
       !!date: 12/25/2023
       !! Determines if a matrix of points (where each point is stored row-wise) is inside a box.
+      !! Use the error module to throw size error in this module
 
-      real(REAL_TYPE), dimension(:,:) ,intent(in) :: points
+      real(REAL_TYPE), dimension(:,:) ,intent(in)  :: points
       !! input min and max values act as an initial guess
-      real(REAL_TYPE), dimension(:)   ,intent(in) :: min_box_coord(:), max_box_coord(:)
-      real(REAL_TYPE), optional       ,intent(in) :: offset_in
+      real(REAL_TYPE), dimension(:)   ,intent(in)  :: min_box_coord(:), max_box_coord(:)
+      real(REAL_TYPE), optional       ,intent(in)  :: offset_in
       logical,         dimension(:)   ,allocatable :: inside
 
       ! Local variables
