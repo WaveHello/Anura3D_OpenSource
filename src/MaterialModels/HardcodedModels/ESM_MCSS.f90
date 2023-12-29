@@ -40,15 +40,23 @@
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  
       
     
-! Module contains all functions and subroutines required for the Mohr-Coloumb Strain Softening constitutive model
 module MOD_MCSS_ESM
-   ! Integer type and real type is not specified in this module. This was done because the ESMs are usually compiled into external .dlls
-   ! and the type wouldn't be specfied there
+   !**********************************************************************
+   !
+   ! Module: contains all functions and subroutines required for the Mohr-Coloumb Strain Softening constitutive model
+   !
+   ! Note: Integer type and real type is not specified in this module. This was done because the ESMs are usually compiled into external .dlls
+   !        and the type wouldn't be specfied there
    ! TODO: Add integer and real type. Also determine if doubles are really needed for this computation. As they are cast into reals does it matter?
-   
+   !     
+   !     $Revision: ????? $
+   !     $Date: 2023-12-28 11:41 +0500 (WaveHello, 28 Dec 2023) $
+   !
+   !**********************************************************************
+
    implicit none
    private ! Makes all function private to this module (No other modules can get access)
-   public ESM_MohrCoulombStrainSoftening ! Overides private status for specific function
+   public ESM_MohrCoulombStrainSoftening ! Overides private status for specific subroutine
 
 contains
    SUBROUTINE ESM_MohrCoulombStrainSoftening(NPT,NOEL,IDSET,STRESS,EUNLOADING,PLASTICMULTIPLIER,&
