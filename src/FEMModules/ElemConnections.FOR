@@ -1513,6 +1513,7 @@
           !   The list of adjacent elements is sorted per element.
           !
           !**********************************************************************
+        
         subroutine SortElementElementAdjacencies()
 
           
@@ -1580,7 +1581,7 @@
         !
         !*************************************************************************************
         function GetBoundingBoxPoint(PointID, Minimum, Maximum) ! 3D function
-        
+          !TODO: Move this function into the geoMath.f90 file
           implicit none
           
             integer(INTEGER_TYPE), parameter :: IDim = 3 ! 3D function only

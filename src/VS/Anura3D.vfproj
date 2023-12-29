@@ -60,7 +60,7 @@
 		<File RelativePath="..\MPMModules\MPMDynamicExplicit.FOR"/>
 		<File RelativePath="..\MPMModules\MPMDYNBTSig.FOR"/>
 		<File RelativePath="..\MPMModules\MPMDynContact.FOR"/>
-		<File RelativePath="..\MPMModules\MPMDYNConvPhase.FOR"/>
+		<File RelativePath="..\MPMModules\MPMDYNConvPhase.f90"/>
 		<File RelativePath="..\MPMModules\MPMDYNStresses.FOR"/>
 		<File RelativePath="..\MPMModules\MPMDynViscousBoundary.FOR"/>
 		<File RelativePath="..\MPMModules\MPMEmptyElements.FOR"/>
@@ -71,7 +71,7 @@
 		<File RelativePath="..\MPMModules\MPMStrainSmoothing.FOR"/>
 		<File RelativePath="..\MPMModules\MPMStresses.FOR"/>
 		<File RelativePath="..\MPMModules\Particle.FOR"/>
-		<File RelativePath="..\MPMModules\RigidBody.f"/>
+		<File RelativePath="..\MPMModules\RigidBody.f90"/>
 		<File RelativePath="..\MPMModules\TwoLayerFormulation.FOR"/></Filter>
 		<Filter Name="OutputModules">
 		<File RelativePath="..\OutputModules\gidpost.F90"/>
@@ -89,13 +89,13 @@
 		<File RelativePath="..\Shared\ErrorHandler.for"/>
 		<File RelativePath="..\Shared\Feedback.for"/>
 		<File RelativePath="..\Shared\FileIO.for"/>
-		<File RelativePath="..\Shared\GeoMath.FOR"/>
+		<File RelativePath="..\Shared\GeoMath.f90"/>
 		<File RelativePath="..\Shared\getversion.for"/>
-		<File RelativePath="..\Shared\GlobalConstants.FOR"/>
+		<File RelativePath="..\Shared\GlobalConstants.f90"/>
 		<File RelativePath="..\Shared\InitialiseElementType.for"/>
 		<File RelativePath="..\Shared\InitialiseKernel.FOR"/>
 		<File RelativePath="..\Shared\ISORT.FOR"/>
-		<File RelativePath="..\Shared\MatrixMath.FOR"/>
+		<File RelativePath="..\Shared\MatrixMath.f90"/>
 		<File RelativePath="..\Shared\String.for"/>
 		<File RelativePath="..\Shared\timing.for"/></Filter>
 		<Filter Name="Solver">
