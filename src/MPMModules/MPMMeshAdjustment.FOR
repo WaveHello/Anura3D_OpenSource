@@ -63,8 +63,8 @@
       use ModMeshInfo
       use ModReadMPMData
       use ModGlobalConstants
-      use ModGeometryMath, only : check_point_in_box
-      
+      use ModGeometryMath, only : check_points_in_box, CheckMinMax
+
       implicit none
 
         integer(INTEGER_TYPE), parameter :: STORAGE1 = 5 ! Node inside storage area 1
@@ -777,22 +777,22 @@
             call CheckMinMax(BoxNodeCoordinates, BoxMinimum, BoxMaximum) ! BoxMinimum and BoxMaximum get updated from there init values
           end do
 
-          ! ! Check which nodes are in the box
-          ! AreaNodeMask = check_points_in_box(InitialNodeCoordinates, BoxMinimum, BoxMaximum)
+          ! Check which nodes are in the box
+          AreaNodeMask = check_points_in_box(InitialNodeCoordinates, BoxMinimum, BoxMaximum)
           
-          ! ! Assign IDArea where the mask is true
-          ! where(AreaNodeMask)
-          !   AreaNodeAssignment(IDMovingMesh, :) = AreaNodeAssignment(IDMovingMesh, :) + IDArea
-          ! end where
+          ! Assign IDArea where the mask is true
+          where(AreaNodeMask)
+            AreaNodeAssignment(IDMovingMesh, :) = AreaNodeAssignment(IDMovingMesh, :) + IDArea
+          end where
 
-          do I = 1, size(AreaNodeAssignment, 2) ! loop total number of nodes
+          ! do I = 1, size(AreaNodeAssignment, 2) ! loop total number of nodes
 
-            NodeCoordinates(:) = InitialNodeCoordinates(I, :)
+          !   NodeCoordinates(:) = InitialNodeCoordinates(I, :)
            
-            if ( check_point_in_box(NodeCoordinates, BoxMinimum, BoxMaximum) ) then
-              AreaNodeAssignment(IDMovingMesh, I) = AreaNodeAssignment(IDMovingMesh, I) + IDArea
-            end if
-          end do
+          !   if ( check_point_in_box(NodeCoordinates, BoxMinimum, BoxMaximum) ) then
+          !     AreaNodeAssignment(IDMovingMesh, I) = AreaNodeAssignment(IDMovingMesh, I) + IDArea
+          !   end if
+          ! end do
         
         end subroutine CheckNodeInArea
         

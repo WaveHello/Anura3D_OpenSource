@@ -58,6 +58,7 @@
       use ModElementEvaluation
       use ModIsort
       use ModMatrixMath
+      use ModGeometryMath, only : CheckMinMax
       
       implicit none
       
@@ -1529,41 +1530,7 @@
         end subroutine SortElementElementAdjacencies
 
         
-        !**********************************************************************
-        !    SUBROUTINE : CheckMinMax
-        !
-        !    DESCRIPTION :
-        !>   Checks Value(:) against the bounding box, Minimum(:) and Maximum(:),  
-        !>   and adjusts the bounding box if the values lie outside
-        !     
-        !>   @param[in] Value(:) : Values to be checked
-        !
-        !>   @param[inout] Minimum(:) : Bounding box minimum coordinates
-        !>   @param[inout] Maximum(:) : Bounding box maximum coordinates
-        !
-        !**********************************************************************
-        subroutine CheckMinMax(Value, Minimum, Maximum)
 
-      
-            real(REAL_TYPE), dimension(:), intent(in) :: Value
-            real(REAL_TYPE), dimension(:), intent(inout) :: Minimum, Maximum
-      
-            ! Local variables
-            integer :: I
-            
-            do I = 1, NVECTOR
-                
-              if ( Value(I) > Maximum(I) ) then
-                Maximum(I) = Value(I)
-              end if
-              
-              if ( Value(I) < Minimum(I) ) then
-                Minimum(I) = Value(I)
-              end if
-              
-            end do
-     
-        end subroutine CheckMinMax
 
         !*************************************************************************************   
         !    FUNCTION:     GetBoundingBoxPoint

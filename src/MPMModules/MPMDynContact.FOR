@@ -312,8 +312,9 @@ contains ! Routines of this module
 
                      ! Adhesion
                      AdhesionFactor = AdhesionCoef * CalParams%TimeIncrement / (LumpedMassDry(IDof(1), IEnt) * (DiffDotUn + TINY))
-
-                     if (traction < 0.0 .and. nearestMPDist < CalParams%ContactRadius .or. DiffDotUn>0.0 .and. traction == 0.0 .and. nearestMPDist < CalParams%ContactRadius) then
+                        
+                     if (DiffDotUn>0.0 .and. traction < 0.0 .and. nearestMPDist < CalParams%ContactRadius &
+                         .or. DiffDotUn>0.0 .and. traction == 0.0 .and. nearestMPDist < CalParams%ContactRadius) then
                         !if (contactFlag == 1) then
                         !if (DiffDotUn>0.0) then ! Standard formulation: DiffDotUn greater than 0 means approaching bodies
 

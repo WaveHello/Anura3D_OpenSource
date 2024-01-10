@@ -125,12 +125,12 @@ contains ! Routines of this module
       if (IsMPMComputation()) then ! if MPM update particle velocity....
          call UpdateParticleVelocityAndMapMomentum(Momentum) ! From accelerations in global coordinate system
         
-         ! Determine if vec
-         ! if (CalParams%ApplyConvContactVelocityScaling .or. CalParams%ApplyConvContactStressScaling) then
-
-         !    if (CalParams%ApplyConvContactStressScaling) call apply_stress_scaling_to_region()
-         !    if (CalParams%ApplyConvContactVelocityScaling) call apply_contact_velocity_scaling()
-         ! end if
+         ! Make a global flag that keeps track if the elements in the box have already been calculated
+         !if (CalParams%ApplyConvContactVelocityScaling .or. CalParams%ApplyConvContactStressScaling) then
+         !   ! Need to pass in the active elements
+         !   apply_particle_scaling()
+         !
+         !end if
          if ((CalParams%NumberOfPhases==2).or.(CalParams%NumberOfPhases==3).or.(.not.(NFORMULATION==1))) then
             call UpdateParticleWaterVelocityAndMapMomentumW(MomentumW) ! From accelerations in global coordinate system
          end if

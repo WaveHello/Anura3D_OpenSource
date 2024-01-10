@@ -45,7 +45,7 @@
 
 module ModGeometryMath
 
-   use ModGlobalConstants, only : INTEGER_TYPE, REAL_TYPE, NDIM, TINY
+   use ModGlobalConstants, only : INTEGER_TYPE, REAL_TYPE, NDIM, TINY, NVECTOR
 
    implicit none
 
@@ -696,49 +696,19 @@ contains
    end function CheckInsideSubTriangle
 
    !*************************************************************************************
-   !    FUNCTION: check_point_in_box
+   !    FUNCTION: check_points_in_box
    ! 
    !    DESCRIPTION:
-   !>   Checks whether point lies inside or on the box spanned by <Minimum, Maximum>
+   !>   Determines if a matrix of points (where each point is stored row-wise) is inside a box.
    !
-   !>   @param[in] point(:) : coordinates of the point that is checked
+   !>   @param[in] points(:.:) : matrix of coordinates of the points (stored as rows) that are checked
    !>   @param[in] min_box_coord(:) : minimum coordinates of a bounding box
    !>   @param[in] max_box_coord(:) : maximum coordinates of a bounding box
    !>   @param[in] (optional) offset_in: allowed offset from the box to account for float precision
    !
-   !>   @return check_point_in_box : .true. if inside or on boundary, .false. if outside
-   !
+   !>   @return check_points_in_box (logical array): .true. if inside or on boundary, .false. if outside
+   !     Author: WaveHello
    !*************************************************************************************
-   logical function check_point_in_box(point, min_box_coord, max_box_coord, offset_in)
-        
-   implicit none
-
-     real(REAL_TYPE), intent(in), dimension(:) :: point
-     real(REAL_TYPE), intent(in), dimension(:) :: min_box_coord, max_box_coord
-     real, optional :: offset_in ! Could not define type at run time for optional argument
-
-     ! local variables
-     integer(INTEGER_TYPE) :: I
-     real(REAL_TYPE) :: offset
-     
-     if(present(offset_in)) then
-       offset = offset_in 
-     else
-       offset = 1.e-10
-     endif
-     
-     if ((size(point) /= size(min_box_coord)) .or. size(point) /= size(max_box_coord)) then
-       ! Throw an error
-       !TODO: Create an error condition here
-     endif
-
-     check_point_in_box = .true.
-     do I = 1, size(point)
-       check_point_in_box = check_point_in_box .and. ( ( point(I) >= (min_box_coord(I) - offset) ) .and. ( point(I) <= (max_box_coord(I) + offset) ) )                
-     end do
-     
-   end function check_point_in_box
-
    function check_points_in_box(points, min_box_coord, max_box_coord, offset_in) result(inside)
       !!author: WaveHello
       !!date: 12/25/2023
@@ -787,4 +757,40 @@ contains
          inside(i) = inside(i) .and. all(one_point >= (min_box_coord - offset)) .and. all(one_point <= (max_box_coord+offset))
       end do
    end function check_points_in_box
-end module ModGeometryMath
+
+   !**********************************************************************
+   !    SUBROUTINE : CheckMinMax
+   !
+   !    DESCRIPTION :
+   !>   Checks Value(:) against the bounding box, Minimum(:) and Maximum(:),  
+   !>   and adjusts the bounding box if the values lie outside
+   !     
+   !>   @param[in] Value(:) : Values to be checked
+   !
+   !>   @param[inout] Minimum(:) : Bounding box minimum coordinates
+   !>   @param[inout] Maximum(:) : Bounding box maximum coordinates
+   !
+   !**********************************************************************
+   subroutine CheckMinMax(Value, Minimum, Maximum)
+  
+        real(REAL_TYPE), dimension(:), intent(in) :: Value
+        real(REAL_TYPE), dimension(:), intent(inout) :: Minimum, Maximum
+  
+        ! Local variables
+        integer :: I
+        
+        do I = 1, NVECTOR
+            
+          if ( Value(I) > Maximum(I) ) then
+            Maximum(I) = Value(I)
+          end if
+          
+          if ( Value(I) < Minimum(I) ) then
+            Minimum(I) = Value(I)
+          end if
+          
+        end do
+ 
+    end subroutine CheckMinMax
+
+   end module ModGeometryMath
