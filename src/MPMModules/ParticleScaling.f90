@@ -92,42 +92,82 @@ contains
 
    end subroutine apply_particle_scaling
 
+   subroutine apply_contact_velocity_scaling(element_ids, min_element_dim_arr, particle_connectivity, particle_velocities, time_step, &
+      velocity_scale_factor)
+      integer(INTEGER_TYPE) ,dimension(:)    ,intent(in) :: element_ids
+      real(REAL_TYPE)       ,dimension(:)    ,intent(in) :: min_element_dim_arr
+      real(REAL_TYPE)       ,dimension(:, :) ,intent(in) :: particle_connectivity
+      real(REAL_TYPE)       ,dimension(:, :) ,intent(in) :: particle_velocities
+      real(REAL_TYPE) :: time_step, velocity_scale_factor
+
+      ! Local variables
+      integer(INTEGER_TYPE) :: i, j, iElem, particle_id
+      real(REAL_TYPE)       :: speed_criteria, min_elem_length,
+      real(REAL_TYPE)       ,dimension(:), allocatable :: element_particles
+
+      do i = 1, size(element_ids)
+         ! Get element id of current element
+         iElem = element_ids(i)
+
+         ! Get the min length of the element
+         min_elem_length = min_element_dim_arr(iElem)
+
+         ! Calc velocity criteria
+         speed_criteria = min_elem_length/time_step
+
+         ! Select the MPs in iElem
+         num_particles_in_elem = size(particle_connectivity(iElem, :))
+         allocate(element_particle(num_particles_in_elem))
+
+         !TODO - MAKE SURE IM SELECTING THE CORRECT INDEX HERE
+         element_particles = particle_connectivity(iElem,:) !- select the right indexes of this matrix
+
+         do j = 1, size(element_MPs)
+            ! Get the current MP global id
+            particle_id = element_MPs(j)
+
+            ! Get the MP velocity
+            particle_velocity = particle_velocities(particle_id)
+
+            ! Get MP speed
+            particle_speed = norm2(particle_velocities)
+
+            if (particle_speed > speed_criteria) then
+               ! Calc unit norm velocity - need to keep direction correct
+               unit_norm_velocity = particle_velocity/particle_speed
+
+               ! set particle velocity
+               particle_velocities(particle_id) = velocity_scale_factor * speed_criteria * unit_norm_velocity
+            end if
+
+            deallocate(element_particles)
+         end do
+      end do
+   end subroutine apply_contact_velocity_scaling
+
    function determine_elements_in_box(corner_nodes, node_ids, node_coords, element_ids, element_connectivity) result(elements_in_box)
-    implicit none
+      implicit none
 
-    integer(INTEGER_TYPE) ,dimension(:)    ,intent(in) :: corner_nodes, node_ids, element_ids
-    real(REAL_TYPE)       ,dimension(:, :) ,intent(in) :: node_coords, element_connectivity
+      integer(INTEGER_TYPE) ,dimension(:)    ,intent(in) :: corner_nodes, node_ids, element_ids
+      real(REAL_TYPE)       ,dimension(:, :) ,intent(in) :: node_coords, element_connectivity
 
-    ! Local variables
-    real(REAL_TYPE), dimension(:) :: max_box_coord, min_box_coord
-    real(REAL_TYPE), dimension(:) :: nodes_in_box, elements_in_box
-    integer(INTEGER_TYPE) :: i
+      ! Local variables
+      real(REAL_TYPE), dimension(:) :: max_box_coord, min_box_coord
+      real(REAL_TYPE), dimension(:) :: nodes_in_box, elements_in_box
+      integer(INTEGER_TYPE) :: i
 
 
-    ! Determine the size of the box
-    call find_min_max_box_corners(corner_nodes, node_coords, min_box_coord, max_box_coord)
-    
-    ! Determine the nodes in the box
-    nodes_in_box = determine_nodes_in_box(node_ids, node_coords, min_box_coord, max_box_coord)
-    
-    ! Determine the elements in the box
-    elements_in_box = determine_elements_in_nodes(nodes_in_box, element_ids, element_connectivity)
+      ! Determine the size of the box
+      call find_min_max_box_corners(corner_nodes, node_coords, min_box_coord, max_box_coord)
+
+      ! Determine the nodes in the box
+      nodes_in_box = determine_nodes_in_box(node_ids, node_coords, min_box_coord, max_box_coord)
+
+      ! Determine the elements in the box
+      elements_in_box = determine_elements_in_nodes(nodes_in_box, element_ids, element_connectivity)
    end function determine_elements_in_box
 
-   subroutine apply_contact_velocity_scaling(element_ids, particle_connectivity, particle_velocity)
-      integer(INTEGER_TYPE) ,dimension(:)    ,intent(in) :: element_ids
-      real(REAL_TYPE)       ,dimension(:, :) ,intent(in) :: particle_connectivity
-      real(REAL_TYPE)       ,dimension(:, :) ,intent(in) :: particle_velocity
-      
-      ! Use LMin for the length of the particle
-      
-      ! For each element select the MPs
 
-      ! Loop over the MPs and determine the speed
-      
-   
-      
-   end subroutine apply_contact_velocity_scaling
    ! Apply stress scaling
 
 
@@ -238,25 +278,25 @@ contains
    !TODO: Add subroutine description, calls CheckMinMax()
    !TODO: Move away from CheckMinMax use a pure function to get the min and max box values
    subroutine find_min_max_box_corners(point_ids, point_coords, min_box_coord, max_box_coord)
-    implicit none
-    integer(INTEGER_TYPE) ,dimension(:)    ,intent(in)  :: point_ids
-    real(REAL_TYPE)       ,dimension(:, :) ,intent(in)  :: point_coords
-    real(REAL_TYPE)       ,dimension(:)    ,intent(out) :: min_box_coord, max_box_coord
+      implicit none
+      integer(INTEGER_TYPE) ,dimension(:)    ,intent(in)  :: point_ids
+      real(REAL_TYPE)       ,dimension(:, :) ,intent(in)  :: point_coords
+      real(REAL_TYPE)       ,dimension(:)    ,intent(out) :: min_box_coord, max_box_coord
 
-    ! Local variables
-    integer(INTEGER_TYPE) :: i, num_nodes
+      ! Local variables
+      integer(INTEGER_TYPE) :: i, num_nodes
 
-    ! Init variables
-    num_nodes = size(point_ids)
-    ! Store largest possible number to make sure the min and max evaluates correctly in CheckMinMax
-    !! TODO: i don't think this is necessary but need to check
-    min_box_coord = huge(min_box_coord)
-    max_box_coord = - huge(max_box_coord)
+      ! Init variables
+      num_nodes = size(point_ids)
+      ! Store largest possible number to make sure the min and max evaluates correctly in CheckMinMax
+      !! TODO: i don't think this is necessary but need to check
+      min_box_coord = huge(min_box_coord)
+      max_box_coord = - huge(max_box_coord)
 
-    do i= 1, num_nodes
-       call CheckMinMax(point_coords(point_ids(i), :), min_box_coord, max_box_coord)
-    end do
- end subroutine find_min_max_box_corners
+      do i= 1, num_nodes
+         call CheckMinMax(point_coords(point_ids(i), :), min_box_coord, max_box_coord)
+      end do
+   end subroutine find_min_max_box_corners
 
 
 ! Subroutine for modifying the stresses

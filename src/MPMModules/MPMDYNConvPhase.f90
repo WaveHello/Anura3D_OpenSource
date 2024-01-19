@@ -124,7 +124,7 @@ contains ! Routines of this module
 
       if (IsMPMComputation()) then ! if MPM update particle velocity....
          call UpdateParticleVelocityAndMapMomentum(Momentum) ! From accelerations in global coordinate system
-        
+
          ! Make a global flag that keeps track if the elements in the box have already been calculated
          !if (CalParams%ApplyConvContactVelocityScaling .or. CalParams%ApplyConvContactStressScaling) then
          !   ! Need to pass in the active elements
@@ -923,22 +923,22 @@ contains ! Routines of this module
 
    end subroutine ComputeForceError2LayForm
 
-    !*************************************************************************************
-    !    SUBROUTINE: UpdateParticleVelocityAndMapMomentum
-    ! 
-    !    DESCRIPTION:
-    !>   Updates the velocity, momentum, and acceleration of all particles in the model
-    !    
-    !>    Calls:
-    !            
-    !>   @note : TODO: Add velocity and acceleration array as inputs and reformat the dimensions
-    !             so that arrays can be arbitrary size 
-    !
-    !>   @param[inout] Momentum : Global Particle Momentum matrix 
-    !    Global Params Updated:
-    !            - VelocityArray
-    !            - AccelerationArray
-    !*************************************************************************************
+   !*************************************************************************************
+   !    SUBROUTINE: UpdateParticleVelocityAndMapMomentum
+   !
+   !    DESCRIPTION:
+   !>   Updates the velocity, momentum, and acceleration of all particles in the model
+   !
+   !>    Calls:
+   !
+   !>   @note : TODO: Add velocity and acceleration array as inputs and reformat the dimensions
+   !             so that arrays can be arbitrary size
+   !
+   !>   @param[inout] Momentum : Global Particle Momentum matrix
+   !    Global Params Updated:
+   !            - VelocityArray
+   !            - AccelerationArray
+   !*************************************************************************************
    subroutine UpdateParticleVelocityAndMapMomentum(Momentum)
       implicit none
 
