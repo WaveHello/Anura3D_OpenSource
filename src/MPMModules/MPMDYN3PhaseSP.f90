@@ -8,7 +8,7 @@
     !
     !
 	!	Anura3D - Numerical modelling and simulation of large deformations 
-    !   and soil–water–structure interaction using the material point method (MPM)
+    !   and soilï¿½waterï¿½structure interaction using the material point method (MPM)
     !
     !	Copyright (C) 2023  Members of the Anura3D MPM Research Community 
     !   (See Contributors file "Contributors.txt")
@@ -1093,7 +1093,7 @@
         !
         !    Function: Calculates the Bishop Parameter (BP), which is the "Effective" Degree of Saturation
         !              The current used expression is based on Gesto et al. (2011)
-        !              Also described in Alonso,Pinyol,Gens (2013) Géotechnique 63, No. 6, 463–478 [http://dx.doi.org/10.1680/geot.11.P.134]
+        !              Also described in Alonso,Pinyol,Gens (2013) Gï¿½otechnique 63, No. 6, 463ï¿½478 [http://dx.doi.org/10.1680/geot.11.P.134]
         !
         !**********************************************************************
     

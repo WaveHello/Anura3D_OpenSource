@@ -72,8 +72,7 @@ contains ! Routines of this module
    !**********************************************************************
    !
    !    Subroutine: InitialiseModEmptyElementsData
-   !    Description: 
-   !    Initialisation of the data of this modules.
+   !    Description: Initialisation of the data of this modules.
    !
    ! Implemented in the frame of the MPM project.
    !

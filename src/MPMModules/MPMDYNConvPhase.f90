@@ -72,30 +72,31 @@ module ModDYNConvectivePhase
 
 contains ! Routines of this module
 
+   !**********************************************************************
+   !
+   !    Subroutine:  DYNConvectivePhase
+   !    Description: Calls the different subroutines required for updating the
+   !               particle data. The basic steps are:
+   !
+   !               - update particle velocity
+   !               - update particle displacements and global position
+   !               - map the new particles velocities to the nodes
+   !               - update the nodal coordinates from the new nodal velocities
+   !               - calculate particle strains
+   !               - calculate stresses for integration points
+   !               - map stresses from Gauss points to particles for fully filled elements
+   !               - reset the mesh
+   !               - determine the elements that particles moved into
+   !               - determine the new local particle coordinates
+   !               - smoothen particle stresses within each element
+   !               - update particle shape values
+   !               - update the particle house-keeping data structure
+   !               - ... further checks ...
+   !
+   ! Implemented in the frame of the MPM project.
+   !
+   !**********************************************************************
    subroutine DYNConvectivePhase()
-      !**********************************************************************
-      !
-      !    Function:  Calls the different subroutines required for updating the
-      !               particle data. The basic steps are:
-      !
-      !               - update particle velocity
-      !               - update particle displacements and global position
-      !               - map the new particles velocities to the nodes
-      !               - update the nodal coordinates from the new nodal velocities
-      !               - calculate particle strains
-      !               - calculate stresses for integration points
-      !               - map stresses from Gauss points to particles for fully filled elements
-      !               - reset the mesh
-      !               - determine the elements that particles moved into
-      !               - determine the new local particle coordinates
-      !               - smoothen particle stresses within each element
-      !               - update particle shape values
-      !               - update the particle house-keeping data structure
-      !               - ... further checks ...
-      !
-      ! Implemented in the frame of the MPM project.
-      !
-      !**********************************************************************
 
       implicit none
 
@@ -124,28 +125,17 @@ contains ! Routines of this module
 
       if (IsMPMComputation()) then ! if MPM update particle velocity....
          call UpdateParticleVelocityAndMapMomentum(Momentum) ! From accelerations in global coordinate system
+         
+         ! if (CalParams%ApplyConvContactVelocityScaling .or. CalParams%ApplyConvContactStressScaling) then
 
-         ! Make a global flag that keeps track if the elements in the box have already been calculated
-         !if (CalParams%ApplyConvContactVelocityScaling .or. CalParams%ApplyConvContactStressScaling) then
-         !   
-         !   ! Check if the elements that need scaling are already calculated
-         !   if (CalParams%CalcElementsForScaling) then !TODO: Need to create this flag
-         !      ! Calculate the elements that need scaling and store in global variable
-         !      ElementsForScaling_global = determine_elements_in_box(corner_nodes, node_ids, node_coords, element_ids, element_connectivity)
-         !   end if
-         !
-         !   if (CalParams%ApplyConvContactVelocityScaling) then
-         !      ! Apply contact velocity scaling
-         !      ! TODO: Update the name of the variables here 
-         !      call apply_contact_velocity_scaling(element_ids, min_element_dim_arr, particle_connectivity, particle_velocities, time_step, &
-         !                                          velocity_scale_factor)
-         !   end if
-         !
-         !   ! if (CalParams%ApplyConvContactStressScaling) then
-         !   !    ! Apply stress scaling
-         !      
-         !   ! end if 
-         !end if
+         !    call apply_particle_scaling(corner_nodes = CalParams%AreaVelocityScalingCornerNodes,&
+         !                                node_ids = , node_coords  = NodalCoordinatesUpd, &
+         !                                element_ids =, element_connectivity = , &
+         !                                determine_elements_flag = CalParams%GetElementsForParticleScaling, &
+         !                                vel_flag = , vel_scaling_factor, &
+         !                                stress_flag  = , stress_scaling_factor = )
+         ! end if
+
          if ((CalParams%NumberOfPhases==2).or.(CalParams%NumberOfPhases==3).or.(.not.(NFORMULATION==1))) then
             call UpdateParticleWaterVelocityAndMapMomentumW(MomentumW) ! From accelerations in global coordinate system
          end if
@@ -2219,16 +2209,16 @@ contains ! Routines of this module
 
    end subroutine DynUpdateParticleVapourInGasMassFraction
 
-   subroutine UpdateNodes(EntityUsed)
       !**********************************************************************
       !
-      !    Function:  Updating of nodal coordinates from displacements for
-      !               updated mesh analysis.
+      !    Subroutine:  UpdateNodes
+      !    Description: Updating of nodal coordinates from displacements for
+      !                 updated mesh analysis.
       !
       ! Implemented in the frame of the MPM project.
       !
       !**********************************************************************
-
+   subroutine UpdateNodes(EntityUsed)
       implicit none
 
       integer(INTEGER_TYPE) :: EntityUsed

@@ -42,10 +42,10 @@ module MODParticleScaling
    !     $Date:  2023-12-29 1:32 +0500 (WaveHello, 29 Dec 2023) $
    !
    !**********************************************************************
-   use ModGlobalConstants, only : INTEGER_TYPE, REAL_TYPE, &
-      CalParams%ApplyConvContactStressScaling, &
-      CalParams%ApplyConvContactVelocityScaling
-
+   use ModGlobalConstants, only : INTEGER_TYPE, REAL_TYPE
+                              ! , CalParams%ApplyConvContactStressScaling, &
+                              !    CalParams%ApplyConvContactVelocityScaling
+   use ModMeshInfo, only : NodalCoordinatesUpd
    use ModGeometryMath, only : check_points_in_box, CheckMinMax
 
    implicit none
@@ -53,45 +53,66 @@ module MODParticleScaling
    public apply_contact_velocity_scaling, determine_elements_in_box ! Make single subroutine public
 contains
 
+   Make a global flag that keeps track if the elements in the box have already been calculated
+   if (CalParams%ApplyConvContactVelocityScaling .or. CalParams%ApplyConvContactStressScaling) then
+     
+     ! Check if the elements that need scaling are already calculated
+     if (CalParams%CalcElementsForScaling) then !TODO: Need to create this flag
+        ! Calculate the elements that need scaling and store in global variable
+        ElementsForScaling_global = determine_elements_in_box(corner_nodes, node_ids, node_coords, element_ids, element_connectivity)
+     end if
+   
+     if (CalParams%ApplyConvContactVelocityScaling) then
+        ! Apply contact velocity scaling
+        ! TODO: Update the name of the variables here 
+        call apply_contact_velocity_scaling(element_ids = , min_element_dim_arr, particle_connectivity, particle_velocities, time_step, &
+                                            velocity_scale_factor)
+     end if
+   
+     ! if (CalParams%ApplyConvContactStressScaling) then
+     !    ! Apply stress scaling
+        
+     ! end if 
+   end if
 
-   ! subroutine apply_particle_scaling(corenr_nodes, node_ids, node_coords, element_ids, element_connectivity, &
-   !    vel_flag, )
-   !    !! TODO: Apparently fortran passes matrices by reference so it doesn't actually take that
-   !    !           much memory to do this
+   subroutine apply_particle_scaling(corner_nodes, node_ids, node_coords, element_ids, element_connectivity, &
+      vel_flag, stress_flag)
+      !! Note: Apparently fortran passes matrices by reference so it doesn't actually take that
+      !           much memory to do this
 
-   !    integer(INTEGER_TYPE), dimension(:), intent(in) :: node_ids, element_ids
-   !    integer(INTEGER_TYPE), dimension(:,:), intent(in) :: element_particle_connectivity
+      integer(INTEGER_TYPE), dimension(:), intent(in) :: node_ids, element_ids
+      integer(INTEGER_TYPE), dimension(:,:), intent(in) :: element_particle_connectivity
 
-   !    ! Local variables
-   !    real(REAL_TYPE), dimension(:), allocatable :: min_box_coord, max_box_coord
-   !    integer(INTEGER_TYPE) :: i, num_nodes
+      ! Local variables
+      real(REAL_TYPE), dimension(:), allocatable :: min_box_coord, max_box_coord
+      integer(INTEGER_TYPE) :: i, num_nodes
 
-   !    ! Init local variables
-   !    num_nodes = size(node_ids)
-   !    allocate(min_box_coord(num_nodes))
-   !    allocate(max_box_coord(num_nodes))
+      ! Init local variables
+      num_nodes = size(node_ids)
+      allocate(min_box_coord(num_nodes))
+      allocate(max_box_coord(num_nodes))
 
-   !    ! First determine the box dimensions (set dummy values)
-   !    min_box_coord(:) = 1e30
-   !    max_box_coord(:) = -1e30
+      ! First determine the box dimensions (set dummy values)
+      min_box_coord(:) = 1e30
+      max_box_coord(:) = -1e30
 
-   !    ! Loop through the nodes and determine the bounding min, max values
-   !    do i =1, num_nodes
-   !       CheckMinMax(node_coords(node_ids(i), :), min_box_coord, max_box_coord)
-   !    end do
+      ! Loop through the nodes and determine the bounding min, max values
+      do i =1, num_nodes
+         CheckMinMax(node_coords(node_ids(i), :), min_box_coord, max_box_coord)
+      end do
 
-   !    ! Determine the nodes in the box
-   !    nodes_in_box = determine_nodes_in_box(node_ids, nodal_coordinates, min_box_coord, max_box_coord, offset_in)
+      ! Determine the nodes in the box
+      nodes_in_box = determine_nodes_in_box(node_ids, nodal_coordinates, min_box_coord, max_box_coord, offset_in)
 
-   !    ! Determine the element_ids in those nodes
-   !    elements_in_box = determine_elements_in_nodes(nodes_in_box, element_ids, element_connectivity)
+      ! Determine the element_ids in those nodes
+      elements_in_box = determine_elements_in_nodes(nodes_in_box, element_ids, element_connectivity)
 
-   !    ! Pass those elements and the element MP list to the following functions
-   !    apply_particle_scaling(elements, element_particle_connectivity)
-   !    if (CalParams%ApplyConvContactStressScaling) call apply_stress_scaling_to_region()
-   !    if (CalParams%ApplyConvContactVelocityScaling) call apply_contact_velocity_scaling()
+      ! Pass those elements and the element MP list to the following functions
+      apply_particle_scaling(elements, element_particle_connectivity)
+      if (CalParams%ApplyConvContactStressScaling) call apply_stress_scaling_to_region()
+      if (CalParams%ApplyConvContactVelocityScaling) call apply_contact_velocity_scaling()
 
-   ! end subroutine apply_particle_scaling
+   end subroutine apply_particle_scaling
 
 
    subroutine apply_contact_velocity_scaling(element_ids, min_element_dim_arr, particle_connectivity, particle_velocities, time_step, &
@@ -301,7 +322,6 @@ contains
 
 
 ! Subroutine for modifying the stresses
-   ! Subroutine for modifying the velocities
 
 
 
