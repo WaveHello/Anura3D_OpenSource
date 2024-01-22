@@ -38,7 +38,7 @@ module ModFileIO
    !**********************************************************************
    use ModGlobalConstants
 
-   !implicit none
+   implicit none
 
 contains
 
@@ -203,8 +203,10 @@ contains
    Subroutine FindIO(ioMin,io)
 
 
-      Logical IsOpen
-      Parameter (ioMax=99)
+      logical  :: IsOpen
+      ! integer(INTEGER_TYPE), parameter, intent(in) :: ioMax=99
+      integer(INTEGER_TYPE), intent(in)    :: ioMin
+      integer(INTEGER_TYPE), intent(inout) :: io
       io=ioMin-1
 1     io=io+1
       Inquire(io,Opened=IsOpen)
@@ -295,7 +297,11 @@ contains
    Subroutine EraseFile(fName)
 
       Character fName*(*)
-      Logical fExist
+      
+      ! local variables
+      logical :: fExist
+      integer(INTEGER_TYPE) :: io
+
       Call UniEraseFile ( fName )
       Return
       If (fExist(fName)) Then
@@ -314,7 +320,7 @@ contains
    Character*255 Function UpCase(Lower)
 
       Character Lower*(*),Tmp*255,C*1
-
+      integer(INTEGER_TYPE) :: i, LT, j
       Tmp=Lower
       LT=Len_Trim(Lower)
       Do i=1,LT
@@ -353,8 +359,12 @@ contains
    Subroutine UniEraseFile( Name )
 
       Character*(*) Name
+
+      ! Local variables
       Logical DoesExist
       Character*1023 NameIn, NameOut
+      integer(INTEGER_TYPE) :: io
+
       NameIn = Name
       NameIn = Trim(Name)//' '
 
@@ -403,4 +413,20 @@ contains
 
    end subroutine
 
+  ! subroutine read_CPS_integer_value(FileUnit, )
+  
+
+  ! end subroutine
+
+  ! subroutine read_logical_value()
+  ! end subroutine
+
+  ! subroutine read_real_value()
+  ! end subroutine
+
+  ! subroutine read_integer_value()
+  ! ! Read an integer value from a file and store it in the passed variable
+  ! ! The purpose of this subroutine is to read a line of file data it should
+  ! ! For the time being it'll be based off the read 
+  ! end subroutine
 end module ModFileIO

@@ -78,5 +78,3 @@ contains
  
  end module ModArray
  
-
-end module ModArray
