@@ -64,6 +64,7 @@ module ModDYNConvectivePhase
    use ModRigidBody
    use ModLiquid
    use ModReadGeometryData
+   use ModArray, only : create_int_array
 
    implicit none
 
@@ -126,15 +127,19 @@ contains ! Routines of this module
       if (IsMPMComputation()) then ! if MPM update particle velocity....
          call UpdateParticleVelocityAndMapMomentum(Momentum) ! From accelerations in global coordinate system
          
-         ! if (CalParams%ApplyConvContactVelocityScaling .or. CalParams%ApplyConvContactStressScaling) then
+         if (CalParams%ApplyConvContactVelocityScaling .or. CalParams%ApplyConvContactStressScaling) then
 
-         !    call apply_particle_scaling(corner_nodes = CalParams%AreaVelocityScalingCornerNodes,&
-         !                                node_ids = , node_coords  = NodalCoordinatesUpd, &
-         !                                element_ids =, element_connectivity = , &
-         !                                determine_elements_flag = CalParams%GetElementsForParticleScaling, &
-         !                                vel_flag = , vel_scaling_factor, &
-         !                                stress_flag  = , stress_scaling_factor = )
-         ! end if
+            call apply_particle_scaling(corner_nodes = CalParams%AreaVelocityScalingCornerNodes            ,&
+                                        node_ids = create_int_array(1, size(node_coords, 1))               ,&
+                                        node_coords  = NodalCoordinatesUpd                                 ,&
+                                        element_ids = create_int_array(1, size(ElementConnectivities, 2))  ,&
+                                        element_connectivity = ElementConnectivities                       ,&
+                                        determine_elements_flag = CalParams%GetElementsForParticleScaling  ,&
+                                        vel_flag = CalParams%ApplyConvContactVelocityScaling               ,&
+                                        vel_scaling_factor = CalParams%AreaVelocityScalingFactor           ,&
+                                        stress_flag = CalParams%ApplyConvContactStressScaling              ,&
+                                        stress_scaling_factor =                                             )
+         end if
 
          if ((CalParams%NumberOfPhases==2).or.(CalParams%NumberOfPhases==3).or.(.not.(NFORMULATION==1))) then
             call UpdateParticleWaterVelocityAndMapMomentumW(MomentumW) ! From accelerations in global coordinate system
