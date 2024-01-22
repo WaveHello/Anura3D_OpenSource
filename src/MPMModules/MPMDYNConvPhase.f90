@@ -127,9 +127,24 @@ contains ! Routines of this module
 
          ! Make a global flag that keeps track if the elements in the box have already been calculated
          !if (CalParams%ApplyConvContactVelocityScaling .or. CalParams%ApplyConvContactStressScaling) then
-         !   ! Need to pass in the active elements
-         !   apply_particle_scaling()
+         !   
+         !   ! Check if the elements that need scaling are already calculated
+         !   if (CalParams%CalcElementsForScaling) then !TODO: Need to create this flag
+         !      ! Calculate the elements that need scaling and store in global variable
+         !      ElementsForScaling_global = determine_elements_in_box(corner_nodes, node_ids, node_coords, element_ids, element_connectivity)
+         !   end if
          !
+         !   if (CalParams%ApplyConvContactVelocityScaling) then
+         !      ! Apply contact velocity scaling
+         !      ! TODO: Update the name of the variables here 
+         !      call apply_contact_velocity_scaling(element_ids, min_element_dim_arr, particle_connectivity, particle_velocities, time_step, &
+         !                                          velocity_scale_factor)
+         !   end if
+         !
+         !   ! if (CalParams%ApplyConvContactStressScaling) then
+         !   !    ! Apply stress scaling
+         !      
+         !   ! end if 
          !end if
          if ((CalParams%NumberOfPhases==2).or.(CalParams%NumberOfPhases==3).or.(.not.(NFORMULATION==1))) then
             call UpdateParticleWaterVelocityAndMapMomentumW(MomentumW) ! From accelerations in global coordinate system

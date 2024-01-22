@@ -14,7 +14,10 @@ module MOD_NAMC_ESM
    !     $Date: 2024-01-19 10:34 +0500 (WaveHello, 28 Dec 2023) $
    !
    !**********************************************************************
-    
+    use ModGlobalConstants, only: REAL_TYPE
+    use ModMPMData, only: TrackStrainRate, Trackq_t, Trackp_t, TrackInertialCoefficient, TrackFVal, TrackEta_y, &
+                          TrackDp, num_OS_Iterations, DeformCateg, TrackSmoothStrainRate, TrackShearStrainRate,&
+                            NormEpsP, TrackShearModulus
     ! implicit none
 
     private ! Makes all function private to this module (No other modules can get access)
@@ -88,7 +91,7 @@ Subroutine ESM_NAMC(NPT,NOEL,IDSET,STRESS,EUNLOADING,PLASTICMULTIPLIER, DSTRAN,N
     TimeStep = AdditionalVar(11)   !Note: Very first time and load step: Istep=1 and TimeStep=1   
     
     !Call the UMAT
-    call UMAT_VPSS_MC(stress, statev, ddsdde, sse, spd, scd, rpl, ddsddt, drplde, drpldt, stran, dstran, time, dtime, temp, &
+    call UMAT_NAMC(stress, statev, ddsdde, sse, spd, scd, rpl, ddsddt, drplde, drpldt, stran, dstran, time, dtime, temp, &
             dtemp, predef, dpred, cmname, ndi, nshr, ntens, nstatev, props, nprops, coords, pnewdt, celent, dfgrd0, &      
             dfgrd1, noel, npt, layer, kspt, kstep, kinc)
     

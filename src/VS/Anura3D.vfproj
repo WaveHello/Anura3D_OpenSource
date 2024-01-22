@@ -28,18 +28,18 @@
 		<Filter Name="Resource Files" Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"/>
 		<Filter Name="Source Files" Filter="f90;for;f;fpp;ftn;def;odl;idl">
 		<Filter Name="FEMModules">
-		<File RelativePath="..\FEMModules\BuildBJacDet.FOR"/>
-		<File RelativePath="..\FEMModules\BuildDElastic.FOR"/>
-		<File RelativePath="..\FEMModules\BuildLoad.FOR"/>
-		<File RelativePath="..\FEMModules\ElemCalc.FOR"/>
-		<File RelativePath="..\FEMModules\ElemCalcQUAD.FOR"/>
-		<File RelativePath="..\FEMModules\ElemCalcTETRA.FOR"/>
-		<File RelativePath="..\FEMModules\ElemCalcTRI.FOR"/>
-		<File RelativePath="..\FEMModules\ElemConnections.FOR"/>
-		<File RelativePath="..\FEMModules\GetPrinStress.FOR"/>
-		<File RelativePath="..\FEMModules\GetStrain.FOR"/>
-		<File RelativePath="..\FEMModules\MeshInfo.FOR"/>
-		<File RelativePath="..\FEMModules\RotBoundCond.FOR"/></Filter>
+		<File RelativePath="..\FEMModules\BuildBJacDet.f90"/>
+		<File RelativePath="..\FEMModules\BuildDElastic.f90"/>
+		<File RelativePath="..\FEMModules\BuildLoad.f90"/>
+		<File RelativePath="..\FEMModules\ElemCalc.f90"/>
+		<File RelativePath="..\FEMModules\ElemCalcQUAD.f90"/>
+		<File RelativePath="..\FEMModules\ElemCalcTETRA.f90"/>
+		<File RelativePath="..\FEMModules\ElemCalcTRI.f90"/>
+		<File RelativePath="..\FEMModules\ElemConnections.f90"/>
+		<File RelativePath="..\FEMModules\GetPrinStress.f90"/>
+		<File RelativePath="..\FEMModules\GetStrain.f90"/>
+		<File RelativePath="..\FEMModules\MeshInfo.f90"/>
+		<File RelativePath="..\FEMModules\RotBoundCond.f90"/></Filter>
 		<Filter Name="InputModules">
 		<File RelativePath="..\InputModules\ReadCalculationData.FOR"/>
 		<File RelativePath="..\InputModules\ReadGeometryData.FOR"/>
@@ -47,7 +47,8 @@
 		<File RelativePath="..\InputModules\ReadMPMData.FOR"/></Filter>
 		<Filter Name="MaterialModels">
 		<Filter Name="HardcodedModels">
-		<File RelativePath="..\MaterialModels\HardcodedModels\ESM_MCSS.f90"/></Filter>
+		<File RelativePath="..\MaterialModels\HardcodedModels\ESM_MCSS.f90"/>
+		<File RelativePath="..\MaterialModels\HardcodedModels\ESM_NAMC.f90"/></Filter>
 		<File RelativePath="..\MaterialModels\ExternalSoilModel.f90"/>
 		<File RelativePath="..\MaterialModels\Liquid.FOR"/></Filter>
 		<Filter Name="MPMModules">

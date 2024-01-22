@@ -204,7 +204,7 @@ subroutine StressSolid(IDpt, IDel, BMatrix,IEntityID)
 
     else if (NameModel == ESM_NON_ASSOC_MOHR_COULOMB) then 
         ! Luis's (2022) Viscoplastic Mohr-Coulomb
-        call ESM_VPSS_MC(IDpt, IDel, IDset, Stress, Eunloading, PlasticMultiplier, StrainIncr, NSTATEVAR, StateVar,&
+        call ESM_NAMC(IDpt, IDel, IDset, Stress, Eunloading, PlasticMultiplier, StrainIncr, NSTATEVAR, StateVar,&
                         nAddVar, AdditionalVar,cmname, NPROPERTIES, props, CalParams%NumberOfPhases, ntens)
     
     else 
