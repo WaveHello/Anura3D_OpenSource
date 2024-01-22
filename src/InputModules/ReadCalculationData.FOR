@@ -519,7 +519,7 @@ module ModReadCalculationData
          ApplyContactRadius = .false., &
          ApplyAreaVelocityScaling = .false., & ! Flag controlling if MP velocities should be corrected in an area
          ApplyContactNormalCorrection= .false., & !Allows to modify some normal vectors in the contact algorithm
-         CalcElementsForScaling ! Allows the elements that should be stored for scaling to be updated
+         GetElementsForParticleScaling ! Allows the elements that should be stored for scaling to be updated
 
 
       character(len=64) :: CPSversion = 'not defined'
@@ -1561,11 +1561,11 @@ contains ! Routines of this module
             CalParams%ContactScalingFactor = DumR(1) !Note that the scaling factor must be restricted between 1 and 0, I'm allowing to play with it
 
             ! Flag to determine if
-         else if (trim(BNAME) == '$$CALC_ELEMENTS_FOR_SCALING') then ! Set in the CPS file
+         else if (trim(BNAME) == '$$GET_ELEMENTS_FOR_PARTICLE_SCALING') then ! Set in the CPS file
             read(FileUnit, *, iostat=ios) DumI(1)
             call Assert( ios == 0, messageIOS//trim(BName) )
             call Assert( DumI(1) == 0 .or. DumI(1) == 1, 'CPS file: ' //trim(BName)// ' must be 0 or 1.' )
-            if ( DumI(1) == 1 ) CalParams%CalcElementsForScaling = .true.
+            if ( DumI(1) == 1 ) CalParams%GetElementsForParticleScaling = .true.
 
             ! Add flag for applying contact radius
          else if (trim(BName) =='$$APPLY_CONTACT_RADIUS') then
@@ -2906,7 +2906,7 @@ contains ! Routines of this module
       call WriteLogic(FileUnit, '$$APPLY_CONV_CONTACT_VELOCITY_SCALING', [CalParams%ApplyConvContactVelocityScaling], 1, .true.)
       call WriteReal(FileUnit, '$$CONV_VELOCITY_SCALING_FACTOR', [CalParams%ConvContactScalingFactor], 1, .true.)
 
-      call WriteLogic(FileUnit, '$$CALC_ELEMENTS_FOR_SCALING', [CalParams%CalcElementsForScaling], 0, .false.) ! Set to false so that it only happens during  the calc step that the user turns it on
+      call WriteLogic(FileUnit, '$$GET_ELEMENTS_FOR_PARTICLE_SCALING', [CalParams%GetElementsForParticleScaling], 0, .false.) ! Set to false so that it only happens during  the calc step that the user turns it on
       call WriteLogic(FileUnit, '$$APPLY_CONTACT_RADIUS', [CalParams%ApplyContactRadius], 1, .true.)
       call WriteReal(FileUnit, '$$CONTACT_RADIUS', [CalParams%ContactRadius], 1, .true.)
 
