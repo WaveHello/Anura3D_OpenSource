@@ -8,7 +8,7 @@
     !
     !
 	!	Anura3D - Numerical modelling and simulation of large deformations 
-    !   and soil–water–structure interaction using the material point method (MPM)
+    !   and soilï¿½waterï¿½structure interaction using the material point method (MPM)
     !
     !	Copyright (C) 2023  Members of the Anura3D MPM Research Community 
     !   (See Contributors file "Contributors.txt")
@@ -342,13 +342,13 @@
 
       end subroutine DeallocationError
 
-
-      subroutine Assert(condition, message)
       !**********************************************************************
       !
-      !> If condition is not true, gives an error
+      !   Subroutine: Assert
+      !   Description: If condition is not true, gives an error
       !
       !********************************************************************** 
+      subroutine Assert(condition, message)
       use ModErrorHandler
       implicit none
       ! arguments:

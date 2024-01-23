@@ -28,18 +28,18 @@
  !
  !*****************************************************************************
 
-
+ !**********************************************************************
+ !
+ ! Module: Contains routines for reading calculation data from CPS file
+ !
+ !  Note: Version archived subroutines are contained at the end of the module
+ !
+ !     $Revision: 10002 $
+ !     $Date: 2023-06-19 12:44:04 +0200 (ma, 19 jun 2023) $
+ !
+ !**********************************************************************
 module ModReadCalculationData
-   !**********************************************************************
-   !
-   ! Function: Contains routines for reading calculation data from CPS file
-   !
-   !  Note: Version archived subroutines are contained at the end of the module
-   !
-   !     $Revision: 10002 $
-   !     $Date: 2023-06-19 12:44:04 +0200 (ma, 19 jun 2023) $
-   !
-   !**********************************************************************
+
    use ModGlobalConstants
    use ModCounters
    use ModString
@@ -54,6 +54,7 @@ module ModReadCalculationData
 
    ! Initiating matrices to read hydraulic head from file
    real(REAL_TYPE), dimension(:,:), allocatable :: HydraulicHeadFileMatrix
+
    ! Initiating matrices to read prescribed velocity/acceleration from file
    ! These matrices are only allocated if prescribed velocity/acceleration from file feature is used
    real(REAL_TYPE), dimension(:,:), allocatable :: PrescribedVelocityFileMatrix
@@ -291,7 +292,6 @@ module ModReadCalculationData
       real(REAL_TYPE) :: LimitJacobianChange
 
    end type ImplicitIntegrationType
-
 
    type BoundaryConditionsType !(vsize,dsize)
       !integer(INTEGER_TYPE), LEN :: vsize, dsize
@@ -546,7 +546,6 @@ contains ! Routines of this module
    !   Initialises calculation parameters stored in CalParams%
    !
    !**********************************************************************
-
    subroutine InitialiseCalculationParameters()
       implicit none
 
@@ -823,11 +822,11 @@ contains ! Routines of this module
       CalParams%NumberSoilLayers = 1
       CalParams%OutputCurvesIntervals = 1
       CalParams%NumberSkipConvection = 1
-#ifdef Debug
-      CalParams%FeedbackLevel = FEEDBACK_LEVEL_DEBUG
-#else
-      CalParams%FeedbackLevel = -1
-#endif
+      #ifdef Debug
+            CalParams%FeedbackLevel = FEEDBACK_LEVEL_DEBUG
+      #else
+            CalParams%FeedbackLevel = -1
+      #endif
 
       ! logicals
       CalParams%UpdatedMPMwithMixed = .false.
@@ -931,13 +930,14 @@ contains ! Routines of this module
       IsFollowUpPhase = (CalParams%IStep/=1)
    end function IsFollowUpPhase
 
-   subroutine UpdateLoadPhaseCounters()
-      !**********************************************************************
-      !
-      !   Function : Increases the load phase counters
-      !
-      !**********************************************************************
 
+   !**********************************************************************
+   !
+   !     Subroutine : UpdateLoadPhaseCounters
+   !     Description: Set CalParams%TimeStep and TotalRealTime to zero
+   !
+   !**********************************************************************
+   subroutine UpdateLoadPhaseCounters()
       implicit none
 
       CalParams%TimeStep = 0
@@ -945,13 +945,13 @@ contains ! Routines of this module
 
    end subroutine UpdateLoadPhaseCounters
 
-
+   !**********************************************************************
+   !
+   !     Subroutine: ReadCalculationParameters
+   !     Description: Determines CPS file version and calls respective CPS reader
+   !
+   !**********************************************************************
    subroutine ReadCalculationParameters()
-      !**********************************************************************
-      !
-      ! Function: Determines CPS file version and calls respective CPS reader
-      !
-      !**********************************************************************
 
       implicit none
 
@@ -1006,16 +1006,15 @@ contains ! Routines of this module
 
    end subroutine ReadCalculationParameters
 
-
+   !**********************************************************************
+   !
+   ! Subroutine : ReadCPSReads input variables from the CPS file
+   !
+   !            CPS version 2022, 2021, 2019.2
+   !
+   !
+   !**********************************************************************
    subroutine ReadCPS(FileUnit,FileVersion)
-      !**********************************************************************
-      !
-      ! Function : Reads input variables from the CPS file
-      !
-      !            CPS version 2022, 2021, 2019.2
-      !
-      !
-      !**********************************************************************
 
       implicit none
 
@@ -1591,6 +1590,11 @@ contains ! Routines of this module
             call Assert( ios == 0, messageIOS//trim(BName) )
             CalParams%AreaVelocityScalingFactor = DumR(1)
 
+         else if (trim(BName) == '$$AREA_VELOCITY_SCALING_FACTOR') THEN
+            read(FileUnit, *, iostat=ios) DumR(1)
+            call Assert( ios == 0, messageIOS//trim(BName) )
+            CalParams%AreaVelocityScalingFactor = DumR(1)
+
          else if (trim(BName)=='$$NUMBER_OF_AREA_CORNER_NODES' ) then
             read(FileUnit, *, iostat=ios)  CalParams%NAreaVelocityCornerNodes
             call Assert( ios == 0, messageIOS//trim(BName) )
@@ -1968,17 +1972,19 @@ contains ! Routines of this module
 
    end subroutine ReadCPS
 
+   !**********************************************************************
+   !
+   !     Subroutine :  CheckChangeFEMtoMPM
+   !     Description: Automatic detection of change of computational method from (UL)FEM to MPM.
+   !             CalParams%ApplyFEMtoMPM is set to .true. when this is the case.
+   !
+   !   First, the new computational method is checked to be MPM
+   !   Second, the previous CPS file is scanned for the previous computational method
+   !   Third, the previous computational methods is checked to be (UL)FEM
+   !
+   !**********************************************************************
    subroutine CheckChangeFEMtoMPM()
-      !**********************************************************************
-      !
-      ! Function :  Automatic detection of change of computational method from (UL)FEM to MPM.
-      !             CalParams%ApplyFEMtoMPM is set to .true. when this is the case.
-      !
-      !   First, the new computational method is checked to be MPM
-      !   Second, the previous CPS file is scanned for the previous computational method
-      !   Third, the previous computational methods is checked to be (UL)FEM
-      !
-      !**********************************************************************
+
       implicit none
       integer(INTEGER_TYPE) :: prev_unit, PreviousComputationalMethod
       character(len = 255) :: FileName, TName, BName, InputString
@@ -2035,15 +2041,16 @@ contains ! Routines of this module
    end subroutine CheckChangeFEMtoMPM
 
 
-
+   !**********************************************************************
+   !
+   !     Function: isThreePhaseCalculation
+   !     Description:Checks whether the calculation is three phase or not.
+   !
+   ! Implemented in the frame of the MPM project.
+   !
+   !**********************************************************************
    logical function isThreePhaseCalculation() result(res)
-      !**********************************************************************
-      !
-      !    Function: Checks whether the calculation is three phase or not.
-      !
-      ! Implemented in the frame of the MPM project.
-      !
-      !**********************************************************************
+
       implicit none
 
       res = CalParams%NumberOfPhases == 3
@@ -2067,32 +2074,33 @@ contains ! Routines of this module
    end function isTwoPhaseCalculation
 
 
-
+   !**********************************************************************
+   !
+   !     Function: isContactActive
+   !     Description: Checks whether the contact algorithm is applied or not.
+   !
+   ! Implemented in the frame of the MPM project.
+   !
+   !**********************************************************************
    logical function isContactActive() result(res)
-      !**********************************************************************
-      !
-      !    Function: Checks whether the contact algorithm is applied or not.
-      !
-      ! Implemented in the frame of the MPM project.
-      !
-      !**********************************************************************
+
       implicit none
 
       res = CalParams%ApplyContactAlgorithm
 
    end function isContactActive
 
-
-
+   !**********************************************************************
+   !
+   !     Subroutine: InitialiseDependentFlags
+   !     Description: Sets default values for assemblage of load vectors
+   !                if assemblage of load vectors is not specified
+   !
+   !**********************************************************************
    subroutine InitialiseDependentFlags(IsAssemblageSoilLoadVectorSpecified,  &
       IsAssemblageWaterLoadVectorSpecified, &
       IsAssemblageGasLoadVectorSpecified)
-      !**********************************************************************
-      !
-      !     Function:  Sets default values for assemblage of load vectors
-      !                if assemblage of load vectors is not specified
-      !
-      !**********************************************************************
+
 
       implicit none
 
@@ -2130,15 +2138,16 @@ contains ! Routines of this module
 
    end subroutine InitialiseDependentFlags
 
-
+   !**********************************************************************
+   !
+   !     Subroutine: CreateResultFileHeader
+   !     Description:  Determines the header of the BRF files.
+   !
+   ! Implemented in the frame of the MPM project.
+   !
+   !**********************************************************************
    subroutine CreateResultFileHeader(LoadStep)
-      !**********************************************************************
-      !
-      !    Function:  Determines the header of the BRF files.
-      !
-      ! Implemented in the frame of the MPM project.
-      !
-      !**********************************************************************
+
 
       implicit none
 
@@ -2156,17 +2165,16 @@ contains ! Routines of this module
 
    end subroutine CreateResultFileHeader
 
-
+   !**********************************************************************
+   !
+   !     Subroutine:  GetStepExt
+   !     Description: Translates integer StepNumber into string XXX.
+   !
+   ! I   StepNumber : Integer
+   ! O   XXX : File extension string
+   ! !TODO: Update this function so that it uses the size of the number (maybe use mod 10 to get size of array)
+   !**********************************************************************
    subroutine GetStepExt(StepNumber, XXX)
-      !**********************************************************************
-      !
-      !     Function:  Translates integer StepNumber into string XXX.
-      !
-      ! I   StepNumber : Integer
-      ! O   XXX : File extension string
-      !
-      !**********************************************************************
-
       implicit none
 
       ! Arguments
@@ -2187,16 +2195,16 @@ contains ! Routines of this module
 
    end subroutine GetStepExt
 
-
+   !**********************************************************************
+   !
+   !  Subroutine : GetTimeStep
+   !     Description: Translates integer TimeStepNumber into string XXX
+   !
+   !  I   StepNumber : Integer
+   !  O   XXX : File extension string
+   !
+   !**********************************************************************
    subroutine GetTimeStep(StepNumber, XXX)
-      !**********************************************************************
-      !
-      !  Function : Translates integer TimeStepNumber into string XXX
-      !
-      !  I   StepNumber : Integer
-      !  O   XXX : File extension string
-      !
-      !**********************************************************************
 
       implicit none
 
@@ -2212,16 +2220,16 @@ contains ! Routines of this module
 
    end subroutine GetTimeStep
 
-
+   !**********************************************************************
+   !
+   !    Function: Checks whether the multipliers for external loads, water pressures,
+   !              gas pressures, gravity loading have reached the final value.
+   !
+   ! Implemented in the frame of the MPM project.
+   !
+   !**********************************************************************
    logical function NotFinishedComputation()
-      !**********************************************************************
-      !
-      !    Function: Checks whether the multipliers for external loads, water pressures,
-      !              gas pressures, gravity loading have reached the final value.
-      !
-      ! Implemented in the frame of the MPM project.
-      !
-      !**********************************************************************
+
 
       implicit none
 
@@ -2236,21 +2244,22 @@ contains ! Routines of this module
 
    end function NotFinishedComputation
 
-
+   !**********************************************************************
+   !
+   !     Subroutine: UpdateMultipliersForLoadStep
+   !     Description: Updates the multipliers for external loads, water pressures,
+   !              gas pressures, gravity loading from the current value of CalParams%IStep.
+   !
+   !              The computation of the multiplier increments could be done
+   !              outside the load step loop. In anticipation of possibly
+   !              variable increments and for easing readability of the code
+   !              it is kept in this routine. (No high computation effort.)
+   !
+   ! Implemented in the frame of the MPM project.
+   !
+   !**********************************************************************
    subroutine UpdateMultipliersForLoadStep()
-      !**********************************************************************
-      !
-      !    Function: Updates the multipliers for external loads, water pressures,
-      !              gas pressures, gravity loading from the current value of CalParams%IStep.
-      !
-      !              The computation of the multiplier increments could be done
-      !              outside the load step loop. In anticipation of possibly
-      !              variable increments and for easing readability of the code
-      !              it is kept in this routine. (No high computation effort.)
-      !
-      ! Implemented in the frame of the MPM project.
-      !
-      !**********************************************************************
+
 
       implicit none
 
@@ -2359,17 +2368,16 @@ contains ! Routines of this module
 
    end subroutine UpdateMultipliersForLoadStep
 
-
+   !**********************************************************************
+   !
+   !     Subroutine: UpdateMultipliersForTimeDepencency
+   !     Description: Updates the external load for time-dependency.
+   !
+   !              The increment CalParams%Multipliers%XXXXIncrement traces the
+   !              change of amplitude, not the change of the multiplier with time!
+   !
+   !**********************************************************************
    subroutine UpdateMultipliersForTimeDepencency()
-      !**********************************************************************
-      !
-      !    Function: Updates the external load for time-dependency.
-      !
-      !              The increment CalParams%Multipliers%XXXXIncrement traces the
-      !              change of amplitude, not the change of the multiplier with time!
-      !
-      !**********************************************************************
-
       implicit none
 
       real(REAL_TYPE) :: Increment
@@ -2449,24 +2457,24 @@ contains ! Routines of this module
    end subroutine UpdateMultipliersForTimeDepencency
 
 
-
-
+   !**********************************************************************
+   !
+   !     Subroutine: ReadPrescribedAccelerationOrVelocityFromFile
+   !     Description: Read the time history to provide a matrix of the multipliers.
+   !              This function is to be used to read both acceleration and/or velocity time history.
+   !              Function currently written for 1D prescribed velocity or acceleration from file.
+   !
+   !
+   ! File extension: PVF for prescribed velocity from file
+   !                 PAF for prescribed acceleration from file
+   !
+   ! File organisation:
+   !            Column 1 - time (seconds)
+   !            Column 2 - prescribed velocity or acceleration (dimensionless)
+   !
+   !**********************************************************************
    subroutine ReadPrescribedAccelerationOrVelocityFromFile()
-      !**********************************************************************
-      !
-      ! Function:  Read the time history to provide a matrix of the multipliers.
-      !            This function is to be used to read both acceleration and/or velocity time history.
-      !            Function currently written for 1D prescribed velocity or acceleration from file.
-      !
-      !
-      ! File extension: PVF for prescribed velocity from file
-      !                 PAF for prescribed acceleration from file
-      !
-      ! File organisation:
-      !            Column 1 - time (seconds)
-      !            Column 2 - prescribed velocity or acceleration (dimensionless)
-      !
-      !**********************************************************************
+
       implicit none
 
       ! local variables
@@ -2525,15 +2533,14 @@ contains ! Routines of this module
 
    end subroutine ReadPrescribedAccelerationOrVelocityFromFile
 
-
+   !**********************************************************************
+   !
+   !     Subroutine:   GetPrescribedVelocityOrAccelerationForTimeStep
+   !     Description: obtains the prescribed veloctiy/acceleration from file for the current time step (at real time)
+   !                 using linear interpolation.
+   !
+   !**********************************************************************
    subroutine GetPrescribedVelocityOrAccelerationForTimeStep()
-      !**********************************************************************
-      !
-      ! Function:  obtains the prescribed veloctiy/acceleration from file for the current time step (at real time)
-      !            using linear interpolation.
-      !
-      !**********************************************************************
-
       implicit none
 
       !local variables
@@ -2605,24 +2612,24 @@ contains ! Routines of this module
       !!!!!!!! END: GET PRESCRIBED VELOCITY FROM FILE FOR OVERALL REAL TIME !!!!!!!!
    end subroutine GetPrescribedVelocityOrAccelerationForTimeStep
 
-
+   !**********************************************************************
+   !
+   !     Subroutine: ReadHydraulicHeadFromFile
+   !     Description  Read the time history to provide a matrix of the multipliers.
+   !            This function is to be used to read hydraulic head time history.
+   !
+   !
+   ! File extension: HHBF for Hydraulic Head from file
+   !
+   !
+   ! File organisation:
+   !            Column 1 - time (seconds)
+   !            Column 2 - hydraulic head values (m) !!!!Later necessary check that reference for hydraulic heads is equal to the one for boundary node location
+   !
+   !**********************************************************************
    subroutine ReadHydraulicHeadFromFile()
-      !**********************************************************************
-      !
-      ! Function:  Read the time history to provide a matrix of the multipliers.
-      !            This function is to be used to read hydraulic head time history.
-      !
-      !
-      ! File extension: HHBF for Hydraulic Head from file
-      !
-      !
-      ! File organisation:
-      !            Column 1 - time (seconds)
-      !            Column 2 - hydraulic head values (m) !!!!Later necessary check that reference for hydraulic heads is equal to the one for boundary node location
-      !
-      !**********************************************************************
-      implicit none
 
+      implicit none
 
       ! local variables
       integer(INTEGER_TYPE) :: ios, ii, IError
@@ -2666,14 +2673,14 @@ contains ! Routines of this module
    end subroutine ReadHydraulicHeadFromFile
 
 
-
+   !**********************************************************************
+   !
+   !     Subroutine: GetHydraulicHeadForTimeStep
+   !     Description: obtains the HYDRAULIC HEAD  from file for the current time step (at real time)
+   !            using linear interpolation.
+   !
+   !**********************************************************************
    subroutine GetHydraulicHeadForTimeStep()
-      !**********************************************************************
-      !
-      ! Function:  obtains the HYDRAULIC HEAD  from file for the current time step (at real time)
-      !            using linear interpolation.
-      !
-      !**********************************************************************
 
       implicit none
 
@@ -2715,13 +2722,14 @@ contains ! Routines of this module
       end if
    end subroutine GetHydraulicHeadForTimeStep
 
-
+   !**********************************************************************
+   !
+   !     Subroutine: WriteCalculationParameters
+   !     Description:  Write the CPS file at the end of each load phase for the next step
+   !
+   !**********************************************************************
    subroutine WriteCalculationParameters()
-      !**********************************************************************
-      !
-      ! Function:  Write the CPS file at the end of each load phase for the next step
-      !
-      !**********************************************************************
+
 
       implicit none
 
@@ -2754,15 +2762,16 @@ contains ! Routines of this module
 
    end subroutine WriteCalculationParameters
 
-
+   !**********************************************************************
+   !
+   !     Subroutine: WriteCPS
+   !     Description: Write the CPS file at the end of each load phase for the next step
+   !
+   !            CPS version 2022, 2021, 2019.2
+   !
+   !**********************************************************************
    subroutine WriteCPS(FileUnit,FileVersion)
-      !**********************************************************************
-      !
-      ! Function:  Write the CPS file at the end of each load phase for the next step
-      !
-      !            CPS version 2022, 2021, 2019.2
-      !
-      !**********************************************************************
+
 
       implicit none
 
@@ -3022,17 +3031,18 @@ contains ! Routines of this module
 
    end subroutine WriteCPS
 
-
+   !**********************************************************************
+   !
+   !     Subroutine: DetermineLoadStep
+   !     Description: Retrieves the last computed step from the GIP file
+   !               by searching in the project directory for the GIP
+   !               file with the highest step number, GIP_099 ....
+   !               For a new computation the GIP file is generated for
+   !               post-processing purposes.
+   !
+   !**********************************************************************
    subroutine DetermineLoadStep()
-      !**********************************************************************
-      !
-      !    Function:  Retrieves the last computed step from the GIP file
-      !               by searching in the project directory for the GIP
-      !               file with the highest step number, GIP_099 ....
-      !               For a new computation the GIP file is generated for
-      !               post-processing purposes.
-      !
-      !**********************************************************************
+
 
       implicit none
 
@@ -3066,15 +3076,15 @@ contains ! Routines of this module
 
    end subroutine DetermineLoadStep
 
-
+   !**********************************************************************
+   !
+   !    Function:  Writes the GIP file using the provided extension.
+   !               If DoUseStepExtension is true, the GIP_XXX extension
+   !               is used, otherwise the GIP extension.
+   !
+   !**********************************************************************
    subroutine WriteGIPFile(DoUseStepExtension)
-      !**********************************************************************
-      !
-      !    Function:  Writes the GIP file using the provided extension.
-      !               If DoUseStepExtension is true, the GIP_XXX extension
-      !               is used, otherwise the GIP extension.
-      !
-      !**********************************************************************
+
 
       implicit none
 
@@ -3113,15 +3123,15 @@ contains ! Routines of this module
    end subroutine WriteGIPFile
 
 
-
+   !**********************************************************************
+   !
+   !    Function: Checks whether is the last time step of the explicit calculation or not.
+   !
+   ! Implemented in the frame of the MPM project.
+   !
+   !**********************************************************************
    logical function IsLastTimeStepOfExplicitCalculation() result(res)
-      !**********************************************************************
-      !
-      !    Function: Checks whether is the last time step of the explicit calculation or not.
-      !
-      ! Implemented in the frame of the MPM project.
-      !
-      !**********************************************************************
+
       implicit none
 
       res = ((CalParams%TotalTime - CalParams%TotalRealTime) < SMALL) .and. (.not.CalParams%ApplyQuasiStatic)
@@ -3129,15 +3139,15 @@ contains ! Routines of this module
    end function IsLastTimeStepOfExplicitCalculation
 
 
+   !**********************************************************************
+   !
+   !     Subroutine: IsMPMSkipConvection
+   !     Description: Checks whether is the MPM convection phase can be skipped or not.
+   !     Implemented in the frame of the MPM project.
+   !**********************************************************************
 
    logical function IsMPMSkipConvection() result(res)
-      !**********************************************************************
-      !
-      !    Function: Checks whether is the MPM convection phase can be skipped or not.
-      !
-      ! Implemented in the frame of the MPM project.
-      !
-      !**********************************************************************
+
       implicit none
 
       if (CalParams%SkipConvection) then
@@ -3152,13 +3162,12 @@ contains ! Routines of this module
 
 
 
-
+   !**********************************************************************
+   !
+   ! Function:  Write a logical (array) value into the CPS file
+   !
+   !**********************************************************************
    subroutine WriteLogic(unit, name, value, ndim, IsWritten)
-      !**********************************************************************
-      !
-      ! Function:  Write a logical (array) value into the CPS file
-      !
-      !**********************************************************************
 
       implicit none
 
@@ -3206,13 +3215,13 @@ contains ! Routines of this module
 
    end subroutine WriteLogic
 
-
+   !**********************************************************************
+   !
+   ! Function:  Write an integer (array) value to the CPS file
+   !
+   !**********************************************************************
    subroutine WriteInteger(unit, name, value, ndim, IsWritten)
-      !**********************************************************************
-      !
-      ! Function:  Write an integer (array) value to the CPS file
-      !
-      !**********************************************************************
+
 
       implicit none
 
@@ -3251,13 +3260,13 @@ contains ! Routines of this module
 
    end subroutine WriteInteger
 
-
+   !**********************************************************************
+   !
+   ! Function:  Write a real (array) value to the CPS file
+   !
+   !**********************************************************************
    subroutine WriteReal(unit, name, value, ndim, IsWritten)
-      !**********************************************************************
-      !
-      ! Function:  Write a real (array) value to the CPS file
-      !
-      !**********************************************************************
+
 
       implicit none
 
@@ -3285,14 +3294,12 @@ contains ! Routines of this module
 
    end subroutine WriteReal
 
-
+   !**********************************************************************
+   !
+   ! Function:  Write a real (array) value to the CPS file
+   !
+   !**********************************************************************
    subroutine WriteString(unit, name, value, ndim, IsWritten)
-      !**********************************************************************
-      !
-      ! Function:  Write a real (array) value to the CPS file
-      !
-      !**********************************************************************
-
       implicit none
 
       integer(INTEGER_TYPE), intent(in) :: unit
@@ -3324,13 +3331,13 @@ contains ! Routines of this module
 
    end subroutine WriteString
 
-
+   !**********************************************************************
+   !
+   ! Function:  Write a combination of string(scalar) and real(array) value into the CPS file
+   !
+   !**********************************************************************
    subroutine WriteStringReal(unit, name, valueS, valueR, IsWritten)
-      !**********************************************************************
-      !
-      ! Function:  Write a combination of string(scalar) and real(array) value into the CPS file
-      !
-      !**********************************************************************
+
 
       implicit none
 
@@ -3357,13 +3364,13 @@ contains ! Routines of this module
 
    end subroutine WriteStringReal
 
-
+   !**********************************************************************
+   !
+   ! Function:  Write a combination of logical and real value into the CPS file
+   !
+   !**********************************************************************
    subroutine WriteLogicReal(unit, name, valueL, valueR, ndim, IsWritten)
-      !**********************************************************************
-      !
-      ! Function:  Write a combination of logical and real value into the CPS file
-      !
-      !**********************************************************************
+
 
       implicit none
 
@@ -3407,13 +3414,13 @@ contains ! Routines of this module
 
    end subroutine WriteLogicReal
 
-
+   !**********************************************************************
+   !
+   ! Function:  Write a combination of logical and integer value into the CPS file
+   !
+   !**********************************************************************
    subroutine WriteLogicInteger(unit, name, valueL, valueI, ndim, IsWritten)
-      !**********************************************************************
-      !
-      ! Function:  Write a combination of logical and integer value into the CPS file
-      !
-      !**********************************************************************
+
 
       implicit none
 
