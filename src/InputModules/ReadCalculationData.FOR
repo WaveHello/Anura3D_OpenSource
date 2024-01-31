@@ -45,7 +45,7 @@ module ModReadCalculationData
    use ModString
    use ModGlobalData
    use ModFeedback
-   use ModFileIO
+   use ModFileIO, only: Upcase, FExist, read_logical_value, FileOpen
 
    implicit none
 
@@ -1580,10 +1580,11 @@ contains ! Routines of this module
             CalParams%ContactRadius = DumR(1)
 
          else if (trim(BName) == '$$APPLY_AREA_VELOCITY_SCALING') THEN
-            read(FileUnit, *, iostat=ios) DumI(1)
-            call Assert( ios == 0, messageIOS//trim(BName) )
-            call Assert( DumI(1) == 0 .or. DumI(1) == 1, 'CPS file: ' //trim(BName)// ' must be 0 or 1.' )
-            if ( DumI(1) == 1 ) CalParams%ApplyAreaVelocityScaling = .true.
+            call read_logical_value(BName, FileUnit, ios, messageIOS, 'CPS file: ', CalParams%ApplyAreaVelocityScaling)
+            ! read(FileUnit, *, iostat=ios) DumI(1)
+            ! call Assert( ios == 0, messageIOS//trim(BName) )
+            ! call Assert( DumI(1) == 0 .or. DumI(1) == 1, 'CPS file: ' //trim(BName)// ' must be 0 or 1.' )
+            ! if ( DumI(1) == 1 ) CalParams%ApplyAreaVelocityScaling = .true.
 
          else if (trim(BName) == '$$AREA_VELOCITY_SCALING_FACTOR') THEN
             read(FileUnit, *, iostat=ios) DumR(1)
@@ -1812,7 +1813,6 @@ contains ! Routines of this module
             call Assert( ios == 0, messageIOS//trim(BName) )
             call Assert( DumI(1) == 0 .or. DumI(1) == 1, 'CPS file: ' //trim(BName)// ' must be 0 or 1.' )
             if ( DumI(1) == 1 ) CalParams%ApplyPorosityUpdate = .true.
-
 
          else if (trim(BName)=='$$SUBMERGED_CALCULATION') then
             read (FileUnit, *, iostat=ios) DumI(1:2)
@@ -3159,8 +3159,6 @@ contains ! Routines of this module
       endif
 
    end function IsMPMSkipConvection
-
-
 
    !**********************************************************************
    !

@@ -1,32 +1,32 @@
-!*****************************************************************************
-!                                       ____  _____
-!           /\                         |___ \|  __ \
-!          /  \   _ __  _   _ _ __ __ _  __) | |  | |
-!         / /\ \ | '_ \| | | | '__/ _` ||__ <| |  | |
-!        / ____ \| | | | |_| | | | (_| |___) | |__| |
-!       /_/    \_\_| |_|\__,_|_|  \__,_|____/|_____/
-!
-!
-! Anura3D - Numerical modelling and simulation of large deformations
-!   and soil�water�structure interaction using the material point method (MPM)
-!
-!	Copyright (C) 2023  Members of the Anura3D MPM Research Community
-!   (See Contributors file "Contributors.txt")
-!
-!	This program is free software: you can redistribute it and/or modify
-!	it under the terms of the GNU Lesser General Public License as published by
-!	the Free Software Foundation, either version 3 of the License, or
-!	(at your option) any later version.
-!
-!	This program is distributed in the hope that it will be useful,
-!	but WITHOUT ANY WARRANTY; without even the implied warranty of
-!	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-!	GNU Lesser General Public License for more details.
-!
-!	You should have received a copy of the GNU Lesser General Public License
-!	along with this program.  If not, see <https://www.gnu.org/licenses/>.
-!
-!*****************************************************************************
+ !*****************************************************************************
+ !                                       ____  _____
+ !           /\                         |___ \|  __ \
+ !          /  \   _ __  _   _ _ __ __ _  __) | |  | |
+ !         / /\ \ | '_ \| | | | '__/ _` ||__ <| |  | |
+ !        / ____ \| | | | |_| | | | (_| |___) | |__| |
+ !       /_/    \_\_| |_|\__,_|_|  \__,_|____/|_____/
+ !
+ !
+ !	Anura3D - Numerical modelling and simulation of large deformations
+ !   and soil�water�structure interaction using the material point method (MPM)
+ !
+ !	Copyright (C) 2023  Members of the Anura3D MPM Research Community
+ !   (See Contributors file "Contributors.txt")
+ !
+ !	This program is free software: you can redistribute it and/or modify
+ !	it under the terms of the GNU Lesser General Public License as published by
+ !	the Free Software Foundation, either version 3 of the License, or
+ !	(at your option) any later version.
+ !
+ !	This program is distributed in the hope that it will be useful,
+ !	but WITHOUT ANY WARRANTY; without even the implied warranty of
+ !	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ !	GNU Lesser General Public License for more details.
+ !
+ !	You should have received a copy of the GNU Lesser General Public License
+ !	along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ !
+ !*****************************************************************************
 
 
 module ModFileIO
@@ -41,6 +41,7 @@ module ModFileIO
    implicit none
 
 contains
+
 
 
    !*************************************************************************************
@@ -73,17 +74,20 @@ contains
       inquire(unit = FileUnit, opened = IsOpen)
       if ( IsOpen ) close(FileUnit)
       if ( trim(Action) == 'W' ) call EraseFile(FileName)
-
-    #ifdef __INTEL_COMPILER
-          open(FileUnit, FILE = FileName, FORM = 'Binary', BLOCKSIZE = 4096, RECORDTYPE = 'stream', BUFFERCOUNT = 64, BUFFERED = 'no', ACTION = ToDo, IOSTAT = ios)
-    #else
-          open(FileUnit, FILE = FileName, FORM = "UNFORMATTED", ACCESS = "SEQUENTIAL", STATUS = "REPLACE", IOSTAT = ios)
-    #endif
+      ! First line: This line uses the open statement to open a file (FileName) with certain options. The options include specifying the file form as 'Binary', setting the block size, record type, buffer count,
+      ! and other parameters. The specific details of the options depend on the Intel Fortran Compiler.
+      ! Second line: In case the code is not being compiled with the Intel Fortran Compiler, this line opens the file with different options. It specifies the file form as 'UNFORMATTED', sets the access mode as
+      ! 'SEQUENTIAL', and sets the status as 'REPLACE'. These options may be specific to compilers other than the Intel Fortran Compiler.
+      ! These lines must be  kept at the far left
+#ifdef __INTEL_COMPILER
+      open(FileUnit, FILE = FileName, FORM = 'Binary', BLOCKSIZE = 4096, RECORDTYPE = 'stream', BUFFERCOUNT = 64, BUFFERED = 'no', ACTION = ToDo, IOSTAT = ios)
+#else
+      open(FileUnit, FILE = FileName, FORM = "UNFORMATTED", ACCESS = "SEQUENTIAL", STATUS = "REPLACE", IOSTAT = ios)
+#endif
 
       call Assert( ios == 0, 'Error opening file: ' // trim(FileName) // ' ' // trim(ToDo) )
 
    end subroutine FileOpenAction
-
    !*************************************************************************************
    !    SUBROUTINE: FileOpen
    !
@@ -297,7 +301,7 @@ contains
    Subroutine EraseFile(fName)
 
       Character fName*(*)
-      
+
       ! local variables
       logical :: fExist
       integer(INTEGER_TYPE) :: io
@@ -404,7 +408,7 @@ contains
    !    DESCRIPTION:  Get or make the name of a File
    !
    !*************************************************************************************
-   Subroutine GetOrMakeFileName( Name, ShortName )
+   Subroutine GetOrMakeFileName( Name, ShortName)
 
       Character*(*) Name
       Character*1023 ShortName
@@ -413,20 +417,95 @@ contains
 
    end subroutine
 
-  ! subroutine read_CPS_integer_value(FileUnit, )
-  
+   !*************************************************************************************
+   !    SUBROUTINE: read_logical_value
+   ! 
+   !    DESCRIPTION:
+   !>   Reads integer from file  and stores it as a logical. For the
+   !
+   !>   @note : Notes
+   !
+   !>   @param[in]  BName                 : Flag above the value that is being read
+   !>   @param[in]  FileUnit              : Unit number associated with the file which data is being read
+   !>   @param[in]  ios                   : Store I/O  status
+   !>   @param[in]  messageIOS            : Error in case  value can't  be read
+   !>   @param[in]  value_error_message   : Error message in the case the read value isn't 1 or 0
+   !>   @param[out] result                : variable that read value should be stored in if succesful 
+   !
+   !*************************************************************************************
+   subroutine read_logical_value(BName, FileUnit, ios, messageIOS, value_error_message, result)
+      integer(INTEGER_TYPE), intent(in) :: FileUnit
+      integer(INTEGER_TYPE), intent(inout) :: ios
+      character(*), intent(in) :: BName, value_error_message, messageIOS
+      logical, intent(out) :: result
 
-  ! end subroutine
+      ! Local variables
+      integer(INTEGER_TYPE) :: read_val
 
-  ! subroutine read_logical_value()
-  ! end subroutine
+      ! Store the value in read_val
+      read(FileUnit, *, iostat=ios) read_val
+      call Assert( ios == 0, messageIOS//trim(BName) )
+      call Assert( read_val == 0 .or. read_val == 1, value_error_message //trim(BName)// ' must be 0 or 1.' )
+      if ( read_val == 1 ) result = .true.
+   end subroutine
 
-  ! subroutine read_real_value()
-  ! end subroutine
+   ! subroutine read_logical_value()
+   ! end subroutine
 
-  ! subroutine read_integer_value()
-  ! ! Read an integer value from a file and store it in the passed variable
-  ! ! The purpose of this subroutine is to read a line of file data it should
-  ! ! For the time being it'll be based off the read 
-  ! end subroutine
+   ! subroutine read_real_value()
+   ! end subroutine
+
+   ! subroutine read_integer_value()
+   ! ! Read an integer value from a file and store it in the passed variable
+   ! ! The purpose of this subroutine is to read a line of file data it should
+   ! ! For the time being it'll be based off the read
+   ! end subroutine
+
+   ! subroutine  read_real_value(BName, FileUnit, ios, messageIOS, num_vals_, limit_values_flag_, value_limits_, limit_error_message_)
+   !    integer(INTEGER_TYPE)                  , intent(in) :: FileUnit, ios
+   !    character(*)                           , intent(in) :: BName, messageIOS,  limit_error_message_ 
+   !    logical                                , intent(in) :: limit_values_flag_
+      
+   !    ! Optional Values
+   !    integer(INTEGER_TYPE), optional        , intent(in) :: num_vals_
+   !    real(REAL_TYPE), optional, dimension(2), intent(in) :: value_limits_
+   
+
+   !    ! Local variables
+   !    integer(INTEGER_TYPE) :: i
+   !    real(REAL_TYPE) :: read_value
+
+   !    if (present(limit_values_flag_)) then
+   !       limit_values = limit_values_flag_
+   !    else
+   !       limit_values = .false.
+   !    end if
+
+   !    if (present(value_limits_)) then
+   !       value_limits = value_limits_
+   !    else
+   !       value_limits = 0.0
+   !    end if
+
+   !    if (present(num_vals_)) then
+   !       num_vals = num_vals_
+   !    else
+   !       num_vals = 1
+   !    end if
+
+   !    if (present(limit_error_message_)) then
+   !       limit_error_message = limit_error_message_
+   !    else
+   !       limit_error_message = "No message passed"
+   !    end if
+
+   !    do i = 1, num_vals
+   !       read(FileUnit, *, iostat=ios) read_value
+   !       call Assert( ios == 0, messageIOS//trim(BName) )
+   !       CalParams%AreaVelocityScalingFactor = read_value
+   !    end do
+
+
+   ! end subroutine  read_real_value
+
 end module ModFileIO
