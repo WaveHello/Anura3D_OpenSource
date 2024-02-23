@@ -89,14 +89,16 @@
 		<File RelativePath="..\Shared\Counters.FOR"/>
 		<File RelativePath="..\Shared\ErrorHandler.for"/>
 		<File RelativePath="..\Shared\Feedback.for"/>
-		<File RelativePath="..\Shared\FileIO.for"/>
+		<File RelativePath="..\Shared\FileIO.f90"/>
 		<File RelativePath="..\Shared\GeoMath.f90"/>
 		<File RelativePath="..\Shared\getversion.for"/>
 		<File RelativePath="..\Shared\GlobalConstants.f90"/>
 		<File RelativePath="..\Shared\InitialiseElementType.for"/>
 		<File RelativePath="..\Shared\InitialiseKernel.FOR"/>
+		<File RelativePath="..\Shared\InterpFunctions.f90"/>
 		<File RelativePath="..\Shared\ISORT.FOR"/>
 		<File RelativePath="..\Shared\MatrixMath.f90"/>
+		<File RelativePath="..\Shared\ModArray.f90"/>
 		<File RelativePath="..\Shared\String.for"/>
 		<File RelativePath="..\Shared\timing.for"/></Filter>
 		<Filter Name="Solver">

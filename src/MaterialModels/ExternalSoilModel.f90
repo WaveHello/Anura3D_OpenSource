@@ -197,7 +197,7 @@ subroutine StressSolid(IDpt, IDel, BMatrix,IEntityID)
     ! initialise UMAT
     
     
-    if (NameModel == ESM_ARB_Model_MohrCoulombStrainSoftening) then
+    if (NameModel == ESM_MCSS) then
         ! Abdel's (Unreleased) Mohr-Coulomb Strain Softening Formulation
         call ESM_MohrCoulombStrainSoftening(IDpt, IDel, IDset, Stress, Eunloading, PlasticMultiplier, StrainIncr, NSTATEVAR, StateVar,&
                                             nAddVar, AdditionalVar,cmname, NPROPERTIES, props, CalParams%NumberOfPhases, ntens)

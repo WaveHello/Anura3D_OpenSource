@@ -1000,7 +1000,7 @@ end select
                     MatParams(I)%ESM_Statvar_in(J) = DumR
                   end do
 
-                case (ESM_ARB_Model_MohrCoulombStrainSoftening) !Copied so that I could have a template to write a case for Abdel's MCSS model
+                case (ESM_MCSS) !Copied so that I could have a template to write a case for Abdel's MCSS model
                     print *, 'Hello World, mic check_v3'  
                     call ReadString(FileUnit, BName, DumS) ! soil model DLL, $$SOIL_MODEL_DLL
                     MatParams(I)%SoilModelDLL = DumS

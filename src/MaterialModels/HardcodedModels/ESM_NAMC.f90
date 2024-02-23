@@ -171,8 +171,9 @@ Subroutine UMAT_NAMC(STRESS, STATEV, DDSDDE, SSE, SPD, SCD, RPL, DDSDDT, DRPLDE,
     real(Real_Type) :: G_0, enu, eM_tc, eN, D_min, eh, alpha_G, alpha_K, alpha_D, D_part, G_s, RefERate !SSMC props local variables, (props)
     real(Real_Type) :: G, bk, eta_y, DP, eI_coeff, Sum_rate  !SSMC state variables (statv)
     double precision :: Error_yield_1, Error_yield_2, Error_Euler_max, Error_Yield_last, Error_Yield_max
-    double precision :: F1, F2, bK_0
-    integer :: i
+    double precision :: F1, F2, bK_0, FTOL
+    integer :: i, max_stress_iters
+    
         
         
     !
@@ -194,6 +195,9 @@ Subroutine UMAT_NAMC(STRESS, STATEV, DDSDDE, SSE, SPD, SCD, RPL, DDSDDT, DRPLDE,
 	! 13 : Switch_smooth	Boolean switch for activating strain rate smoothing
 	! 14 : N_S				Degree of smoothening
     ! 15 : switch_original	Changes from Wang's to Olzak&Perzyna consistency 
+    ! 16 : FTOL             Yield surface tolerance
+    ! 17 : max_stress_iters Maximum stress integration iterations
+    
 	G_0			= PROPS(1)         ! shear modulus
     enu			= PROPS(2)         ! Poisson's ratio
     eM_tc		= PROPS(3)         ! Critical stress ratio
@@ -218,6 +222,18 @@ Subroutine UMAT_NAMC(STRESS, STATEV, DDSDDE, SSE, SPD, SCD, RPL, DDSDDT, DRPLDE,
 	call dbltobool(PROPS(13), switch_smooth)  ! switch for activating strain rate smoothening
 	N_S=PROPS(14)							  ! Degree of smoothening
     call dbltobool(PROPS(15), switch_original)! (1 for Wang, 0 for Olzak&Perzyna)
+    
+    FTOL = PROPS(16)
+    max_stress_iters = PROPS(17)
+    
+    !TODO max this an error
+    if (FTOL<= 1e-10) then
+        print *, "A FTOL of 1e-10 is too small"
+    end if
+    
+    if(max_stress_iters ==0) then
+        print *, "max stress iters is zero"
+    end if
     
     G			    = STATEV(1)			         ! shear modulus
 	bK			    = STATEV(2)			         ! bulk modulus
@@ -256,7 +272,7 @@ Subroutine UMAT_NAMC(STRESS, STATEV, DDSDDE, SSE, SPD, SCD, RPL, DDSDDT, DRPLDE,
 				 G, bK, eta_y, Dp, EpsP, eI_coeff, switch_yield, N_i, SUM_rate,&
 				 DSTRAN, STRESS, Sig, Erate, DTIME,&
 				 Error_yield_1, Error_yield_2, Error_Euler_max, Error_Yield_last, &
-				 Error_Yield_max)
+				 Error_Yield_max, FTOL, max_stress_iters)
 	!************************************************************************************
 	!************************************************************************************
 
@@ -317,7 +333,7 @@ subroutine NAMC_HSR(NOEL, G_0, nu, M_tc, N, D_min, h, alpha_G, alpha_K, alpha_D,
 					 G, K, eta_y, Dp, EpsP, I_coeff, switch_yield, N_i, SUM_rate,&
 					 dEps, Sig_0, Sig, Erate, DTIME,&
 					 Error_yield_1, Error_yield_2, Error_Euler_max, Error_Yield_last, &
-					 Error_Yield_max)
+					 Error_Yield_max, FTOL, max_stress_iters)
     
     !*********************************************************************************
     !
@@ -331,10 +347,10 @@ subroutine NAMC_HSR(NOEL, G_0, nu, M_tc, N, D_min, h, alpha_G, alpha_K, alpha_D,
     
 	!input variables
 	integer, intent(in) :: NOEL !Global ID of Gauss point or particle
-    integer, intent(in) :: N_S
+    integer, intent(in) :: N_S, max_stress_iters
     double precision, intent(in)::  G_0, nu, M_tc, N, D_min, alpha_G, alpha_K, &
 									alpha_D, D_part, G_s, &
-									RefERate, DTIME
+									RefERate, DTIME, FTOL
     double precision, dimension(6), intent(in)::  dEps
     double precision, dimension(6), intent(inout):: Sig_0
     
@@ -357,7 +373,7 @@ subroutine NAMC_HSR(NOEL, G_0, nu, M_tc, N, D_min, h, alpha_G, alpha_K, alpha_D,
                        p_t, q_t, dI_t, dI_TT, I_TT, dD1, dD2
     double precision:: epsq_rate, epsq_p, eps_v
     double precision:: F0, FT, alpha
-    double precision:: FTOL, STOL, DTmin , LTOL, R_TT, qR, RTOL
+    double precision:: STOL, DTmin , LTOL, R_TT, qR, RTOL
     double precision:: dummyvar(3), D1, D2
     double precision:: DE(6,6), dSig_el(6), Sig_t(6), dEps_t(6), dEps_TT(6), &
                        Sig1(6), Sig2(6), dEpsp1(6), dEpsp2(6), dEpsp(6), &
@@ -370,11 +386,11 @@ subroutine NAMC_HSR(NOEL, G_0, nu, M_tc, N, D_min, h, alpha_G, alpha_K, alpha_D,
     !print *, NOEL
 	!______________________________________________________________________________
     ! Error tolerances
-    FTOL=1.0e-8		!Yield surface tolerance
+    !FTOL=1.0e-8		!Yield surface tolerance
     STOL=1.0e-3		!Relative error tolerance
     DTmin=1.0e-9	!Minimum pseudo-time increment, originally Dtmin = 1.0e-9
 	LTOL=0.01d0		!Tolerance for elastic unloading	  
-	MAXITER=20		!Max. number of iterations
+	!MAXITER=20		!Max. number of iterations
     RTOL = STOL * 1.0e-1
     !______________________________________________________________________________
 	!______________________________________________________________________________
@@ -561,7 +577,7 @@ subroutine NAMC_HSR(NOEL, G_0, nu, M_tc, N, D_min, h, alpha_G, alpha_K, alpha_D,
         ! Need to make dEpsP a state variable (Done)         
         call Ortiz_Simo_Integration(G_0, nu, M_tc, M, N, D_min, h, G, K, eta_y, Dp, &
                                 I_0, I_coeff, dI, alpha_G, alpha_K, alpha_D, Sig_0, EpsP, dEps, &
-                                FTOL, NOEL)
+                                FTOL, NOEL, max_stress_iters)
         Sig = Sig_0 ! Update the stresses
         
         ! Track varaibles for output
@@ -723,7 +739,7 @@ end subroutine Newton_Raphson
 !*********************************************************************************
 subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, Dp, &
                                 I_0, I, dI, k_G, k_K, k_D, Sig, EpsP, dEps, &
-                                FTOL, NOEL)
+                                FTOL, NOEL, max_stress_iters)
 
     !------------------------Function Information------------------------
     ! Ortiz and Simo (1986) integration scheme (Algorithm on pg. 6)
@@ -766,7 +782,7 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
     ! Input scalar values
     double precision, intent(in):: G_0, nu, M_tc, No, D_min, h, &
                                 k_G, k_K, k_D, FTOL
-    integer, intent(in) :: NOEL
+    integer, intent(in) :: NOEL, max_stress_iters
     ! Input vector values
     double precision, dimension (6), intent(in):: dEps
 
@@ -793,7 +809,7 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
                        D1, D2, b, dLambda, dD
 
     logical:: ApplyStrainRateUpdate = .false.
-    integer:: counter, MaxIter
+    integer:: counter
 
     ! Local vector values
     double precision, dimension(6):: dEpsE, dummyVec, dEpsPu, EpsPu, Sigu, &
@@ -891,8 +907,6 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
     ! Set num_OS_Iterations to next index
     num_OS_Iterations = 2
     
-    ! Set Maximum number of iterations
-    MaxIter = 100000
     counter = 0
     
     call Get_dD_to_dEpsP(D_min, h, I_0, k_D, epsq_p, epsv_p, &
@@ -901,7 +915,7 @@ subroutine Ortiz_Simo_Integration(G_0, nu, M_tc, M, No, D_min, h, G, K, eta_y, D
     ! Compute stress invariants
     call Get_invariants(Sigu, p, q, dummyVal)
     
-    do while (abs(F) >= FTOL .and. counter <= MaxIter) 
+    do while (abs(F) >= FTOL .and. counter <= max_stress_iters) 
         !---------------------Begin Compute derivatives--------------------------!
         call Get_dF_to_dSigma(Mu, eta_yu, Sigu, n_vec) !n=dF/dSig
         call Get_dP_to_dSigma(Du, Sigu, m_vec) !m=dP/dSig
