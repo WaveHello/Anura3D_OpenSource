@@ -183,4 +183,3 @@ proc format_write_nurbs_data { surface_id surface_data } {
     }
 }
 
-

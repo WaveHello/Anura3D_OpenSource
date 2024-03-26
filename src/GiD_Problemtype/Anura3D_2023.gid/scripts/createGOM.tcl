@@ -105,6 +105,13 @@ proc Anura3D::WriteCalculationFile_GOM { filename } {
             # Format and write the nurbs surface data
             format_write_nurbs_data $surface_id $surface_data
         }
+
+        foreach line_id [ GiD_Geometry list line 1:end] {
+            # Store the line data
+            set line_data [ GiD_Geometry get line $line_id ]
+
+            GiD_WriteCalculationFile line_data
+        }
         # Writ the data for the regular geometry
     } elseif {$model_geometry_type eq "Regular"} {
         # COUNTERS
