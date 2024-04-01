@@ -112,6 +112,11 @@
         real(REAL_TYPE), allocatable :: SigmaEffArray(:,:)           !> Effective stresses (Sxx, Syy, Szz, Sxy, Syz, Sxz) of the particle 
         real(REAL_TYPE), allocatable :: SigmaEff0Array(:,:)          !> Initial Effective stresses (Sxx, Syy, Szz, Sxy, Syz, Sxz) of the particle from the last load step
         
+        real(REAL_TYPE), allocatable :: SigmaEffArrayGaussPoints(:,:,:) !> Gauss point integration using quadrilateral elements --> solid skeleton --> Rank 3 because tensor
+        real(REAL_TYPE), allocatable :: SigmaEffArrayGaussPointsWaterPressure(:,:) !> Gauss point integration using quadrilateral elements --> water pressure --> Rank 2 because scalar
+        real(REAL_TYPE), allocatable :: SigmaEffArrayGaussPointsGasPressure(:,:) !> Gauss point integration using quadrilateral elements --> gas pressure --> Rank 2 because scalar
+        real(REAL_TYPE), allocatable :: SigmaEffArrayGaussPointsBulkViscousPressure(:,:) !> Gauss point integration using quadrilateral elements --> bulk viscous damping
+        
         real(REAL_TYPE), allocatable :: DShapeValuesArray(:,:,:)     !> Shape function derivatives for the particle, these values are updated when new local coordinates are calculated.
         real(REAL_TYPE), allocatable :: AccelerationArray(:,:)       !> Acceleration of the particle (soil)
         
@@ -628,6 +633,16 @@
           allocate(GlobPosArray(Counters%NParticles,NVECTOR), stat = IError)
           allocate(VelocityArray(Counters%NParticles,NVECTOR), stat = IError)
           allocate(SigmaEffArray(Counters%NParticles,NTENSOR), stat = IError)
+          
+          ! stress for gauss point integration for each phase
+          allocate(SigmaEffArrayGaussPoints             (Counters%NEl, Counters%NGaussPoints, NTENSOR), stat = IError) !--> solid skeleton --> tensor for each GP
+          allocate(SigmaEffArrayGaussPointsWaterPressure(Counters%NEl, Counters%NGaussPoints), stat = IError) !--> water pressure --> scalar for each GP
+          allocate(SigmaEffArrayGaussPointsGasPressure  (Counters%NEl, Counters%NGaussPoints), stat = IError) !--> gas pressure --> scalar for each GP
+          allocate(SigmaEffArrayGaussPointsBulkViscousPressure(Counters%NEl, Counters%NGaussPoints), stat = IError) !--> bulk viscous damping
+          
+          ! in each element, we are tracking how many material points associated with a gauss point in an element
+          allocate(SubElementMPOrganization(Counters%NEl, Counters%NGaussPoints), stat = IError) ! --> global matrix
+          
           allocate(SigmaEff0Array(Counters%NParticles,NTENSOR), stat = IError)
           allocate(DShapeValuesArray(Counters%NParticles,ELEMENTNODES,NVECTOR), stat = IError)
           allocate(VelocityWaterArray(Counters%NParticles,NVECTOR), stat = IError)
@@ -749,6 +764,15 @@
          if (allocated(SigmaEffArray) ) then
             deallocate(SigmaEffArray, stat = IError)
          end if
+         
+         if (allocated(SigmaEffArrayGaussPoints) ) then
+            deallocate(SigmaEffArrayGaussPoints, stat = IError)
+         end if 
+         
+         if (allocated(SubElementMPOrganization) ) then
+            deallocate(SubElementMPOrganization, stat = IError)
+         end if 
+         
          
          if (allocated(SigmaEff0Array) ) then
             deallocate(SigmaEff0Array, stat = IError)
