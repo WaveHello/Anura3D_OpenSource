@@ -123,7 +123,8 @@ contains ! Routines of this module
       end if
 
       if (SoilModel == ESM_HYPOPLASTICITY_SAND .or. &
-         SoilModel==ESM_EXTERNAL_SOIL_MODEL) then ! user-defined soil model
+         SoilModel==ESM_EXTERNAL_SOIL_MODEL   .or. &
+         SoilModel==ESM_ARB_Model_MohrCoulombStrainSoftening) then ! user-defined soil model
          Eunloading = Particles(IParticle)%ESM_UnloadingStiffness
       end if
 
@@ -321,7 +322,7 @@ contains ! Routines of this module
          NElemPart = NPartEle(IElement) ! get number of particles in the active element
 
          if ( ISAXISYMMETRIC .and. .not.IsParticleIntegration(IElement) ) then
-            !Question: Why is this conditioned on ISAXISYMMETRIC? 
+            !Question: Why is this conditioned on ISAXISYMMETRIC?
             NElemPart = ELEMENTGAUSSPOINTS ! Number of Gauss points per element
          end if
 
@@ -330,7 +331,7 @@ contains ! Routines of this module
             ParticleIndex = GetParticleIndex(IParticle, IElement) ! get global particle ID
 
             if( (NFORMULATION==1) .or. (MaterialPointTypeArray(ParticleIndex)==MaterialPointTypeSolid) ) then
-               
+
                ! For quad debugging
                ! TODO: Remove this data
                !if (.true.) then
@@ -340,17 +341,17 @@ contains ! Routines of this module
                !   ! Calculate Jacobian matrix RJac and the inverse of the Jacobian matrix RJacInv
                !   call DetJacob(Particles(ParticleIndex)%LocPos, Counters%NEl, Counters%NodTot, NDIM, &
                !               IElement, ElementConnectivities, NodalCoordinatesUpd, RJac, RJacInv, track_det_jacobian)
-               !   
+               !
                !    !print *, "Particle Location Position:", Particles(ParticleIndex)%LocPos
                !
                !end if
                ! Evaluate the BMatrix at the particle location
                call BMatrix(Particles(ParticleIndex)%LocPos, &
-                            ELEMENTNODES, Counters%NEl, &
-                            Counters%NodTot, NDIM, &
-                            IElement, ElementConnectivities, &
-                            NodalCoordinatesUpd,  &
-                            BMatrixDeformed, DetJac)
+                  ELEMENTNODES, Counters%NEl, &
+                  Counters%NodTot, NDIM, &
+                  IElement, ElementConnectivities, &
+                  NodalCoordinatesUpd,  &
+                  BMatrixDeformed, DetJac)
 
                ! get the nodal displacement increments for the specific entity
                if (CalParams%ApplyContactAlgorithm) then ! CONTACT IS APPLIED
@@ -360,34 +361,34 @@ contains ! Routines of this module
                      iEntityDefault = iEntity !set the entity ID for the next particle loop
                   end if
                end if
-               
+
                ! If using B-bar technique
                if (CalParams%ApplyB_Bar) then
                   !print *, "Hello"
                   ! Evaluate the element B-bar matrix
                   call B_bar_matrix(dHS_center, ELEMENTNODES, Counters%NEl,  &
-                                    Counters%NodTot, NDIM,                   &
-                                    IElement, ElementConnectivities,         &
-                                    NodalCoordinatesUpd,                     &
-                                    B_barMatrixDeformed)
-                  
+                     Counters%NodTot, NDIM,                   &
+                     IElement, ElementConnectivities,         &
+                     NodalCoordinatesUpd,                     &
+                     B_barMatrixDeformed)
+
                   ! ! Evaluate the particle strain
                   ! Eps in 3D (Exx, Eyy, Ezz, Gxy, Gyz, Gzx), in 2D (Exx, Eyy, Ezz, Gxy)
                   call Get_B_Bar_Strain(IElement, IParticle,                  &
-                                        ElementConnectivities,                &
-                                        BMatrixDeformed, B_barMatrixDeformed, & 
-                                        DUTotEnt, ReducedDof, Eps)
-               else 
+                     ElementConnectivities,                &
+                     BMatrixDeformed, B_barMatrixDeformed, &
+                     DUTotEnt, ReducedDof, Eps)
+               else
                   ! Eps in 3D (Exx, Eyy, Ezz, Gxy, Gyz, Gzx), in 2D (Exx, Eyy, Ezz, Gxy)
                   call Get_Strain(IElement, IParticle, &
-                                  ElementConnectivities, &
-                                  BMatrixDeformed, DUTotEnt, ReducedDof, &
-                                  Eps) ! Eps = strain increment at material point
-               end if 
+                     ElementConnectivities, &
+                     BMatrixDeformed, DUTotEnt, ReducedDof, &
+                     Eps) ! Eps = strain increment at material point
+               end if
 
                ! Update particle strains
                call SetEpsStep(Particles(ParticleIndex), Eps)
-               
+
                if (.not.CalParams%ApplyImplicitQuasiStatic) then
                   call IncreaseEps(Particles(ParticleIndex), Eps)
                end if
@@ -419,7 +420,7 @@ contains ! Routines of this module
 
       real(REAL_TYPE), dimension(NTENSOR) :: Eps
       real(REAL_TYPE), &
-      dimension(NDIM, ELEMENTNODES) :: BMatrixDeformed, B_BarMatrixDeformed
+         dimension(NDIM, ELEMENTNODES) :: BMatrixDeformed, B_BarMatrixDeformed
       real(REAL_TYPE), dimension(ELEMENTNODES)    :: HS_center
       real(REAL_TYPE), dimension(ELEMENTNODES, NVECTOR) :: dHS_center
       real(REAL_TYPE) :: DetJac
@@ -438,7 +439,7 @@ contains ! Routines of this module
 
       ! Evaluate local element element center for B-bar
       call eval_local_elem_center(NVECTOR, ELEMENTNODES, HS_center, dHS_center)
-      
+
       !----------------------------------------------------
       do IElement = 1, Counters%NEl     !loop over all elements
          if (IsActiveElement(IElement)) then  !active elements only
@@ -460,30 +461,30 @@ contains ! Routines of this module
                      IElement, ElementConnectivities, &
                      NodalCoordinatesUpd, &
                      BMatrixDeformed, DetJac)
-                  
+
                   ! If using B-bar technique
                   if (CalParams%ApplyB_Bar) then
                      !print *, "Hello"
                      ! Evaluate the element B-bar matrix
                      call B_bar_matrix(dHS_center, ELEMENTNODES, Counters%NEl,  &
-                                       Counters%NodTot, NDIM,                   &
-                                       IElement, ElementConnectivities,         &
-                                       NodalCoordinatesUpd,                     &
-                                       B_barMatrixDeformed)
-                     
+                        Counters%NodTot, NDIM,                   &
+                        IElement, ElementConnectivities,         &
+                        NodalCoordinatesUpd,                     &
+                        B_barMatrixDeformed)
+
                      ! ! Evaluate the particle strain
                      ! Eps in 3D (Exx, Eyy, Ezz, Gxy, Gyz, Gzx), in 2D (Exx, Eyy, Ezz, Gxy)
                      call Get_B_Bar_Strain(IElement, IParticle,                  &
-                                          ElementConnectivities,                &
-                                          BMatrixDeformed, B_barMatrixDeformed, & 
-                                          DULiqEnt, ReducedDof, Eps)
-                  else 
+                        ElementConnectivities,                &
+                        BMatrixDeformed, B_barMatrixDeformed, &
+                        DULiqEnt, ReducedDof, Eps)
+                  else
                      ! Eps in 3D (Exx, Eyy, Ezz, Gxy, Gyz, Gzx), in 2D (Exx, Eyy, Ezz, Gxy)
                      call Get_Strain(IElement, IParticle, &
-                                    ElementConnectivities, &
-                                    BMatrixDeformed, DULiqEnt, ReducedDof, &
-                                    Eps) ! Eps = strain increment at material point
-                  end if 
+                        ElementConnectivities, &
+                        BMatrixDeformed, DULiqEnt, ReducedDof, &
+                        Eps) ! Eps = strain increment at material point
+                  end if
 
                   ! ! Eps in 3D (Exx, Eyy, Ezz, Gxy, Gyz, Gzx), in 2D (Exx, Eyy, Ezz, Gxy)
                   ! call Get_Strain(IElement, IParticle, &
@@ -567,7 +568,7 @@ contains ! Routines of this module
             ElementID, GlopPos0, &
             Particles(IParticle)%LocPos, &
             NewElementID, LocPos, Success)
-         
+
          !TODO:The following correction only works for triangular elements - @WaveHello.  The local bounds for triangular elements are [0, 1] x [1, 0] For quad the The local coordinate bounds are [-1, 1] x [-1, 1]
          ! Correct if local particle position is outside element due to rounding
          ! if (LocPos(1)<0.0) then
@@ -766,7 +767,7 @@ contains ! Routines of this module
          ElementConnectivities, &
          NewLocPos, &
          OutsideElement, Success)
-      
+
       if (OutsideElement) then ! Particle moved to another element
          ! Determine new element and new local position of the particle
          call DetermineGlobPosElement(GlobPosArray(ParticleID,:), &

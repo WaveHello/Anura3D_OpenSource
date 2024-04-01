@@ -24,6 +24,7 @@ src/VS/.vs/Anura3D/v16
 *.BMR
 *.BMS
 *.BRF_*
+*.vfproj
 
 # Ignore all cps files except the first
 *.cps*
