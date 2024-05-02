@@ -269,16 +269,17 @@
 
         end subroutine IdentifyRigidInterface
 
-        subroutine GetRigidBodyAverageAcceleration()
-
         !**********************************************************************
         !
-        !    Function:  To update particles total velocities and accelerations
+        !    SUBROUTINE: GetRigidBodyAverageAcceleration
+        !    DESCRIPTION: 
+        !    To update particles total velocities and accelerations
         !
         !
         !    Note : This subroutine works only if NumbOfLayers = 1
         !
         !**********************************************************************
+        subroutine GetRigidBodyAverageAcceleration()
 
         implicit none
         

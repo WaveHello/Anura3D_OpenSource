@@ -1572,10 +1572,10 @@
         
           SideConnectivities = &
             reshape( (/ 1, 2, 3, 5, 6, 7, &
-                         1, 4, 2, 8, 9, 5, &
-                         1, 3, 4, 7, 10, 8, &
-                         2, 4, 3, 9, 10, 6 /), &
-                     (/ 6, 4 /) )
+                        1, 4, 2, 8, 9, 5, &
+                        1, 3, 4, 7, 10, 8, &
+                        2, 4, 3, 9, 10, 6 /), &
+                    (/ 6, 4 /) )
         
           DetermineSideNodesTetrahedronHOE = SideConnectivities(LocalNodeID, SideID)
         

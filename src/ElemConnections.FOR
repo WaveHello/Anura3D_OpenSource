@@ -263,9 +263,7 @@
      
         end subroutine DetermineElementsAdjacentSurface
         
-        
-        integer(INTEGER_TYPE) function DetermineElementSideSurface(IEl, NEl, IElTyp, NSurfaceNodes, ICon, IConSurface)
-                !*************************************************************************************   
+        !*************************************************************************************   
         !    FUNCTION:     DetermineElementSideSurface
         ! 
         !    DESCRIPTION:        
@@ -281,6 +279,7 @@
         !>   @return DetermineElementSideSurface : ID of the element side adjacent to the checked surface
         !
         !*************************************************************************************
+        integer(INTEGER_TYPE) function DetermineElementSideSurface(IEl, NEl, IElTyp, NSurfaceNodes, ICon, IConSurface)
         
         implicit none
         
@@ -416,10 +415,8 @@
         
         end function GetNodeIOfNode
  
-
-        integer(INTEGER_TYPE) function GetNElmOfNode(NodeID)
-                !*************************************************************************************   
-        !    FUNCTION:     GetNElmOfNode
+        !*************************************************************************************   
+        !>    FUNCTION:     GetNElmOfNode
         ! 
         !    DESCRIPTION:        
         !>   Returns the number of elements attached to the node with NodeID. If NodeID does not lie in the range of 
@@ -430,6 +427,8 @@
         !>   @return GetNElmOfNode : Number of elements attached to NodeID.
         !
         !*************************************************************************************
+        integer(INTEGER_TYPE) function GetNElmOfNode(NodeID)
+
         
         implicit none
         
@@ -531,9 +530,7 @@
         end function GetElmIOfElm
         
         
-
-        integer(INTEGER_TYPE) function GetAdjacentElement(IElement, ISide)
-                !*************************************************************************************   
+        !*************************************************************************************   
         !    FUNCTION:     GetAdjacentElement
         ! 
         !    DESCRIPTION:        
@@ -546,7 +543,8 @@
         !>   @return GetAdjacentElement : Element ID of the adjacent element (if it exists)
         !
         !*************************************************************************************
-        
+        integer(INTEGER_TYPE) function GetAdjacentElement(IElement, ISide)
+                
         implicit none
         
           integer(INTEGER_TYPE), intent(in) :: IElement, ISide
@@ -556,13 +554,12 @@
           else
             GetAdjacentElement = -999
             call WriteInLogFile('Trying to access non-existing information: GetAdjacentElement')
+            print *, 'Trying to access non-existing information: GetAdjacentElement'
           end if
         
         end function GetAdjacentElement
         
-
-        integer(INTEGER_TYPE) function BoundaryElementSurface(IElement, ISide, IsElm, NEl)
-                !*************************************************************************************   
+        !*************************************************************************************   
         !    FUNCTION:     BoundaryElementSurface
         ! 
         !    DESCRIPTION:        
@@ -578,6 +575,7 @@
         !>   @return BoundaryElementSurface : Returns the status as described above of the considered element side
         !
         !*************************************************************************************
+        integer(INTEGER_TYPE) function BoundaryElementSurface(IElement, ISide, IsElm, NEl)
         
         implicit none
 
@@ -586,6 +584,9 @@
           ! Local variables
           integer(INTEGER_TYPE) :: AdjacentElement
           
+          ! GetAdjacentElement returns the global element id of the element adjacent to the "ith side" of IElement
+          !ie. if element 1 and 2 share a side with ISide == 1 then GetAdjacentElement(IElement = 1, ISide = 1)
+          ! would return 2
           AdjacentElement = GetAdjacentElement(IElement, ISide)
           
           if (AdjacentElement == 0) then ! No adjacent element exists, boundary of the mesh
@@ -820,16 +821,18 @@
           
         end subroutine DestroyAdjacencyArrays
         
-
+        !**********************************************************************
+        !
+        !>    SUBROUTINE: DetermineElementSideAdjacencies 
+        !
+        !>    DESCRIPTION:
+        !     Creates a 2D array 1 .. Counters%NEl which stores all ELEMENTSIDES adjacent elements
+        !     of an element IElement. 
+        !    
+        !>    note: Requires the data about the node-element adjacencies
+        !**********************************************************************
         subroutine DetermineElementSideAdjacencies()
-        !**********************************************************************
-        !
-        !    Function:  Creates a 2D array 1 .. Counters%NEl which stores all ELEMENTSIDES adjacent elements
-        !               of an element IElement.
-        !               Requires the data about node-element adjacencies.
-        !
-        !**********************************************************************
-
+        
         implicit none
         
           ! Local variables
@@ -839,14 +842,16 @@
           if (.not.allocated(ElementAdjacencies) ) then
             allocate(ElementAdjacencies(Counters%NEl, ELEMENTSIDES), stat = IError)
           end if
+          
+          ! Set all the values in ElementAdjacencies (-1 will be used later to check if the element is on the boundary)
           ElementAdjacencies = -1
           
           do IElement = 1, Counters%NEl ! loop over all elements
-            do ISide = 1, ELEMENTSIDES ! loop over all sides of the element
+            do ISide = 1, ELEMENTSIDES  ! loop over all sides of the element
               if (ELEMENTTYPE == TETRAOLD) then ! only 3D, in sprint#2 add 2D functionality
                 ElementAdjacencies(IElement, ISide) = CheckEdgeNodeAdjacencies3D(IElement, ISide, N_NODES_HOE, Counters%NEl, ElementConnectivities10Node)
               else
-                ElementAdjacencies(IElement, ISide) = CheckEdgeNodeAdjacencies(IElement, ISide) ! only for 3-noded triangle
+                ElementAdjacencies(IElement, ISide) = CheckEdgeNodeAdjacencies(IElement, ISide) ! only for 3-noded triangle and 4 noded quadrilateral
               end if
             end do
           end do
@@ -855,8 +860,7 @@
 
         
 
-        integer(INTEGER_TYPE) function CheckEdgeNodeAdjacencies(IElement, ISide)
-                !*************************************************************************************   
+        !*************************************************************************************   
         !    FUNCTION:     CheckEdgeNodeAdjacencies
         ! 
         !    DESCRIPTION:        
@@ -872,6 +876,7 @@
         !>   @return CheckEdgeNodeAdjacencies
         !
         !*************************************************************************************
+        integer(INTEGER_TYPE) function CheckEdgeNodeAdjacencies(IElement, ISide)
 
         implicit none
         
@@ -884,23 +889,27 @@
           integer(INTEGER_TYPE) :: NAdjacentElementsNode1, NAdjacentElementsNode2
           integer(INTEGER_TYPE) :: CheckElementID1, CheckElementID2
 
-          
+          !NOTE: DO NOT CHANGE CheckVertexNodes value ordering. It seems like some stuff in the contact algorithm depends on this specific ordering - WaveHello I
           if (ELEMENTTYPE == TRI3) then 
-          CheckVertexNodes = reshape((/ 1, 2, & ! vertex nodes to check for side 1 spanned by nodes 1-2
-                                3, 1, & ! vertex nodes to check for side 2 spanned by nodes 3-4
-                                2, 3 /), & ! vertex nodes to check for side 3 spanned by nodes 2-3
-                                (/ 2, ELEMENTSIDES /) )
+          CheckVertexNodes = reshape((/ 1, 2,   & ! vertex nodes to check for side 1 spanned by nodes 1-2
+                                        3, 1,   & ! vertex nodes to check for side 2 spanned by nodes 3-1
+                                        2, 3/), & ! vertex nodes to check for side 3 spanned by nodes 2-3
+                                        (/ 2, ELEMENTSIDES /) )
+          
           elseif (ELEMENTTYPE == QUAD4) then 
               CheckVertexNodes = reshape( (/ 1, 2,   & ! Corner nodes to check for side 1 spanned by nodes 1-2
-                                 2, 3,   & ! Corner nodes to check for side 2 spanned by nodes 2-3
-                                 3, 4,   & ! Corner nodes to check for side 3 spanned by nodes 3-4
-                                 4, 1/), & ! Corner nodes to check for side 4 spanned by nodes 4-1
-                                (/ 2, ELEMENTSIDES /) ) ! 8 elements which should be reshaped to a 2x4 matrix. N_SIDE is always 4 for a quadrilateral.
+                                             2, 3,   & ! Corner nodes to check for side 2 spanned by nodes 2-3
+                                             3, 4,   & ! Corner nodes to check for side 3 spanned by nodes 3-4
+                                             4, 1/), & ! Corner nodes to check for side 4 spanned by nodes 4-1
+                                        (/ 2, ELEMENTSIDES /) ) ! 8 elements which should be reshaped to a 2x4 matrix. N_SIDE is always 4 for a quadrilateral.
+          else
+              print *, "Error, Subroutine: CheckEdgeNodeAdjacencies selected element type is not allowed, only TRI3 (3 noded triangle) and QUAD4 (4 noded quadrilateral supported)"
           end if 
 
           ! get number of adjacent elements of local vertex node 1, i.e. CheckVertexNodes(1, ISide)
           NodeID1 = ElementConnectivities(CheckVertexNodes(1, ISide), IElement)
           NAdjacentElementsNode1 = GetNElmOfNode(NodeID1)
+          
           ! get number of adjacent elements of local vertex node 2, i.e. CheckVertexNodes(2, ISide)
           NodeID2 = ElementConnectivities(CheckVertexNodes(2, ISide), IElement)
           NAdjacentElementsNode2 = GetNElmOfNode(NodeID2)
@@ -919,7 +928,71 @@
           end do
 
         end function CheckEdgeNodeAdjacencies
-
+        
+        !*************************************************************************************
+        !    FUNCTION: Get_Vertex_Nodes_2d
+        ! 
+        !    DESCRIPTION:
+        !>   Returns the vertex nodes for a 2d element
+        !
+        !>   @note : Notes
+        !
+        !>   @param[in] element_type : the element type of interest
+        !
+        !>   @return vertex_nodes : A matrix where each column index is the side of an element 
+        !>                          and the values of the column are the local vertex node 
+        !>                          that make up that side
+        !
+        !*************************************************************************************
+        function get_Vertex_Nodes_2d(element_type) Result(vertex_nodes)
+            implicit none
+            character(len=255) :: element_type
+            
+            ! Local variables
+            integer(INTEGER_TYPE), parameter :: vertex_per_side_2d = 2, & ! Number of sides per element side
+                                                tri3_num_sides = 3,     & ! Store the number of sides for each element
+                                                quad4_num_sides = 4                 
+            
+            integer(INTEGER_TYPE) :: tri3_vertex_nodes( vertex_per_side_2d, tri3_num_sides ), &  ! Init matrix to store the vertex information for each node type
+                                     quad4_vertex_nodes(vertex_per_side_2d, quad4_num_sides)
+            
+            integer(INTEGER_TYPE), allocatable :: vertex_nodes(:, :) ! Contains the local node ids that make up a side
+            
+            
+            ! select the input element type so that the size and value for the vertex nodes can be defined
+            select case(element_type)
+            case(TRI3)
+                ! Store the vertex ordering for triangle elements - Each column is a side
+                tri3_vertex_nodes = reshape((/ 1, 2,   & ! vertex nodes to check for side 1 spanned by nodes 1-2
+                                               3, 1,   & ! vertex nodes to check for side 2 spanned by nodes 3-1
+                                               2, 3/), & ! vertex nodes to check for side 3 spanned by nodes 2-3
+                (/ vertex_per_side_2d, tri3_num_sides/) ) ! 6 nodes should be reshaped to a 2x3 matrix
+            
+                ! Allocate and assign the vertex values
+                allocate(vertex_nodes(vertex_per_side_2d, tri3_num_sides))
+                vertex_nodes = tri3_vertex_nodes
+                
+            case(QUAD4)
+                ! Store the vertex ordering for quad elements - Each column is a side
+                quad4_vertex_nodes =  reshape( (/ 1, 2,   & ! Corner nodes to check for side 1 spanned by nodes 1-2
+                                                  2, 3,   & ! Corner nodes to check for side 2 spanned by nodes 2-3
+                                                  3, 4,   & ! Corner nodes to check for side 3 spanned by nodes 3-4
+                                                  4, 1/), & ! Corner nodes to check for side 4 spanned by nodes 4-1
+                   (/ vertex_per_side_2d, quad4_num_sides /) ) ! 8 elements which should be reshaped to a 2x4 matrix. N_SIDE is always 4 for a quadrilateral.
+                
+                ! Allocate and assign the vertex nodes
+                allocate(vertex_nodes(vertex_per_side_2d, quad4_num_sides))
+                vertex_nodes = quad4_vertex_nodes
+                
+            case default
+                ! in this case the element type is not defined here
+                allocate(vertex_nodes(1,1))
+                vertex_nodes(:,:) = -1
+                print *, "ERROR: Selected input element type: ", element_type, &
+                          "is not defined in Get_Vertex_Nodes. Only TRI3 and Quad4 are currently implemented"
+            end select
+            
+         end function Get_Vertex_Nodes_2d
 
         integer(INTEGER_TYPE) function CheckEdgeNodeAdjacencies3D(IElement, ISide, IElTyp, NEl, ICon)
                 
@@ -2065,12 +2138,14 @@
         subroutine DetermineNodeLocalCS(NodTot, IDim, IElTyp, NEl, NSideNodes, NodeCoord, ICon, ConsideredBoundarySides, NodeNormalN)
         !**********************************************************************
         !
-        !    Function:  Determines the normals of nodes lying on the boundary of the
-        !               mesh with unit length.
-        !               ConsideredBoundarySides can be used to specify which element sides
-        !               should be considered for determining the node normals if the normals
-        !               are not needed for all nodes - f.e. only for a specific surface.
-        !               Afterwards, the tangent vector are determined from the normal vector.
+        !    Subroutine:  DetermineNodeLocalCS
+        !    DESCRIPTION: 
+        !    Determines the normals of nodes lying on the boundary of the
+        !    mesh with unit length.
+        !    ConsideredBoundarySides can be used to specify which element sides
+        !    should be considered for determining the node normals if the normals
+        !    are not needed for all nodes - f.e. only for a specific surface.
+        !    Afterwards, the tangent vector are determined from the normal vector.
         !
         !               Note: The routines also work with 4-noded low-order tetrahedral elements.
         !                     In this case, NSideNodes is set to 3, so that all loops consider only
@@ -2303,7 +2378,7 @@
                   IBoundaryNode = IBoundaryNode + 1
 
                   call DetermineSideNodeNormalTetrahedron(NodTot, IDim, IElTyp, NEl, NodeCoord, ICon, NSideNodes, &
-                                   I, J, K, SideNodeNormals(:, IBoundaryNode) )
+                                    I, J, K, SideNodeNormals(:, IBoundaryNode) )
                 end do
               end if
             end do

@@ -705,18 +705,23 @@ contains ! subroutines of this module
 
                select case (SelectConstitutiveModel) ! read constitutive model properties for solid or liquid
 
-                case (ESM_RIGID_BODY)!Rigid body
-                  CalParams%RigidBody%IsRigidBody=.true. !Activate Rigid body algorithm
-                  CalParams%RigidBody%RigidEntity=2 !Set 2 as the entity for rigid material so it works with the contact a.
-                  if (.not.CalParams%ApplyContactAlgorithm) then !check contact algorithm is enabled
+                case (ESM_RIGID_BODY) !Rigid body
+                  CalParams%RigidBody%IsRigidBody=.true.         ! Activate Rigid body algorithm
+                  CalParams%RigidBody%RigidEntity=2              ! Set 2 as the entity for rigid material so it works with the contact a.
+                  
+                  ! Check contact algorithm is enabled
+                  if (.not.CalParams%ApplyContactAlgorithm) then 
                      call GiveError('The contact algorithm is not activated!')
                   end if
-                  call ReadInteger(FileUnit, BName, DumI) !Read x constrain
+                  
+                  call ReadInteger(FileUnit, BName, DumI)    ! Read x constraint
                   CalParams%RigidBody%Constrains(1)=DumI
-                  call ReadInteger(FileUnit, BName, DumI) !Read y constrain
+                  call ReadInteger(FileUnit, BName, DumI)    ! Read y constraint
                   CalParams%RigidBody%Constrains(2)=DumI
-                  if (NVECTOR==3) then ! 3D case
-                     call ReadInteger(FileUnit, BName, DumI) !Read z constrain
+                  
+                  ! If problem is 3D
+                  if (NVECTOR==3) then 
+                     call ReadInteger(FileUnit, BName, DumI) ! Read z constraint
                      CalParams%RigidBody%Constrains(3)=DumI
                   end if
 

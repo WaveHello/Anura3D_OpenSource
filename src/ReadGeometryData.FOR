@@ -332,10 +332,14 @@ contains ! subroutines of this module
 
          !!! DATA FOR CONTACT ALGORITHM
          if (trim(BName)=='$$START_BODY_CONTACT_2D') then ! 2D body contact data exists
-            read(FileUnit,*,iostat=ios) DumI(1)  ! number of body contact elements
+             
+            read(FileUnit,*,iostat=ios) DumI(1)  ! Read number of body contact elements
             call Assert( ios == 0, messageIOS // trim(BName) )
             call Assert( DumI(1) > 0 , 'GOM-ERROR: ' //trim(BName)// ' must be larger than 0.' )
+           
+            ! Initialise the contact
             call InitialiseContact(DumI(1))
+            
             do I = 1, DumI(1)
                read(FileUnit,*) GeoParams%ContactLocation(I,1:2), &
                   GeoParams%ContactMaterials(I,1), GeoParams%ContactProperties(I,1:2), &
@@ -343,7 +347,9 @@ contains ! subroutines of this module
                   GeoParams%ContactMaterials(I,3), GeoParams%ContactProperties(I,5:6), &
                   GeoParams%ContactMaterials(I,4), GeoParams%ContactProperties(I,7:8)
             end do
-
+        
+        !TODO: What is the diffe$$START_BOUNDARY_CONTACT_2D and $$START_BODY_CONTACT_2D? - WaveHello
+        ! Might be able to remove this condtion it writes the same information as above?
          else if (trim(BName)=='$$START_BOUNDARY_CONTACT_2D') then ! 2D boundary contact data exists
             read(FileUnit,*,iostat=ios) DumI(1)  ! number of boundary contact elements
             call Assert( ios == 0, messageIOS // trim(BName) )
@@ -647,19 +653,34 @@ contains ! subroutines of this module
 
    end subroutine InitialiseExcavationArray
 
-
+   !**********************************************************************
+   !
+   ! Function:  Contains code for initialising contact data arrays of size ArraySize
+   !
+   !**********************************************************************
+    !*************************************************************************************
+      !    SUBROUTINE: InitialiseContact
+      ! 
+      !    DESCRIPTION:
+      !>   Contains code for initialising contact data arrays of size ArraySize
+      !
+      !>   @note : Notes
+      !
+      !>   @param[in] ArraySize : Size of the initialised contact arrays?? 
+      !>   @param[out] ParameterName : ParameterDescription
+      !>   @param[inout] ParameterName : ParameterDescription
+      !
+      !*************************************************************************************
    subroutine InitialiseContact(ArraySize)
-      !**********************************************************************
-      !
-      ! Function:  Contains code for initialising contact data arrays of size ArraySize
-      !
-      !**********************************************************************
+
       implicit none
 
       integer(INTEGER_TYPE), intent(in) :: ArraySize
-
+    
+      ! Remove the contact arrays from memory
       call DeallocateContactArrays()
 
+      ! Allocate and initialise the contact arrays with size ArraySize
       call AllocateAndInitialiseContactArrays(ArraySize)
 
    end subroutine InitialiseContact
@@ -683,24 +704,37 @@ contains ! subroutines of this module
 
    end subroutine DeallocateContactArrays
 
-
+      !*************************************************************************************
+      !    SUBROUTINE: AllocateAndInitialiseContactArrays
+      ! 
+      !    DESCRIPTION:
+      !>   To allocate and initialise the contact arrays with size ArraySize
+      !
+      !>   @note : WaveHello: GeoParams%... variables here aren't ever used. Not sure what's going on
+      !
+      !>   @param[in] ArraySize: Size of the contact arrays ??
+      !>   @param[out] ParameterName : ParameterDescription
+      !>   @param[inout] ParameterName : ParameterDescription
+      !
+      !*************************************************************************************
    subroutine AllocateAndInitialiseContactArrays(ArraySize)
-      !**********************************************************************
-      !
-      ! Function:  To allocate and initialise the contact arrays with size ArraySize
-      !
-      !**********************************************************************
 
       implicit none
 
       integer(INTEGER_TYPE), intent(in) :: ArraySize
       ! Local variables
       integer(INTEGER_TYPE) :: IError
-
+      
+      ! Init variable to store the location of contact?
       allocate(GeoParams%ContactLocation(ArraySize,2), stat=IError)
+      
+
       allocate(GeoParams%ContactProperties(ArraySize,8), stat=IError)
+      
+
       allocate(GeoParams%ContactMaterials(ArraySize,4), stat=IError)
 
+      ! Zero the arrays so they don't accidenly have a value
       GeoParams%ContactLocation = 0
       GeoParams%ContactProperties = 0.0
       GeoParams%ContactMaterials = 'undefined'

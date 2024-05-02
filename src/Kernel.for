@@ -63,7 +63,8 @@
       use ModReadMPMData
       use ModElementEvaluation
       use ModDYNConvectivePhase
-      use ModMPMDynContact
+      use ModMPMDynContact, only : DestroyContactData, ComputeInterfaceNodesAdhesion, InitialiseContactData, ReadContactData
+      use ModLagrangianPhase, only : DetermineContactSurfaceSoilElements
       use ModMPMExcavation
       use ModCounters
       use ModEmptyElements
@@ -86,20 +87,20 @@
 
       !********** 1 - kernel initialisation ******************************
       call InitialiseCalculationParameters() ! initialises the calculation paramters (CalParams)
-      call InitialiseElementType() ! initialises the element type in global variables
-      call OpenTextOutputFiles() ! open TextOutputFiles
+      call InitialiseElementType()           ! initialises the element type in global variables
+      call OpenTextOutputFiles()             ! open TextOutputFiles
       call InitialiseCalculationParameters() ! initialises the calculation paramters (CalParams)
-      call ShowDisclaimer() ! shows disclaimer on screen
-      call ShowKernelInformation() ! shows kernel information on screen
-      call ReadCommandLineParameters() ! read project name CalParams%FileNames%ProjectName
-      call DetermineLoadStep() ! determine load step number CalParams%IStep
-      call ReadCalculationParameters() ! read CPS-file and assign data into CalParams%...
-      call SetVTKPointers() ! set pointers for Output Files
+      call ShowDisclaimer()                  ! shows disclaimer on screen
+      call ShowKernelInformation()           ! shows kernel information on screen
+      call ReadCommandLineParameters()       ! read project name CalParams%FileNames%ProjectName
+      call DetermineLoadStep()               ! determine load step number CalParams%IStep
+      call ReadCalculationParameters()       ! read CPS-file and assign data into CalParams%...
+      call SetVTKPointers()                  ! set pointers for Output Files
 
       call startTimer('Main', IDTimerMain)
       call startTimer('Initialisation', IDTimerInitialisation)
 
-      call ReadMaterialParameters() ! read material data from GOM-file and assign data into MatParams(I)%...
+      call ReadMaterialParameters()    ! read material data from GOM-file and assign data into MatParams(I)%...
       call InitialiseTextOutputFiles() ! create OUT, TST, MLG, CTSSum, RX files for writing test/debug output data
  
 #ifdef USE_OPENMP
@@ -109,54 +110,66 @@
 #endif      
 
       !********** 2 - mesh data initialisation ******************************
-      call InitialiseShapeFunctions() ! initialise shape functions
-      call InitialiseMeshData() ! allocate and assign mesh related arrays by reading GOM file
-      call ReadGeometryParameters() ! read geometry data from GOM-file and assign data into GeoParams%...
-      call DetermineAdjacencies() ! determine mesh and element properties
-      call ReadSHE() ! only if ApplyEmptyElements
-      call Initialise3DCylindricalAnalysis() ! only for 3D Cylindrical Analysis
-      call InitialiseRotationMatrix() ! allocate (zero) matrices for rotational boundaries only if ApplyRotBoundCond .TRUE. -> 3D edge calculation
-      call InitialiseDerivedMeshData() ! initialise Counters%N (number of DoF) and nodal fixities at boundaries
-      call InitialiseConvectivePhaseData() ! allocate (zero) nodal array "TemporaryMappingVector" 
-      call InitialiseContactData() ! allocate (zero) nodal arrays used in contact algorithm
-      call ReadContactData() ! define contact nodes and node normals
+      call InitialiseShapeFunctions()            ! initialise shape functions
+      call InitialiseMeshData()                  ! allocate and assign mesh related arrays by reading GOM file
+      call ReadGeometryParameters()              ! read geometry data from GOM-file and assign data into GeoParams%...
+      call DetermineAdjacencies()                ! determine mesh and element properties
+      call ReadSHE()                             ! only if ApplyEmptyElements
+      call Initialise3DCylindricalAnalysis()     ! only for 3D Cylindrical Analysis
+      call InitialiseRotationMatrix()            ! allocate (zero) matrices for rotational boundaries only if ApplyRotBoundCond .TRUE. -> 3D edge calculation
+      call InitialiseDerivedMeshData()           ! initialise Counters%N (number of DoF) and nodal fixities at boundaries
+      call InitialiseConvectivePhaseData()       ! allocate (zero) nodal array "TemporaryMappingVector" 
+      
+      !-- Debugging contact - WaveHello TODO: Remove this comment just putting this here to see the contact subroutines
+      call InitialiseContactData()               ! allocate (zero) nodal arrays used in contact algorithm
+      call ReadContactData()                     ! define contact nodes and node normals
       call DetermineContactSurfaceSoilElements() ! Determine elements on the contact surface for Contact Algorithm
-      call InitialiseTwoPhaseData() ! allocate (zero) nodal arrays for two phase calculation (liquid and mixture)
-      call InitialiseThreePhaseData() ! allocate (zero) additional nodal arrays for three phase calculation (gas)
-      call InitialiseLiquidData() ! allocate (zero) free liquid related arrays 
-      call InitialiseAbsorbingBoundaryData() ! allocate and assign arrays for absorbing boundaries
-      call InitialiseNodalArrays() ! allocate (zero) nodal arrays (load, displacment, velocity, acceleration, momentum, etc.)
-      call ReadNodalDataFromFile() ! assign data from previous load step (only if IsFollowUpPhase)
-      call ReinitialiseUpdatedNodes() ! for updated mesh, only if IsFollowUpPhase
-      call DetermineElementLMin() ! calulate minimum element altitude
+      !-- end contact subroutine pt. 1 - TODO: Remove this line
+      
+      call InitialiseTwoPhaseData()              ! allocate (zero) nodal arrays for two phase calculation (liquid and mixture)
+      call InitialiseThreePhaseData()            ! allocate (zero) additional nodal arrays for three phase calculation (gas)
+      call InitialiseLiquidData()                ! allocate (zero) free liquid related arrays 
+      call InitialiseAbsorbingBoundaryData()     ! allocate and assign arrays for absorbing boundaries
+      call InitialiseNodalArrays()               ! allocate (zero) nodal arrays (load, displacment, velocity, acceleration, momentum, etc.)
+      call ReadNodalDataFromFile()               ! assign data from previous load step (only if IsFollowUpPhase)
+      call ReinitialiseUpdatedNodes()            ! for updated mesh, only if IsFollowUpPhase
+      call DetermineElementLMin()                ! calulate minimum element altitude
 
       ! ********** 3 - material point data initialisation ******************************
-      call InitialiseMaterialPointHousekeeping() ! initialise material points and their housekeeping arrays, fill Particles(ID)%...
-      call InitialiseMaterialPointPrescribedVelocity() ! only with Moving Mesh
-      call TwoLayerData%Initialise() !For Double Point formulation
-      call ResetMaterialPointDisplacements() ! only if .CalParams%ApplyResetDisplacements
-      call InitialiseMaterialPointOutputFiles() ! create PAR_XXX files for data output 
-      call ComputeInterfaceNodesAdhesion() ! only if ApplyContactAlgorithm: read the normals for contact algorithm
-      call InitialiseMeshAdjustment() ! only if ApplyMeshSmoothing: for moving mesh algorithm
-      call DetermineDoFMovingMeshStructure() ! only if ApplyMeshSmoothing: for moving mesh algorithm
-      call InitialiseTractionLoad() ! if traction load is applied (only if NLoadedElementSides>0)
-      call AssignTractionToEntity() ! distribute traction load to entities
-      call CalculateNodeElement() ! only if ApplyContactAlgorithm
-      call SetUpEntityElements() ! create lists storing which material points and elements related to different entities
-      call SetUpMaterialElements() !create lists storing which material points and elements related to different materials
-      call InitialiseAbsorbingBoundaryDashpotSpring() ! only if ApplyAbsorbingBoundary
-      call MapDataFromNodesToParticles() ! only if ApplyFEMtoMPM: map velocity and displacement to particles
-      call InitialiseMaterialPointsForK0Stresses() ! only if ApplyK0Procedure and .not.IsFollowUpPhase
-      call InitialiseAbsorbingBoundariesForcesAndStiffness() ! only if ApplyAbsorbingBoundary
-      call TwoLayerData%DetermineConcentrationRatios() !For Double Point formulation
-      call TwoLayerData%DetermineTwoLayerStatus() ! assign a Liquid or Solid status to the MP
-      call InitialiseQuasiStaticImplicit() ! contain calls to subroutine use in Quasi-Static procedure
-	  call InitialiseVelocityonMP() ! only if ApplyInitialVelocityonMP
-      call InitialiseRigidBody() ! only if IsRigidBody
-      call InitialiseSurfaceReaction() !read GOM file and determine surface reactions
-      call InitialiseSurfaceReactionOutputFiles() ! create RSurf_XXX files for output of reaction surfaces
+      call InitialiseMaterialPointHousekeeping()             ! initialise material points and their housekeeping arrays, fill Particles(ID)%...
+      call InitialiseMaterialPointPrescribedVelocity()       ! only with Moving Mesh
+      call TwoLayerData%Initialise()                         ! For Double Point formulation
+      call ResetMaterialPointDisplacements()                 ! only if .CalParams%ApplyResetDisplacements
+      call InitialiseMaterialPointOutputFiles()              ! create PAR_XXX files for data output 
       
-      call NumberOfMaterialPointsInSubElement() ! 4GP mixed integration initialization
+      !-- Debugging contact - WaveHello TODO: Remove this comment just putting this here to see the contact subroutines
+      call ComputeInterfaceNodesAdhesion()                   ! only if ApplyContactAlgorithm: read the normals for contact algorithm
+      !-- end contact subroutine pt. 1 - TODO: Remove this line
+      
+      call InitialiseMeshAdjustment()                        ! only if ApplyMeshSmoothing: for moving mesh algorithm
+      call DetermineDoFMovingMeshStructure()                 ! only if ApplyMeshSmoothing: for moving mesh algorithm
+      call InitialiseTractionLoad()                          ! if traction load is applied (only if NLoadedElementSides>0)
+      call AssignTractionToEntity()                          ! distribute traction load to entities
+      
+      !-- Debugging contact - WaveHello TODO: Remove this comment just putting this here to see the contact subroutines
+      call CalculateNodeElement()                            ! only if ApplyContactAlgorithm
+      !-- end contact subroutine pt. 1 - TODO: Remove this line
+      
+      call SetUpEntityElements()                             ! create lists storing which material points and elements related to different entities
+      call SetUpMaterialElements()                           ! create lists storing which material points and elements related to different materials
+      call InitialiseAbsorbingBoundaryDashpotSpring()        ! only if ApplyAbsorbingBoundary
+      call MapDataFromNodesToParticles()                     ! only if ApplyFEMtoMPM: map velocity and displacement to particles
+      call InitialiseMaterialPointsForK0Stresses()           ! only if ApplyK0Procedure and .not.IsFollowUpPhase
+      call InitialiseAbsorbingBoundariesForcesAndStiffness() ! only if ApplyAbsorbingBoundary
+      call TwoLayerData%DetermineConcentrationRatios()       ! For Double Point formulation
+      call TwoLayerData%DetermineTwoLayerStatus()            ! assign a Liquid or Solid status to the MP
+      call InitialiseQuasiStaticImplicit()                   ! contain calls to subroutine use in Quasi-Static procedure
+	  call InitialiseVelocityonMP()                          ! only if ApplyInitialVelocityonMP
+      call InitialiseRigidBody()                             ! only if IsRigidBody
+      call InitialiseSurfaceReaction()                       ! read GOM file and determine surface reactions
+      call InitialiseSurfaceReactionOutputFiles()            ! create RSurf_XXX files for output of reaction surfaces
+      
+      call NumberOfMaterialPointsInSubElement()              ! 4GP mixed integration initialization
 
       !********** 4a - LOAD PHASE LOOP ******************************
       do while(NotFinishedComputation().and.(.not.CalParams%ConvergenceCheck%DoesDiverge))
@@ -220,7 +233,11 @@
       call DestroyTwoPhaseData()
       call DestroyThreePhaseData()
       call DestroyLiquidData()
+      
+      ! Debugging contact looing for contact algorithms - TODO: Remove this comment WaveHello
       call DestroyContactData()
+      !-- end contact subroutine pt. 1 - TODO: Remove this line
+      
       call DestroyExcavationData()
       call DestroyConvectivePhaseData()
       call DestroyModEmptyElementsArrays()

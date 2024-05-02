@@ -356,12 +356,12 @@
         integer(INTEGER_TYPE), parameter :: PhaseStatusLIQUID = 2
         
         ! elementtype constants, the PROTECTED attribute prevents code outside the module from changing its value
-        integer(INTEGER_TYPE), protected :: ELEMENTNODES = -1 ! number of nodes per element
-        integer(INTEGER_TYPE), protected :: ELEMENTVERTICES = -1 ! number of vertice nodes per element
-        integer(INTEGER_TYPE), protected :: ELEMENTGAUSSPOINTS = -1 ! number of gauss points per element
-        integer(INTEGER_TYPE), protected :: ELEMENTBOUNDARYNODES = -1 ! number of nodes of the element boundary
+        integer(INTEGER_TYPE), protected :: ELEMENTNODES = -1               ! number of nodes per element
+        integer(INTEGER_TYPE), protected :: ELEMENTVERTICES = -1            ! number of vertice nodes per element
+        integer(INTEGER_TYPE), protected :: ELEMENTGAUSSPOINTS = -1         ! number of gauss points per element
+        integer(INTEGER_TYPE), protected :: ELEMENTBOUNDARYNODES = -1       ! number of nodes of the element boundary
         integer(INTEGER_TYPE), protected :: ELEMENTBOUNDARYGAUSSPOINTS = -1 ! number of gauss ponts of the element boundary
-        integer(INTEGER_TYPE), protected :: ELEMENTSIDES = -1 ! number of sides per element (lines in 2D, surfaces in 3D)
+        integer(INTEGER_TYPE), protected :: ELEMENTSIDES = -1               ! number of sides per element (lines in 2D, surfaces in 3D)
         integer(INTEGER_TYPE), protected :: VTK_CELL = -1 ! cell type for VTK output
         character(len=255), protected :: ELEMENTTYPE = '' ! elementtype
         
@@ -644,7 +644,7 @@
             ELEMENTSIDES = 4
             VTK_CELL = 9 ! VTK_QUAD(=9)
             ELEMENTTYPE = QUAD4
-          !    
+
           !case(QUAD8) ! 'quadrilateral_8-noded'
           !  ELEMENTNODES = 8
           !  ELEMENTVERTICES = 4

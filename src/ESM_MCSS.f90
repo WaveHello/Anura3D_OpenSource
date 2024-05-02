@@ -68,7 +68,7 @@ contains
       double precision :: Eunloading, PLASTICMULTIPLIER
       double precision :: STRESS(NTENS), DSTRAN(NTENS), STATEV(NSTATEV), ADDITIONALVAR(NADDVAR), &
          PROPS(NPROPS)
-
+    
       !---Local variables required in standard UMAT
       double precision, dimension(:), allocatable :: ddsddt ! only for fully coupled thermal analysis: variation of stress increment due to temperature
       double precision, dimension(:), allocatable :: drplde ! only for fully coupled thermal analysis: variation of volumetric heat generation due to strain increment

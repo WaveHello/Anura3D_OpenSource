@@ -98,24 +98,26 @@ contains ! Routines of this module
 
    end subroutine GaussPointLocalCoordinates
 
-
+   !**********************************************************************
+   !
+   !>   SUBROUTINE: GetNSideNodes
+   !>   DESCRIPTION: 
+   !>   Returns the number of nodes on each element side
+   !!
+   !> Implemented in the frame of the MPM project.
+   !!
+   !> IN:
+   !!
+   !>    IElTyp : Number of node connectivities
+   !! - = 4 : 4-noded tetrahedral element
+   !! - = 10 : 10-noded tetrahedral element
+   !!
+   !> OUT:
+   !!
+   !> GetNSideNodes : Number of nodes per element side
+   !**********************************************************************
    integer(INTEGER_TYPE) function GetNSideNodes(IElTyp)
-      !**********************************************************************
-      !
-      !> GetNSideNodes:  Returns the number of nodes on each element side
-      !!
-      !> Implemented in the frame of the MPM project.
-      !!
-      !> IN:
-      !!
-      !>    IElTyp : Number of node connectivities
-      !! - = 4 : 4-noded tetrahedral element
-      !! - = 10 : 10-noded tetrahedral element
-      !!
-      !> OUT:
-      !!
-      !> GetNSideNodes : Number of nodes per element side
-      !**********************************************************************
+
 
       implicit none
 
@@ -631,19 +633,19 @@ contains ! Routines of this module
 
    end function IsInsideElementGlobPos
 
-
+   !**********************************************************************
+   !
+   !    SUBROUTINE:  IsCornerNode
+   !    DESCRIPTION:
+   !    Returns .true. if INode is a corner node.
+   !
+   !     INode : Local number of a node (1 .. IElTyp)
+   !     IElTyp : Number of node connectivities
+   !
+   ! O   IsCornerNode : True, if INode is a corner node
+   !
+   !**********************************************************************
    logical function IsCornerNode(INode, IElTyp)
-      !**********************************************************************
-      !
-      !    Function:  Returns .true. if INode is a corner node.
-      !
-      !     INode : Local number of a node (1 .. IElTyp)
-      !     IElTyp : Number of node connectivities
-      !
-      ! O   IsCornerNode : True, if INode is a corner node
-      !
-      !**********************************************************************
-
       implicit none
 
       integer(INTEGER_TYPE), intent(in) :: INode

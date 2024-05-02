@@ -8,7 +8,7 @@
     !
     !
 	!	Anura3D - Numerical modelling and simulation of large deformations 
-    !   and soil–water–structure interaction using the material point method (MPM)
+    !   and soilï¿½waterï¿½structure interaction using the material point method (MPM)
     !
     !	Copyright (C) 2023  Members of the Anura3D MPM Research Community 
     !   (See Contributors file "Contributors.txt")
@@ -481,8 +481,6 @@ module ModGeometryMath
         
         end function Length
 
-
-        function VectorNorm(Vector, IDim)
         !*************************************************************************************   
         !    FUNCTION:     VectorNorm
         ! 
@@ -495,22 +493,52 @@ module ModGeometryMath
         !>   @return VectorNorm : Normalizes a vector i.e. Vector / |Vector|
         !
         !************************************************************************************* 
+        pure function VectorNorm(Vector, IDim)
+
         implicit none
         
           integer(INTEGER_TYPE), intent(in) :: IDim
           real(REAL_TYPE), dimension(IDim), intent(in) :: Vector
           real(REAL_TYPE), dimension(IDim) :: VectorNorm
+          
           ! Local variables
           integer(INTEGER_TYPE) :: I
           real(REAL_TYPE) :: VectorLength
         
-          VectorLength = Length(Vector, IDim)
+          VectorLength = NORM2(Vector)
           do I = 1, IDim
             VectorNorm(I) = Vector(I) / (VectorLength + TINY)
           end do
        
         end function VectorNorm
         
+        !*************************************************************************************
+        !    FUNCTION: calc_2d_line_normal
+        ! 
+        !    DESCRIPTION:
+        !>   Calculates the normal to a line, given two points on the line. Calculates the 
+        !>   tangent vector to the line and then rotates the vector 90 deg (pi/2) CCW
+        !
+        !>   @note : Calls rotate_2D_vector to rotate the  @WaveHello
+        !
+        !>   @param[in] point_1 : First point of the line segment
+        !>   @param[in] point_2 : Second point of the line segment
+        !>   @return unit_normal : Unit normal vector to the line segment
+        !
+        !*************************************************************************************
+        pure function calc_2d_line_normal(point_1, point_2) Result(unit_normal)
+          implicit none
+
+          real(REAL_TYPE), dimension(2), intent(in) :: point_1, point_2
+
+          ! Local variables
+          real(REAL_TYPE), dimension(2) :: unit_normal
+
+          unit_normal = point_1 - point_2 ! Create the normal
+          unit_normal = rotate_2d_vector(unit_normal, PI/2) ! Rotate the vector
+          unit_normal = VectorNorm(unit_normal, 2) ! Normalize the vector
+
+        end function
 
         real(REAL_TYPE) function Distance(PointA, PointB, IDim)
         !*************************************************************************************   
@@ -699,6 +727,39 @@ module ModGeometryMath
         end if
 
         end function CheckInsideSubTriangle        
-                
+        
+        !*************************************************************************************
+        !    FUNCTION: rotate_2d_vector
+        ! 
+        !    DESCRIPTION:
+        !>   Rotate a 2 dimensional vector angles are taken with CCW (+) and CW (-)
+        !
+        !>   @note : @WaveHello
+        !
+        !>   @param[in] vector : The vector that should be rotated
+        !>   @param[in] angle : Rotation angle in RADIANS
+        !>   @return rot_vector : Rotated vector
+        !
+        !*************************************************************************************
+        pure function rotate_2d_vector(vector, angle) Result(rot_vector)
+          ! Rotation ma
+          implicit none
+          real(REAL_TYPE), dimension(2), intent(in) :: vector
+          real(REAL_TYPE),               intent(in) :: angle
+          
+          ! Local variables
+          real(REAL_TYPE), dimension(2) :: rot_vector
+          real(REAL_TYPE), dimension(2, 2) :: rot_matrix
+          real(REAL_TYPE) :: cos_val, sin_val
+          
+          cos_val = cos(angle)
+          sin_val = sin(angle)
+      
+          ! Form the rotation matrix
+          rot_matrix = reshape([cos_val, sin_val, -sin_val, cos_val], [2,2])
+      
+          ! Do the rotation
+          rot_vector = matmul(rot_matrix, vector)
+        end function
 
       end module ModGeometryMath

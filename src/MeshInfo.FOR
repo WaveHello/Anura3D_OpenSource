@@ -140,10 +140,10 @@
         integer(INTEGER_TYPE), dimension(:, :), allocatable :: LoadOnMatPointsConnectivitiesGasB
         ! Distributed element face load connectivity (6-noded triangular element)(hydraulic head)
         integer(INTEGER_TYPE), dimension(:, :), allocatable :: HydraulicHeadNodesConnectivities
-        integer(INTEGER_TYPE), dimension(:), allocatable :: ElementMaterialID ! Material ID for the element
-        integer(INTEGER_TYPE), dimension(:), allocatable :: ReducedDof ! The global storage of degree of freedom in x-direction
+        integer(INTEGER_TYPE), dimension(:), allocatable :: ElementMaterialID     ! Material ID for the element
+        integer(INTEGER_TYPE), dimension(:), allocatable :: ReducedDof            ! The global storage of degree of freedom in x-direction ! FIXME Description should be global storage of degree of freedom in all directions???
         integer(INTEGER_TYPE), dimension(:), allocatable :: ReducedDofQuasiStatic ! The global storage of degree of freedom in ux,uy,uz,p
-        logical, dimension(:), allocatable :: IsActiveElement ! Element switch, 1:Active element and 0:Inactive element
+        logical, dimension(:), allocatable :: IsActiveElement                     ! Element switch, 1:Active element and 0:Inactive element
         real(REAL_TYPE), dimension(:), allocatable :: NodalDensity 
         real(REAL_TYPE), dimension(:), allocatable :: ActiveNodeElementVolume 
         logical, dimension(:), allocatable :: ActiveNode
@@ -1525,35 +1525,35 @@
         !
         !**********************************************************************        
         subroutine InitialiseDerivedMeshData()       
-        implicit none
+            implicit none
 
-          ! Local variables
-          integer(INTEGER_TYPE), dimension(NDOFL*Counters%NodTot) :: NTreat
-          integer(INTEGER_TYPE), dimension(NDOFL*Counters%NodTot) :: NTreatWater
-          integer(INTEGER_TYPE), dimension(NDOFL*Counters%NodTot) :: NTreatGas
-          integer(INTEGER_TYPE) :: IError
+              ! Local variables
+              integer(INTEGER_TYPE), dimension(NDOFL*Counters%NodTot) :: NTreat
+              integer(INTEGER_TYPE), dimension(NDOFL*Counters%NodTot) :: NTreatWater
+              integer(INTEGER_TYPE), dimension(NDOFL*Counters%NodTot) :: NTreatGas
+              integer(INTEGER_TYPE) :: IError
           
-          NTreat = 1
-          NTreatWater = 1
-          NTreatGas = 1
+              NTreat = 1
+              NTreatWater = 1
+              NTreatGas = 1
           
-          call InitialiseReduceDOF(NTreat) ! Initialises Counters%N
-          call InitialiseReduceDofQuasiStatic()
+              call InitialiseReduceDOF(NTreat) ! Initialises Counters%N
+              call InitialiseReduceDofQuasiStatic()
           
-          call FillPBoundary(NTreat)
-          call FillNTreatWater(NTreatWater)
-          call FillNPBoundaryWater(NTreatWater)
-          call FillPBoundaryQuasiStatic()
+              call FillPBoundary(NTreat)
+              call FillNTreatWater(NTreatWater)
+              call FillNPBoundaryWater(NTreatWater)
+              call FillPBoundaryQuasiStatic()
 
-          if (CalParams%ApplyAbsorbingBoundary) then
-            PBoundaryWater = PBoundary
-          end if
+              if (CalParams%ApplyAbsorbingBoundary) then
+                PBoundaryWater = PBoundary
+              end if
         
-          call FillNTreatGas(NTreatGas)
-          call FillNPBoundaryGas(NTreatGas)
+              call FillNTreatGas(NTreatGas)
+              call FillNPBoundaryGas(NTreatGas)
       
-          allocate(RateVolStrain(Counters%NEl), stat = IError)
-          RateVolStrain = 0.0
+              allocate(RateVolStrain(Counters%NEl), stat = IError)
+              RateVolStrain = 0.0
           
         end subroutine InitialiseDerivedMeshData
 
@@ -1929,6 +1929,7 @@
           end do
           ReducedDof(Counters%NodTot + 1) = J
           
+          ! Set the number of degrees of freedom in the model
           Counters%N = ReducedDof(Counters%NodTot + 1) ! this is the total number of dof's
           
           NTreat = 1
