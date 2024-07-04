@@ -652,14 +652,14 @@ contains
       Sx = Sig(1) - p
       Sy = Sig(2) - p
       Sz = Sig(3) - p
-      suma = (Sig(1)-Sig(2))*(Sig(1)-Sig(2))+(Sig(1)-Sig(3))*(Sig(1)-Sig(3))+(Sig(2)-Sig(3))*(Sig(2)-Sig(3))
+      suma = ( Sig(1)-Sig(2) ) * ( Sig(1)-Sig(2) ) + ( Sig(1)-Sig(3) ) * ( Sig(1)-Sig(3) ) + ( Sig(2)-Sig(3) ) * ( Sig(2)-Sig(3) )
       SqTxy =  Sig(4) * Sig(4)
       SqTyz =  Sig(5) * Sig(5)
       SqTxz =  Sig(6) * Sig(6)
 
       J2 = C00P16 * suma + SqTxy + SqTyz + SqTxz
-      J3 = Sx*Sy*Sz + C00002 * Sig(4)*Sig(5)*Sig(6) - Sx*SqTyz - Sy*SqTxz - Sz*SqTxy
       J = SQRT(J2)
+      J3 = Sx*Sy*Sz + C00002 * Sig(4)*Sig(5)*Sig(6) - Sx*SqTyz - Sy*SqTxz - Sz*SqTxy
 
       !Lode's angle (Lode)
       if (J2 > C00000) then
