@@ -857,7 +857,7 @@ contains
       ! Evalue the yield surface
       call DetermineYieldFunctionValue(IntGlo, Sigu, cu, phiu, F)
 
-      if (abs(F) < FTOL) then
+      if (F <= FTOL) then
          ! Prediction of the stress and strain values are correct and the values can be updated and returned
 
          ! Update Sig, EpsP, dEpsP

@@ -1406,30 +1406,37 @@ end subroutine Stress_Drift_Correction
     dev(2)=dev(2)-p
     dev(3)=dev(3)-p
     
-    dqdSig=(3.0/(2.0*q))*dev
+    dqdSig=( 3.0 / ( 2.0*q ) ) * dev
     
     !3) Get dtheta/dSigma= (1/3cos3theta) d/dsigma((J3/2) * (3/J2)^1.5)
     J2=(q**2)/3.0
-    J3=dev(1)*dev(2)*dev(3)-dev(1)*dev(6)**2-dev(2)*dev(4)**2-dev(3)*dev(5)**2+2.0*dev(4)*dev(5)*dev(6)
+
+    J3=dev(1)*dev(2)*dev(3) - dev(1)*dev(6)**2 - dev(2)*dev(4)**2 - dev(3)*dev(5)**2 + 2.0*dev(4)*dev(5)*dev(6)
+
     !Fill S.S
-    dev2(1)=dev(1)**2+dev(4)**2+dev(5)**2
-    dev2(2)=dev(2)**2+dev(4)**2+dev(6)**2
-    dev2(3)=dev(3)**2+dev(5)**2+dev(6)**2
-    dev2(4)=dev(4)*(dev(1)+dev(2))+dev(5)*dev(6)
-    dev2(5)=dev(5)*(dev(1)+dev(3))+dev(4)*dev(6)
-    dev2(6)=dev(6)*(dev(2)+dev(3))+dev(4)*dev(5)
+    dev2(1)=dev(1)**2 + dev(4)**2 + dev(5)**2
+    dev2(2)=dev(2)**2 + dev(4)**2 + dev(6)**2
+    dev2(3)=dev(3)**2 + dev(5)**2 + dev(6)**2
+    dev2(4)=dev(4) * ( dev(1) + dev(2) ) + dev(5)*dev(6)
+    dev2(5)=dev(5) * ( dev(1) + dev(3) ) + dev(4)*dev(6)
+    dev2(6)=dev(6) * ( dev(2) + dev(3) ) + dev(4)*dev(5)
+
     !Compute dJ3dSig
-    TrS2=dev2(1)+dev2(2)+dev2(3)  
+    TrS2 = dev2(1) + dev2(2) + dev2(3)  
+
     II=0.0d0!Identity tensor
     II(1)=1.0
     II(2)=1.0
     II(3)=1.0
-    dJ3dsig=dev2-(TrS2*II/3.0d0)
+
+    dJ3dsig = dev2 - ( TrS2*II / 3.0d0 )
+
     !Compute dtheta/dsig
     
-    dthetadSig=dJ3dsig-(1.5*J3/J2)*dev
-    COS_3THETA=cos(3.0*theta)
-    dthetadSig=(sqrt(3.0)/(2.0*COS_3THETA*J2**1.5))*dthetadSig
+    dthetadSig = dJ3dsig - ( 1.5*J3 / J2 ) *dev
+    COS_3THETA = cos( 3.0*theta )
+    dthetadSig = ( sqrt(3.0) / ( 2.0*COS_3THETA*J2**1.5 ) ) * dthetadSig
+    
     !__________________________________________________________________
     !Get n_vec=dF/dSig
 	n_vec=(eta_y*dpdsig)+dqdSig+(dfdtheta*dthetadSig) !n_vec=dF/dSig
@@ -1634,7 +1641,7 @@ end subroutine Stress_Drift_Correction
     q=sqrt(3*J2) ! deviatoric stress
     
     !J3 stress invariant
-    J3=dev(1)*dev(2)*dev(3)-dev(1)*dev(6)**2-dev(2)*dev(4)**2-dev(3)*dev(5)**2+2.0*dev(4)*dev(5)*dev(6)
+    J3 = dev(1)*dev(2)*dev(3) - dev(1)*dev(6)**2 - dev(2)*dev(4)**2 - dev(3)*dev(5)**2 + 2.0*dev(4)*dev(5)*dev(6)
     
     !sin3theta
     if (J2>0.0d0) then
