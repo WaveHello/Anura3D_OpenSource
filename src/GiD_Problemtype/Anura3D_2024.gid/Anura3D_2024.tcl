@@ -2,7 +2,7 @@ proc InitGIDProject { dir } {
 
     global _dir
     set _dir $dir
-    set anura_version "Anura3D v2023"
+    set anura_version "Anura3D v2024"
     set GiDVersionRequired "14.0"
 
     Anura3D::SetDir $dir ;#store to use it later
@@ -83,7 +83,7 @@ proc EndGIDProject { } {
 namespace eval Anura3D {
 }
 
-namespace eval ANURA3D_2023 {
+namespace eval ANURA3D_2024 {
     variable problemtype_dir
 }
 
@@ -100,7 +100,7 @@ proc Anura3D::GetDir { } {
 proc Anura3D::Tutorial { } {
 
     global _dir
-    set TestDoc [file join $_dir doc "TutorialManual_2023.pdf"]
+    set TestDoc [file join $_dir doc "TutorialManual_2024.pdf"]
     eval exec [auto_execok start] \"\" [list $TestDoc]
 
 }
@@ -123,7 +123,7 @@ proc Anura3D::Verification { } {
 
 proc Anura3D::About { } {
 
-    tk_messageBox -title "Anura3D - About" -message "Anura3D Version 2023\n\nFor more information about Anura3D, check the website\n\nhttp://www.anura3D.com" -icon info
+    tk_messageBox -title "Anura3D - About" -message "Anura3D Version 2024\n\nFor more information about Anura3D, check the website\n\nhttp://www.anura3D.com" -icon info
 
 }
 
@@ -407,7 +407,7 @@ proc GetElevation {entry} {
 
 ######################################################################
 #  auxiliary procs invoked from the tree (see .spd xml description)
-proc ANURA3D_2023::GetMaterialsList { domNode } {
+proc ANURA3D_2024::GetMaterialsList { domNode } {
     set x_path {//container[@n="materials"]}
     set dom_materials [$domNode selectNodes $x_path]
     if { $dom_materials == "" } {
@@ -421,7 +421,7 @@ proc ANURA3D_2023::GetMaterialsList { domNode } {
     return [join $result ,]
 }
 
-proc ANURA3D_2023::EditDatabaseListDirect {domNode dict boundary_conds } {
+proc ANURA3D_2024::EditDatabaseListDirect {domNode dict boundary_conds } {
     set has_container ""
     set database materials
     set title [= "User defined"]
@@ -611,6 +611,19 @@ proc hide_show_const_model_multi {flag1 flag2 domNode} {
 	  if {$problem_type == $flag2} {return normal}
       return hidden
 }
+
+proc hide_show_const_model_multi_un_p {flag1 flag2 domNode} {
+      set dim_path {string(../value[@n="_material_model_solid_"]/@v)}
+	  set problem_type [$domNode selectNodes $dim_path]
+	  set dim_path {string(../../container[@n="_basic"]/value[@n="material_type_"]/@v)}
+	  set mat_type [$domNode selectNodes $dim_path]
+	  if {$mat_type == "Saturated material-undrained effective stress"} {
+	  if {$problem_type == $flag1} {return normal}
+	  if {$problem_type == $flag2} {return normal}
+	  }
+      return hidden
+}
+
 proc hide_show_const_model_multi_liq {flag1 flag2 domNode} {
       set dim_path {string(../value[@n="_material_model_liquid_"]/@v)}
 	  set problem_type [$domNode selectNodes $dim_path]

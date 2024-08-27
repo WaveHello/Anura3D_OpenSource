@@ -10,7 +10,7 @@
 	!	Anura3D - Numerical modelling and simulation of large deformations 
     !   and soil–water–structure interaction using the material point method (MPM)
     !
-    !	Copyright (C) 2023  Members of the Anura3D MPM Research Community 
+    !	Copyright (C) 2024  Members of the Anura3D MPM Research Community 
     !   (See Contributors file "Contributors.txt")
     !
     !	This program is free software: you can redistribute it and/or modify
@@ -46,6 +46,9 @@ use ModMPMInit
 use user32
 use kernel32
 use ModMeshInfo
+use ModLinearElasticity
+use ModMohrCoulomb
+use ModBingham
 
 contains
 
@@ -83,9 +86,11 @@ implicit none
     real(REAL_TYPE) :: DSigGP ! Change of gas pressure at integration point 
     real(REAL_TYPE) :: Bulk ! Bulk modulus
     real(REAL_TYPE) :: DEpsVol ! Incremental volumetric strain (water)
-
+    procedure(DUMMYESM), pointer :: ESM
+    
+    ! Creating a pointer for the External Soil models
     pointer (p, ESM)             
-          
+
     ! get constitutive model in integration/material point
     IDset = MaterialIDArray(IDpt) ! is the material number stored in $$MATERIAL_INDEX in the GOM-file
     NameModel = MatParams(IDset)%MaterialModel ! name of constitutive model as specified in GOM-file
@@ -94,16 +99,6 @@ implicit none
     ! get strain increments in integration/material point
     TempStrainIncr = GetEpsStep(Particles(IDpt)) ! incremental strain vector assigned to point
     
-    if (CalParams%ApplyImplicitQuasiStatic) then
-        if (CalParams%ImplicitIntegration%Iteration > 1) then
-            do I = 1, NTENSOR
-                TempStrainIncrPrevious(I) = GetEpsStepPreviousI(Particles(IDpt), I)
-            end do
-            
-            TempStrainIncr = TempStrainIncr - TempStrainIncrPrevious
-            
-        end if
-    end if
         
     StrainIncr = 0.0
 
@@ -155,7 +150,12 @@ implicit none
     
     
     !call AssignWatandGasPressureToGlobalArray(IDpt, DSigWP, DSigGP) !Note that the subroutine checks Cavitation Threshold & Gas Pressure
-          
+       
+    ! Undrained effective stress pore pressure
+    if (IsUndrEffectiveStress) then
+    Particles(IDPt)%WaterPressure = Particles(IDPt)%WaterPressure + DSigWP
+    end if 
+    
     !get values of variables of interest for UMAT model
     AdditionalVar(1) = Particles(IDPt)%Porosity
     AdditionalVar(2) = Particles(IDPt)%WaterPressure
@@ -190,18 +190,12 @@ implicit none
     
     ! initialise UMAT
     
-    p = GetProcAddress(MatParams(IDSet)%SoilModelDLLHandle, "ESM"C) ! Pointing to the ESM .dll 
-    
-    if (NameModel == ESM_NON_ASSOC_MOHR_COULOMB) then 
-        call ESM_VPSS_MC(IDpt, IDel, IDset, Stress, Eunloading, PlasticMultiplier, StrainIncr, NSTATEVAR, StateVar,&
-                        nAddVar, AdditionalVar,cmname, NPROPERTIES, props, CalParams%NumberOfPhases, ntens)
-    
-    !
-    else 
-        call ESM(IDpt, IDel, IDset, Stress, Eunloading, PlasticMultiplier, StrainIncr, NSTATEVAR, StateVar,&
-                    nAddVar, AdditionalVar,cmname, NPROPERTIES, props, CalParams%NumberOfPhases, ntens)
-    end if
-    
+    ! Create the external soil model pointer
+    ! This might cause problems if parallelization is attempted for the constitutive models. 
+    ! This pointer might be referencing the same subroutine. I'm not sure how fortran treats function pointers
+    ESM => MatParams(IDSet)%ESM_POINTER
+    call ESM(IDpt, IDel, IDset, Stress, Eunloading, PlasticMultiplier, StrainIncr, NSTATEVAR, StateVar, nAddVar, AdditionalVar,cmname, NPROPERTIES, props, CalParams%NumberOfPhases, ntens)
+
     ! save unloading stiffness in Particles array  
     Particles(IDpt)%ESM_UnloadingStiffness = Eunloading
                  

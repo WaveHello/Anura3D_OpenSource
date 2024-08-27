@@ -1,3 +1,9 @@
+
+src/ReadMaterialData.FOR.bak
+/src/VS/.vs
+/src/VS/Release
+*.bak
+
 # File extensions and files to ignore
 
 # General files
@@ -12,4 +18,3 @@
 *.pdb
 *.exp
 # Anura3D specific
-
