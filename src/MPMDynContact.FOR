@@ -1007,7 +1007,6 @@
     !
     !*************************************************************************************
     subroutine ComputeInterfaceNodesAdhesion()
-    ! TODO: Generalize the ComputeInterfaceNodesAdhesion for 2d and 3d for any element type and include that here. Get rid of the split between the 2D and 3D case
 
     implicit none
 
@@ -1053,13 +1052,16 @@
     real(REAL_TYPE), dimension(NVECTOR) :: Vec1
     real(REAL_TYPE) :: ElementSurface
     real(REAL_TYPE), dimension(:,:), allocatable :: AdhesionVector
-
-
-
+    
+    ! Number of nodes on a surface?
+    ! Tetrahedron6: Should have 3
+    ! Quad4, Tri3:
+    
     CornerNodes = NDIM ! this holds only for surface element of tetrahedron and triangle
 
     if (.not.CalParams%ApplyContactAlgorithm) RETURN
-
+    
+    ! Number of 
     allocate(AdhesionVector(Counters%NodTot, CalParams%NumberOfMaterials), stat=IError)
     allocate(FrictionVector(Counters%NodTot, CalParams%NumberOfMaterials), stat=IError)
 
@@ -1075,6 +1077,7 @@
         do I = 1, CornerNodes
             Vec1(I) = NodalOriginalCoord(SurfaceNodes(2), I) - NodalOriginalCoord(SurfaceNodes(1), I)
         end do
+        
         ! TODO: Generalize this for general elements and not just triangles WaveHello
         ElementSurface = sqrt(Vec1(1)*Vec1(1)+Vec1(2)*Vec1(2)) !2.0 is number of corner nodes of a line
 
@@ -1083,31 +1086,38 @@
             do J = 1, CalParams%NumberOfMaterials-1
                 do I = 1, CornerNodes
                     InterfaceNodesAdhesion(SurfaceNodes(I),J) = InterfaceNodesAdhesion(SurfaceNodes(I),J) + ElementSurface
+                    
                     if ((CalParams%FricCoef==0).and.(allocated(ContactSurfaces))) then
                         FrictionVector(SurfaceNodes(I),J) = ContactSurfaces(IElement,3+J*2)     !!!!!!!!!!!!!!!!!!!!!!!!!!!check numbers
                     else
                         FrictionVector(SurfaceNodes(I),J) = CalParams%FricCoef
                     end if
+                    
                     if ((CalParams%Adhesion==0).and.(allocated(ContactSurfaces))) then
                         AdhesionVector(SurfaceNodes(I),J) = ContactSurfaces(IElement,4+J*2)  !!!!!!!!!!!!!!!!!!!!!!!!!!!check numbers
                     else
                         AdhesionVector(SurfaceNodes(I),J) = CalParams%Adhesion
                     end if
+                
                 end do
             end do
+            
         else
             do I = 1, CornerNodes
                 InterfaceNodesAdhesion(SurfaceNodes(I),1) = InterfaceNodesAdhesion(SurfaceNodes(I),1) + ElementSurface
+                
                 if ((CalParams%FricCoef==0).and.(allocated(ContactSurfaces))) then
                     FrictionVector(SurfaceNodes(I),1) = ContactSurfaces(IElement,7+1*2)       !!!!!!!!!!!!!!!!!!!!!!!!!!!check numbers
                 else
                     FrictionVector(SurfaceNodes(I),1) = CalParams%FricCoef
                 end if
+            
                 if ((CalParams%Adhesion==0).and.(allocated(ContactSurfaces))) then
                     AdhesionVector(SurfaceNodes(I),1) = ContactSurfaces(IElement,8+1*2)     !!!!!!!!!!!!!!!!!!!!!!!!!!!check numbers
                 else
                     AdhesionVector(SurfaceNodes(I),1) = CalParams%Adhesion
                 end if
+                
             end do
         end if
     end do

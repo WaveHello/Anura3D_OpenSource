@@ -271,7 +271,7 @@ contains
       allocate(contact_surfaces(num_contact_surfaces, 12), stat=IError)
       
       ! Zero the matrix
-      contact_surfaces = 0
+      contact_surfaces(:, :) = 0
       
       ! init variable to store the number of contact surfaces
       num_contact_surfaces = 0  

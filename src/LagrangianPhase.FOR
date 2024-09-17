@@ -2479,13 +2479,20 @@ contains ! Routines of this module
       ContactSurfaceSoilElements = .false.
 
       if (.not.CalParams%ApplyContactAlgorithm) RETURN
-
+     
+      ! Loop over all of the elements
       do I = 1, Counters%NodTot
+        ! Checks if the node is in the interface nodes 
          if (InterfaceNodes(I)) then
+             ! Get the number of adjacenet elements
             NAdjacentElements = GetNElmOfNode(I)
+            ! Loop over the adjacent elements
             do J = 1, NAdjacentElements
+               ! Get the element id from the node and which adjacent element it is
                IEl = GetElmIOfNode(I, J)
+               ! If the element material is the soil then set the flag to true
                if (abs(ElementMaterialID(IEl))==SOFT_ENTITY) then
+                  ! This means that that element is a soil material
                   ContactSurfaceSoilElements(IEl) = .true.
                end if
             end do
