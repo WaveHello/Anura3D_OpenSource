@@ -24,7 +24,12 @@ src/VS/.vs/Anura3D/v16
 *.BMR
 *.BMS
 *.BRF_*
+*.mod
+*.o
 
+# Ignore executable files
+*.out
+*.exe
 # Ignore all cps files except the first
 *.cps*
 !*.cps_001
