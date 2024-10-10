@@ -15,16 +15,14 @@ ifeq ($(OS),Windows_NT)
 else
     # Assume Linux
     compiler_flags := -O0 -g -check all -traceback
-    EXE = .out
+    EXE = .exe
     remove_files_command := rm -f
 endif 
 
-# set the files to remove
-
-# list of all source files
 source_files := GlobalConstants.f90\
                 A3DLinearElasticity.f90\
-                MCSS_Soil_Model.f90\
+                A3DMohrCoulombStandard.f90\
+                A3DBingham.f90\
                 GeoMath.f90\
                 MatrixMath.f90\
                 FileIO.f90\
@@ -48,9 +46,12 @@ source_files := GlobalConstants.f90\
                 RotBoundCond.f90\
                 MPMStresses.f90\
                 MPMDynViscousBoundary.f90\
+                GetStrain.f90\
+                B_bar.f90\
                 TwoLayerFormulation.f90\
                 MPMDYN2PhaseSP.f90\
                 MPMDYN3PhaseSP.f90\
+                contact_2D.f90\
                 MPMDynContact.f90\
                 ReadMPMData.f90\
                 WriteMPMData.f90\
@@ -73,7 +74,6 @@ source_files := GlobalConstants.f90\
                 BuildDElastic.f90\
                 BuildLoad.f90\
                 GetPrinStress.f90\
-                GetStrain.f90\
                 InitialiseElementType.f90\
                 timing.f90\
                 WriteVTKASCII.f90\
@@ -86,7 +86,6 @@ source_files := GlobalConstants.f90\
                 MPMDynamicExplicit.f90\
                 Kernel.f90\
                 Anura3D.f90
-
 # Object files
 object_files := $(patsubst %.f90,%.obj,$(source_files))
 

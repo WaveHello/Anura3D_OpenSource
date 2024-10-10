@@ -1,0 +1,21 @@
+name = "Anura3D"
+version = "0.1.0"
+license = "license"
+author = "WaveHello"
+maintainer = "jonathanm@vt.edu"
+copyright = "Copyright 2024, WaveHello"
+[build]
+auto-executables = true
+auto-tests = true
+auto-examples = true
+module-naming = false
+external-modules = ["ifport", "ifcore"]
+# [[executable]]
+# name = "Anura3D"
+[install]
+library = false
+[fortran]
+implicit-typing = false
+implicit-external = false
+source-form = "free"
+
