@@ -472,7 +472,7 @@ contains
                if (ParticleIndex<=Counters%NParticles) then
                   select case(NDIM)
                    case(two_dimensional)
-                     write(PARUnit + I, '(2I12, 4G12.4, I12, 29G12.4, I12)') &
+                     write(PARUnit + I, '(2I12, 4G12.4, I12, 15G12.4, I12)') &
                         CalParams%IStep                                   , & ! 1 Integer
                         CalParams%TimeStep                                , & ! 1 Integer
                         CalParams%OverallRealTime                         , & ! 1 decimals
@@ -492,11 +492,6 @@ contains
                         (GetEpsI(Particles(ParticleIndex),J), J=1,NTENSOR), & ! 4 decimals
 
                         Particles(ParticleIndex)%IntegrationWeight        , & ! 1 decimals
-
-                        (track_shape_func_values(J), J = 1, 4)            , & ! 4 decimals
-                        (track_shape_deriv_func_values(J, 1), J = 1, 4)   , & ! 4 decimals
-                        (track_shape_deriv_func_values(J, 2), J = 1, 4)   , & ! 4 decimals
-                        track_det_jacobian                                , & ! 1 decimals
                      
                         MaterialIDArray(ParticleIndex)                        ! 1 integer
                    case(three_dimensional)
