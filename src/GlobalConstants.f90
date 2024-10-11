@@ -109,8 +109,8 @@
 
         ! Computation-related constants
          integer(INTEGER_TYPE), parameter :: MPM_MIXED_INTEGRATION = 0
-         integer(INTEGER_TYPE), parameter :: MPM_MIXED_KEEPSTATEV_INTEGRATION = 0
-         integer(INTEGER_TYPE), parameter :: MPM_MIXED_MG22_INTEGRATION = 0
+         integer(INTEGER_TYPE), parameter :: MPM_MIXED_KEEPSTATEV_INTEGRATION = 4
+         integer(INTEGER_TYPE), parameter :: MPM_MIXED_MG22_INTEGRATION = 5
          integer(INTEGER_TYPE), parameter :: MPM_MP_INTEGRATION = 1
          integer(INTEGER_TYPE), parameter :: FEM = 2
          integer(INTEGER_TYPE), parameter :: UL_FEM = 3
