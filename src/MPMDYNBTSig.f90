@@ -690,7 +690,7 @@ contains
       integer(INTEGER_TYPE) :: I, IntGlo, IEl, Int, J, NN, IAEl, NElemPart, iEntityID, iNode, IDof, MaterialIndex
       real(REAL_TYPE) :: WtN, Det, WPP, VPressure = 0.0
       logical :: DoConsiderReactionForces, IsUndrEffectiveStress
-
+      real(REAL_TYPE) :: DShapeValues(ELEMENTNODES,NVECTOR)
 
       integer(INTEGER_TYPE):: MaxIPart, IPart
 
@@ -759,7 +759,8 @@ contains
 
                   !if (IsParticleIntegration(IEl)) then
                   ! recalculating the B matrix for every point in the integration loop
-                  call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, DShapeValuesArray(IntGlo,:,:)) ! get the B-matrix once per element
+                  DShapeValues = DShapeValuesArray(IntGlo,:,:)
+                  call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, DShapeValues) ! get the B-matrix once per element
 
                end if
 
