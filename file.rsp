@@ -1,4 +1,5 @@
 # my build options
 options build
 options --compiler ifort
-options --flag "-O0 -g -check all -traceback -w -diag-disable=10448 -warn all"
+options --verbose
+options --flag "-O0 -g -check all -traceback -diag-disable=10448"

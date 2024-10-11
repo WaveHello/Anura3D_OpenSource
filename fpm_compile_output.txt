@@ -1,0 +1,10 @@
+ <INFO> BUILD_NAME: build/ifort
+ <INFO> COMPILER:  ifort
+ <INFO> C COMPILER:  icc
+ <INFO> CXX COMPILER: icpc
+ <INFO> COMPILER OPTIONS:   -O0 -g -check all -traceback -diag-disable=10448
+ <INFO> C COMPILER OPTIONS:  
+ <INFO> CXX COMPILER OPTIONS: 
+ <INFO> LINKER OPTIONS:  
+ <INFO> INCLUDE DIRECTORIES:  []
+[100%] Project compiled successfully.
