@@ -781,7 +781,7 @@ contains ! Routines of this module
             !NElemPart = ELEMENTGAUSSPOINTS ! Number of Gauss points per element
             if (ELEMENTTYPE == QUAD4 .and. &
                (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-               CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+               CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
                ! map the stress using the 4 gauss points
                NElemPart = Counters%NGaussPoints !ELEMENTGAUSSPOINTS !this always have to be 4 gauss points
             else
@@ -797,7 +797,7 @@ contains ! Routines of this module
             ! Determine global ID of integration point
             if (ELEMENTTYPE == QUAD4 .and. &
                (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-               CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+               CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
                IntGlo = GetParticleIndexInSubElement(IEl, Int, 1)
 
             else
@@ -810,7 +810,7 @@ contains ! Routines of this module
 
             if  (ELEMENTTYPE == QUAD4 .and. &
                (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-               CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+               CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
                call FormB3_GP(Int, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN) ! get B-matrix
 
             else
@@ -826,7 +826,7 @@ contains ! Routines of this module
             N = Particles(IntGlo)%Porosity              !Porosity of the particle
             if (ELEMENTTYPE == QUAD4 .and. &
                (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-               CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+               CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
 
                ! if mixed scheme with the quad, we need to use the gauss point pore pressure
                !S = SigmaEffArrayGaussPointsWaterPressure(IEl, Int) * WTN ! scalar pwp from the gauss point

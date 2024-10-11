@@ -165,7 +165,7 @@ contains
 
                if (ELEMENTTYPE == QUAD4 .and. &
                   (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-                  CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+                  CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
                   ! map the stress using the 4 gauss points
                   NElemPart = Counters%NGaussPoints !ELEMENTGAUSSPOINTS !this always have to be 4 gauss points
                else
@@ -203,7 +203,7 @@ contains
 
                if  (ELEMENTTYPE == QUAD4 .and. &
                   (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-                  CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+                  CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
                   call FormB3_GP(Int, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN) ! get B-matrix
 
                else
@@ -253,7 +253,7 @@ contains
 
                      if (ELEMENTTYPE == QUAD4 .and. &
                         (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-                        CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+                        CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
                         S(J) =  SigmaEffArrayGaussPoints(IEl, Int, J) * WTN
                         !if (IsParticleIntegration(IEl) ) then
                      else
@@ -266,7 +266,7 @@ contains
 
                   if (ELEMENTTYPE == QUAD4 .and. &
                      (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+                     CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
 
                      S(J) =  SigmaEffArrayGaussPoints(IEl, Int, J) * WTN
                   else
@@ -277,7 +277,7 @@ contains
                if (CalParams%ApplyBulkViscosityDamping) then
                   if (ELEMENTTYPE == QUAD4 .and. &
                      (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+                     CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
 
                      VPressure = SigmaEffArrayGaussPointsBulkViscousPressure(IEl, Int)
 
@@ -411,7 +411,7 @@ contains
                !NElemPart = ELEMENTGAUSSPOINTS ! Number of Gauss points per element
                if (ELEMENTTYPE == QUAD4 .and. &
                   (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-                  CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+                  CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
                   ! map the stress using the 4 gauss points
                   NElemPart = Counters%NGaussPoints !ELEMENTGAUSSPOINTS !this always have to be 4 gauss points
                else
@@ -445,7 +445,7 @@ contains
                ! Determine global ID of integration point
                if (ELEMENTTYPE == QUAD4 .and. &
                   (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-                  CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+                  CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
                   IntGlo = GetParticleIndexInSubElement(IEl, Int, 1)
                else
 
@@ -461,7 +461,7 @@ contains
 
                if  (ELEMENTTYPE == QUAD4 .and. &
                   (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-                  CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+                  CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
                   call FormB3_GP(Int, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN) ! get B-matrix
 
                else
@@ -486,7 +486,7 @@ contains
 
                   if (ELEMENTTYPE == QUAD4 .and. &
                      (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+                     CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
 
 
                      do J = 1, NTENSOR
@@ -505,7 +505,7 @@ contains
 
                      if (ELEMENTTYPE == QUAD4 .and. &
                         (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-                        CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+                        CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
 
                         VPressure =  SigmaEffArrayGaussPointsBulkViscousPressure(IEl, Int) * WTN
 
@@ -751,7 +751,7 @@ contains
                ! recalculating the B matrix for every point in the integration loop
                if  (ELEMENTTYPE == QUAD4 .and. &
                   (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-                  CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+                  CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
 
                   call FormB3_GP(Int, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN) ! get B-matrix
 
@@ -797,7 +797,7 @@ contains
 
                      if (ELEMENTTYPE == QUAD4 .and. &
                         (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-                        CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+                        CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
                         S(J) =  SigmaEffArrayGaussPoints(IEl, Int, J) * WTN
                      else
                         S(J) = SigmaEffArray(IntGlo, J) * WTN
@@ -809,7 +809,7 @@ contains
 
                   if (ELEMENTTYPE == QUAD4 .and. &
                      (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+                     CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
 
                      S(J) =  SigmaEffArrayGaussPoints(IEl, Int, J) * WTN
 
@@ -822,7 +822,7 @@ contains
                if (CalParams%ApplyBulkViscosityDamping) then
                   if (ELEMENTTYPE == QUAD4 .and. &
                      (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+                     CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
                      VPressure = SigmaEffArrayGaussPointsBulkViscousPressure(IEl, Int) * WTN !Particles(IntGlo)%DBulkViscousPressure * WTN
                   else
                      VPressure = Particles(IntGlo)%DBulkViscousPressure * WTN

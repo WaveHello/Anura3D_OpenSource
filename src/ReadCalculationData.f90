@@ -1091,7 +1091,7 @@
                 ! but we do not overwrite the stresses and the state variables 
                 else if (trim(Upcase(DumS))==&
                 MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER) then
-                CalParams%ComputationMethod = MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER
+                CalParams%ComputationMethod = MPM_MIXED_KEEPSTATEV_INTEGRATION
                 
                 
               else if (trim(Upcase(DumS))==MPM_MP_INTEGRATION_SPECIFIER) then
