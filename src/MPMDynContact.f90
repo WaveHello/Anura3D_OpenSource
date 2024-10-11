@@ -208,8 +208,9 @@
             end if
         end do
         close(FileUnit)
-
-
+        
+        ! Return if there isn't a need for the contact algorithm
+        if (.not.CalParams%ApplyContactAlgorithm) RETURN
     
         if (NDIM==2) then
             ! Read the 2d contact data
