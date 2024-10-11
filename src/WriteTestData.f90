@@ -472,7 +472,7 @@ contains
                if (ParticleIndex<=Counters%NParticles) then
                   select case(NDIM)
                    case(two_dimensional)
-                     write(PARUnit + I, '(2I12, 4G12.4, I12, 15G12.4, I12)') &
+                     write(PARUnit + I, '(2I12, 4G12.4, I12, 16G12.4, I12)') &
                         CalParams%IStep                                   , & ! 1 Integer
                         CalParams%TimeStep                                , & ! 1 Integer
                         CalParams%OverallRealTime                         , & ! 1 decimals
