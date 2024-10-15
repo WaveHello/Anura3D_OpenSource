@@ -690,9 +690,11 @@
 				else if ( NDIM == 2 ) then
                   allocate(LoadOnMatPointsConnectivitiesSolid(ELEMENTBOUNDARYNODES, NLoadedElementSidesSolidMatPoints), stat = IError)
                   allocate(LoadValuesOnMatPointsSolid(ELEMENTBOUNDARYNODES, NDOFL, NLoadedElementSidesSolidMatPoints), stat = IError)
+
                   do L = 1, NLoadedElementSidesSolidMatPoints ! loop over loaded element sides
                     read(GOMunit,*) LoadOnMatPointsConnectivitiesSolid(1:ELEMENTBOUNDARYNODES, L), ( LoadValuesOnMatPointsSolid(I, 1:NDOFL, L), I = 1, ELEMENTBOUNDARYNODES )
                   end do ! loop over loaded element sides
+                  
                 end if
               end if
               

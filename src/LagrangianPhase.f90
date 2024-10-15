@@ -795,38 +795,26 @@ contains ! Routines of this module
          do Int = 1, NElemPart ! Loop over number of integration points per element IEl
 
             ! Determine global ID of integration point
-            if (ELEMENTTYPE == QUAD4 .and. &
-               (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-               CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
-               IntGlo = GetParticleIndexInSubElement(IEl, Int, 1)
 
-            else
-
+            if (IsParticleIntegration(IEl) ) then
                IntGlo = GetParticleIndex(Int, IEl)
-            end if
-
-            ! recalculating the B matrix for every point in the integration loop
-            !call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, DShapeValuesArray(IntGlo,:,:)) ! get the B-matrix once per element
-
-            if  (ELEMENTTYPE == QUAD4 .and. &
-               (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-               CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
-               call FormB3_GP(Int, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN) ! get B-matrix
-
-            else
-
-               !if (IsParticleIntegration(IEl)) then
-               ! recalculating the B matrix for every point in the integration loop
                call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, DShapeValuesArray(IntGlo,:,:)) ! get the B-matrix once per element
 
+            else if (ELEMENTTYPE == QUAD4 .and. &
+               (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
+               CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+
+               IntGlo = GetParticleIndexInSubElement(IEl, Int, 1)
+               call FormB3_GP(Int, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN) ! get B-matrix
             end if
+
 
             g = CalParams%GravityData%GAccel  !Gravity (m/s2)
 
             N = Particles(IntGlo)%Porosity              !Porosity of the particle
             if (ELEMENTTYPE == QUAD4 .and. &
                (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-               CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
+               CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
 
                ! if mixed scheme with the quad, we need to use the gauss point pore pressure
                !S = SigmaEffArrayGaussPointsWaterPressure(IEl, Int) * WTN ! scalar pwp from the gauss point
@@ -2479,12 +2467,12 @@ contains ! Routines of this module
       ContactSurfaceSoilElements = .false.
 
       if (.not.CalParams%ApplyContactAlgorithm) RETURN
-     
+
       ! Loop over all of the elements
       do I = 1, Counters%NodTot
-        ! Checks if the node is in the interface nodes 
+         ! Checks if the node is in the interface nodes
          if (InterfaceNodes(I)) then
-             ! Get the number of adjacenet elements
+            ! Get the number of adjacenet elements
             NAdjacentElements = GetNElmOfNode(I)
             ! Loop over the adjacent elements
             do J = 1, NAdjacentElements

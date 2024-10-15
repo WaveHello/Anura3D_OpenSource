@@ -141,8 +141,6 @@ contains
       StateVar = ESMstatevArray(IDpt,:)
       !end if
 
-
-
       !call AssignWatandGasPressureToGlobalArray(IDpt, DSigWP, DSigGP) !Note that the subroutine checks Cavitation Threshold & Gas Pressure
 
       ! Undrained effective stress pore pressure

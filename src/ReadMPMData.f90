@@ -2768,7 +2768,7 @@ contains
       integer(INTEGER_TYPE) :: I, J, NBytes
       character :: BName*12, Header*80
       character(len = MAX_FILENAME_LENGTH) :: BRFFileName
-
+      logical, parameter :: Debug = .False. 
       if (.not.IsFollowUpPhase()) RETURN
 
       ! open BRF file for reading
@@ -2870,7 +2870,8 @@ contains
                      read(BRFunit) ExtLoadGasTotal(I, 1,1)
                   End Do
                else ! Skip bytes of block
-                  print *, "Printing BName in ReadNodalDataFromFile: ", BName
+                  if ( Debug ) print *, "Printing BName in ReadNodalDataFromFile: ", BName
+                  
                   call Skip(BRFunit, NBytes)
                end if
             end if

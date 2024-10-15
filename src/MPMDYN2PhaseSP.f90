@@ -1226,7 +1226,6 @@ contains
       real(REAL_TYPE) :: Position
       real(REAL_TYPE) :: ShapeValues(ELEMENTNODES)
       logical :: IsLoadOnMP
-      real(REAL_TYPE) :: TempDShapeArrays(ELEMENTNODES,NVECTOR)
 
       B = 0.0
       IntGlo = 0
@@ -1340,30 +1339,30 @@ contains
 
 
                ! Determine global ID of integration point
-               if (ELEMENTTYPE == QUAD4 .and. &
-                  (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-                  CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
-                  IntGlo = GetParticleIndexInSubElement(IEl, Int, 1)
+              ! Commented this out to match Abdel's Quad Elements branch
+              !  if (ELEMENTTYPE == QUAD4 .and. &
+              !     (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
+              !     CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
+              !     IntGlo = GetParticleIndexInSubElement(IEl, Int, 1)
 
-               else
+              !  else
 
-                  IntGlo = GetParticleIndex(Int, IEl)
-               end if
+              !     IntGlo = GetParticleIndex(Int, IEl)
+              !  end if
 
 
-               if  (ELEMENTTYPE == QUAD4 .and. &
-                  (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-                  CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
-                  call FormB3_GP(Int, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN) ! get B-matrix
+              !  if  (ELEMENTTYPE == QUAD4 .and. &
+              !     (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
+              !     CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
+              !     call FormB3_GP(Int, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN) ! get B-matrix
 
-               else
+              !  else
 
-                  !if (IsParticleIntegration(IEl)) then
-                  ! recalculating the B matrix for every point in the integration loop
-                  TempDShapeArrays = DShapeValuesArray(IntGlo,:,:)
-                  call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, TempDShapeArrays) ! get the B-matrix once per element
+              !     !if (IsParticleIntegration(IEl)) then
+              !     ! recalculating the B matrix for every point in the integration loop
+              !     call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, DShapeValuesArray(IntGlo,:,:)) ! get the B-matrix once per element
 
-               end if
+              !  end if
 
 
                ! Set the integration weight
@@ -1515,8 +1514,7 @@ contains
 
                      !if (IsParticleIntegration(IEl)) then
                      ! recalculating the B matrix for every point in the integration loop
-                    TempDShapeArrays = DShapeValuesArray(IntGlo,:,:)
-                     call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, TempDShapeArrays) ! get the B-matrix once per element
+                     call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, DShapeValuesArray(IntGlo,:,:)) ! get the B-matrix once per element
                   end if
 
                   if (MaterialPointTypeArray(IntGlo)==MaterialPointTypeLiquid) then ! Only LIQUID material Point
@@ -1664,8 +1662,7 @@ contains
 
                      !if (IsParticleIntegration(IEl)) then
                      ! recalculating the B matrix for every point in the integration loop
-                    TempDShapeArrays = DShapeValuesArray(IntGlo,:,:)
-                     call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, TempDShapeArrays) ! get the B-matrix once per element
+                     call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, DShapeValuesArray(IntGlo,:,:)) ! get the B-matrix once per element
 
                   end if
 
@@ -1927,8 +1924,7 @@ contains
 
                   !if (IsParticleIntegration(IEl)) then
                   ! recalculating the B matrix for every point in the integration loop
-                  TempDShapeArrays = DShapeValuesArray(IntGlo,:,:)
-                  call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, TempDShapeArrays) ! get the B-matrix once per element
+                  call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, DShapeValuesArray(IntGlo,:,:)) ! get the B-matrix once per element
 
                end if
 
@@ -2037,8 +2033,7 @@ contains
 
                      !if (IsParticleIntegration(IEl)) then
                      ! recalculating the B matrix for every point in the integration loop
-                    TempDShapeArrays = DShapeValuesArray(IntGlo,:,:)
-                     call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, TempDShapeArrays) ! get the B-matrix once per element
+                     call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, DShapeValuesArray(IntGlo,:,:)) ! get the B-matrix once per element
 
                   end if
 
@@ -2157,8 +2152,7 @@ contains
 
                      !if (IsParticleIntegration(IEl)) then
                      ! recalculating the B matrix for every point in the integration loop
-                    TempDShapeArrays = DShapeValuesArray(IntGlo,:,:)
-                     call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, TempDShapeArrays) ! get the B-matrix once per element
+                     call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, DShapeValuesArray(IntGlo,:,:)) ! get the B-matrix once per element
 
                   end if
 
@@ -2577,8 +2571,7 @@ contains
 
                !if (IsParticleIntegration(IEl)) then
                ! recalculating the B matrix for every point in the integration loop
-              TempDShapeArrays = DShapeValuesArray(IntGlo,:,:)
-               call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, TempDShapeArrays) ! get the B-matrix once per element
+               call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, DShapeValuesArray(IntGlo,:,:)) ! get the B-matrix once per element
 
             end if
 

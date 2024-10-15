@@ -233,6 +233,7 @@ contains ! subroutines of this module
       ! open GOM file
       call getarg(1, ProjectName)
       FileName=Trim(ProjectName)//'.GOM'
+      print *, "File Name", FileName
       if (FExist(FileName)) open(GOMunit, FILE=FileName)
 
       do ! read dimension and elementtype from gom-file

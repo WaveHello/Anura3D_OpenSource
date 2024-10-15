@@ -279,25 +279,27 @@ contains
 
       ! Local variables
       integer(INTEGER_TYPE) :: NByts, NVals, bits_2_bytes
-
+      logical, parameter :: Debug = .False.
 
       ! Testing to see if there's a problem in how values are being written to the BRF file
       ! NVals = 3
       ! NByts = NVals * 8
 
+      ! Need to write the correct number of binary digits to the file.
       ! Set the bits to byte conversion- 8 bits in a byte
       bits_2_bytes = 8
       NByts = (storage_size(CalParams%RequiredDegreeOfFilling) + storage_size(Calparams%FacStiffnessIncrease) + storage_size(0.0))/bits_2_bytes
 
       ! NByts = 8 * 3
-      print * , "Number of Bytes to write", NByts
-
       write(FileUnit) '$$KERNELFR$$', NByts
 
-      print *, "Printing storage sizes in WriteBlockKERNELFR"
-      print *, storage_size(CalParams%RequiredDegreeOfFilling)
-      print *, storage_size(Calparams%FacStiffnessIncrease)
-      print *, storage_size(0.0)
+      if (Debug) then
+         print * , "Number of Bytes to write", NByts
+         print *, "Printing storage sizes in WriteBlockKERNELFR"
+         print *, storage_size(CalParams%RequiredDegreeOfFilling)
+         print *, storage_size(Calparams%FacStiffnessIncrease)
+         print *, storage_size(0.0)
+      end if
 
       write(FileUnit) CalParams%RequiredDegreeOfFilling
       write(FileUnit) CalParams%FacStiffnessIncrease

@@ -351,57 +351,60 @@ contains
 
    end subroutine WriteFEMNodeData
 
-   !-----------------------------------------------------------------
-   integer(INTEGER_TYPE) function kBSpace(S)
-      ! Function: Returns free disk space (in kB) of drive
-      ! Input   : S = Directory
+      integer(INTEGER_TYPE) function kBSpace(S)
+         ! Function: Returns free disk space (in kB) of drive
+         ! Input   : S = Directory
 
-      implicit none
-      character S*(*)
+         implicit none
+         character S*(*)
+
+         ! Local variables
+         character($MAXPATH) model_dir
+         integer(INTEGER_TYPE) :: path_length
+         Integer(8) :: I8_Total, I8_Avail, status
+
+         if (S(2:2)/=':') then
+            !  Get current directory
 #ifdef __INTEL_COMPILER
-      character($MAXPATH) dir
+            model_dir = FILE$CURDRIVE
+            path_length = GETDRIVEDIRQQ(model_dir)
+            if (path_length > 0) then
+               call WriteInLogFile('Current directory is: ' // trim(model_dir))
+            else
+               call WriteInLogFile('Failed to get current directory')
+            end if
 #else
-      character(260) dir
+            status = getcwd(model_dir)
+            if (status > 0) then
+               call WriteInLogFile('Current directory is: ' // trim(model_dir))
+            else
+               call WriteInLogFile('Failed to get current directory')
+            end if
 #endif
-      integer(4) length
-      Integer(8) I8_Total, I8_Avail
 
-      if (S(2:2)/=':') then
-         !  Get current directory
-#ifdef __INTEL_COMPILER
-         dir = FILE$CURDRIVE
-         length = GETDRIVEDIRQQ(dir)
-         if (length > 0) then
-            call WriteInLogFile('Current directory is: ' // trim(dir))
          else
-            call WriteInLogFile('Failed to get current directory')
+            model_dir = trim(S)
          end if
-#else
-         status = getcwd(dir)
-         if (status > 0) then
-            call WriteInLogFile('Current directory is: ' // trim(dir))
-         else
-            call WriteInLogFile('Failed to get current directory')
-         end if
-#endif
 
-      else
-         Dir = trim(S)
-      end if
-
-      kBSpace = 1
+         kBSpace = 1
 #ifdef __INTEL_COMPILER
-      if (GetDriveSizeQQ( dir, I8_Total, I8_Avail )) then
-         call WriteInLogFile('Capacity, available  Byte:'// trim(String(I8_Total)) // trim(String(I8_Avail)))
-         call WriteInLogFile('Capacity, available KByte:'// trim(String(I8_Total/1024d0**1)) // trim(String(I8_Avail/1024d0**1)))
-         call WriteInLogFile('Capacity, available GByte:'// trim(String(I8_Total/1024d0**3)) // trim(String(I8_Avail/1024d0**3)))
-         kBSpace = nint(I8_Total/1024d0**1)
-         RETURN
-      else
-         kBSpace = -1
-      end if
+         if (GetDriveSizeQQ( model_dir, I8_Total, I8_Avail )) then
+            call WriteInLogFile('Capacity, available  Byte:'// trim(String(I8_Total)) // trim(String(I8_Avail)))
+            call WriteInLogFile('Capacity, available KByte:'// trim(String(I8_Total/1024d0**1)) // trim(String(I8_Avail/1024d0**1)))
+            call WriteInLogFile('Capacity, available GByte:'// trim(String(I8_Total/1024d0**3)) // trim(String(I8_Avail/1024d0**3)))
+
+            ! int has max value of 2147483647. Check that the available space isn't greater than 2147483647 * 1024 bytes
+            if (I8_Total >  2147483647d0 * 1024d0) then
+               I8_Total = 2147483647 * 1024
+            endif
+
+            kBSpace = nint(I8_Total/1024d0**1, INTEGER_TYPE)
+            RETURN
+         else
+            kBSpace = -1
+         end if
 #endif
 
-   end function kBSpace
+      end function kBSpace
 
-end module ModWriteResultData
+   end module ModWriteResultData

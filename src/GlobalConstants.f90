@@ -107,20 +107,20 @@
          ! Mathematical constants
          real(REAL_TYPE), parameter :: PI = 3.141592653589793238462643383279502884197169399D0
 
-        ! Computation-related constants
+         ! Computation-related constants
          integer(INTEGER_TYPE), parameter :: MPM_MIXED_INTEGRATION = 0
          integer(INTEGER_TYPE), parameter :: MPM_MIXED_KEEPSTATEV_INTEGRATION = 4
          integer(INTEGER_TYPE), parameter :: MPM_MIXED_MG22_INTEGRATION = 5
          integer(INTEGER_TYPE), parameter :: MPM_MP_INTEGRATION = 1
          integer(INTEGER_TYPE), parameter :: FEM = 2
          integer(INTEGER_TYPE), parameter :: UL_FEM = 3
-         
+
          character(len = 9), parameter :: MPM_MIXED_INTEGRATION_SPECIFIER = 'MPM-MIXED' ! mixed scheme which takes the first MP index in the element
-         character(len = 31), parameter :: MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER = 'MPM-MIXED_MG22-NO-INTERPOLATION' ! mixed scheme 
+         character(len = 31), parameter :: MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER = 'MPM-MIXED_MG22-NO-INTERPOLATION' ! mixed scheme
          character(len = 14), parameter :: MPM_MIXED_MG22_INTEGRATION_SPECIFIER = 'MPM-MIXED_MG22'
-         
+
          character(len = 6), parameter :: MPM_MP_INTEGRATION_SPECIFIER = 'MPM-MP'
-         
+
          character(len = 3), parameter :: FEM_SPECIFIER = 'FEM'
          character(len = 6), parameter :: UL_FEM_SPECIFIER = 'UL-FEM'
          character(len = 6), parameter :: LOAD_LINEAR = 'LINEAR'
@@ -632,15 +632,15 @@
                !  VTK_CELL = 22 ! VTK_QUADRATIC_TRIANGLE(=22)
                !  ELEMENTTYPE = TRI6
                !
-               case(QUAD4) ! 'quadrilateral_4-noded'
-                ELEMENTNODES = 4
-                ELEMENTVERTICES = 4
-                ELEMENTGAUSSPOINTS = 1
-                ELEMENTBOUNDARYNODES = 2
-                ELEMENTBOUNDARYGAUSSPOINTS = 1
-                ELEMENTSIDES = 4
-                VTK_CELL = 9 ! VTK_QUAD(=9)
-                ELEMENTTYPE = QUAD4
+             case(QUAD4) ! 'quadrilateral_4-noded'
+               ELEMENTNODES = 4
+               ELEMENTVERTICES = 4
+               ELEMENTGAUSSPOINTS = 4 ! 4 gauss points for the mixed integration MG22 scheme
+               ELEMENTBOUNDARYNODES = 2
+               ELEMENTBOUNDARYGAUSSPOINTS = 1
+               ELEMENTSIDES = 4
+               VTK_CELL = 9 ! VTK_QUAD(=9)
+               ELEMENTTYPE = QUAD4
                !
                !case(QUAD8) ! 'quadrilateral_8-noded'
                !  ELEMENTNODES = 8
