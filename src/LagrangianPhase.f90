@@ -795,20 +795,24 @@ contains ! Routines of this module
          do Int = 1, NElemPart ! Loop over number of integration points per element IEl
 
             ! Determine global ID of integration point
+             
+             if (IsParticleIntegration(IEl) ) then
+                    IntGlo = GetParticleIndex(Int, IEl)
+                    call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, DShapeValuesArray(IntGlo,:,:)) ! get the B-matrix once per element
 
-            if (IsParticleIntegration(IEl) ) then
-               IntGlo = GetParticleIndex(Int, IEl)
-               call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, DShapeValuesArray(IntGlo,:,:)) ! get the B-matrix once per element
+                else if (ELEMENTTYPE == QUAD4 .and. &
+                    (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
+                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then 
+                    
+                    IntGlo = GetParticleIndexInSubElement(IEl, Int, 1)
+                    call FormB3_GP(Int, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN) ! get B-matrix
 
-            else if (ELEMENTTYPE == QUAD4 .and. &
-               (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-               CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
-
-               IntGlo = GetParticleIndexInSubElement(IEl, Int, 1)
-               call FormB3_GP(Int, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN) ! get B-matrix
-            end if
-
-
+                    
+                     
+                    
+                     end if 
+                     
+            
             g = CalParams%GravityData%GAccel  !Gravity (m/s2)
 
             N = Particles(IntGlo)%Porosity              !Porosity of the particle
