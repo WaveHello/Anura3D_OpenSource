@@ -51,9 +51,10 @@
     use ModFileIO
 	use ModMPMInit
     use ModMPMStresses
-      
-    #pragma comment(lib, "gidpost.lib")
-
+    
+    ! Commenting out the pragma for gidpost
+   !#pragma comment(lib, "gidpost.lib")
+ 
     use gidpost
     contains 
        
@@ -67,7 +68,7 @@
     !   
     !   No output of this subroutine
     !**********************************************************************
-
+ 
 	implicit none 
 	
 	!Local variables
@@ -83,7 +84,7 @@
     NNodes = Counters%NodTot                        ! Total number of nodes
     NVECTOR = NDIM                                  ! Dimension
     NoMPs = Counters%NParticles                     ! Number of MPs
-
+ 
     CALL GID_OPENPOSTMESHFILE(trim(CalParams%FileNames%ProjectName)//'.POST.MSH',GiD_PostAscii)
     
      CALL GiD_BeginMesh('Material Points', GiD_2D,GiD_Point,1)
@@ -105,11 +106,11 @@
           CALL GID_WRITEELEMENT(J, NMATElem(1))
       enddo
       CALL GID_ENDELEMENTS
-
+ 
     CALL GiD_BeginMesh('Fixed Mesh', GiD_2D,GiD_Triangle,3)
     CALL GiD_BeginMeshColor('trimesh',GiD_2D,GiD_Triangle,3,0.7d0,0.7d0,0.4d0)
     CALL GID_MESHUNIT('m')
-
+ 
     !   **** printing coordinates of the mesh ****
     CALL GID_BEGINCOORDINATES  
       do I=1, NNodes
@@ -173,7 +174,7 @@
                                      Vliquid = 0.0, &
                                      Vsolid = 0.0, &
                                      Vgas = 0.0
-
+ 
 	Character (len=200) :: ARCH_POST_RES, ActualStep 
     Logical :: Hasvalue, file_exists
     
@@ -186,10 +187,10 @@
 	
      INQUIRE(FILE= ARCH_POST_RES, EXIST=file_exists)
      
-
+ 
      CALL GID_OPENPOSTRESULTFILE(trim(CalParams%FileNames%ProjectName)//'.POST.RES',GiD_PostAscii)
-
-
+ 
+ 
     If ((CalParams%IStep==1).and.(CalParams%TimeStep==1)) then   
        TimeStep = 0.0
     end if
@@ -197,7 +198,7 @@
     ! **********************************************************************
     ! ************************ SCALAR RESULTS ******************************
     ! **********************************************************************
-
+ 
     ! ***** Degree_saturation_Liquid *****
     CALL GID_FLUSHPOSTFILE
     CALL GID_BEGINRESULTHEADER('Degree_Saturation','Scalar Results',TimeStep,GiD_Scalar,GiD_onNodes,'Material_Points_Mesh')
@@ -220,7 +221,7 @@
           CALL GID_WRITESCALAR(I,EpsD)
       END DO
     CALL GID_ENDRESULT
-
+ 
     ! ***** Deviatoric_stress *****
     CALL GID_BEGINSCALARRESULT('Dev_stress','Scalar Results',TimeStep,GiD_onNodes,GiD_NULL,GiD_NULL,GiD_NULL) 
 	  DO I=1,NumberMaterialPoints                             
@@ -261,7 +262,7 @@
           CALL GID_WRITESCALAR(I,Particles(I)%MassGas)
     END DO
     CALL GID_ENDRESULT
-
+ 
     ! ***** Mass_Liquid *****
     CALL GID_BEGINSCALARRESULT('Mass//Mass_liquid','Scalar Results',TimeStep,GiD_onNodes,GiD_NULL,GiD_NULL,GiD_NULL) 
 	  DO I=1,NumberMaterialPoints  
@@ -281,7 +282,7 @@
           CALL GID_WRITESCALAR(I,Particles(I)%MassMixed)
     END DO
     CALL GID_ENDRESULT
-
+ 
     ! ***** Mass_solid *****
     CALL GID_BEGINSCALARRESULT('Mass//Mass_solid','Scalar Results',TimeStep,GiD_onNodes,GiD_NULL,GiD_NULL,GiD_NULL) 
 	  DO I=1,NumberMaterialPoints  
@@ -316,7 +317,7 @@
           CALL GID_WRITESCALAR(I,Particles(I)%GasPressure)
     END DO
     CALL GID_ENDRESULT
-
+ 
     ! ***** Pressure_liquid *****
     CALL GID_BEGINSCALARRESULT('Pressure//Liquid','Scalar Results',TimeStep,GiD_onNodes,GiD_NULL,GiD_NULL,GiD_NULL) 
 	  DO I=1,NumberMaterialPoints
@@ -357,7 +358,7 @@
           CALL GID_WRITESCALAR(I,EpsI)
     END DO
     CALL GID_ENDRESULT
-
+ 
     ! ***** Weight_gas *****
     CALL GID_BEGINSCALARRESULT('Weight//gas','Scalar Results',TimeStep,GiD_onNodes,GiD_NULL,GiD_NULL,GiD_NULL) 
 	  DO I=1,NumberMaterialPoints
@@ -365,7 +366,7 @@
     END DO
     CALL GID_ENDRESULT
     
-
+ 
     ! ***** Weight_liquid *****
     CALL GID_BEGINSCALARRESULT('Weight//liquid','Scalar Results',TimeStep,GiD_onNodes,GiD_NULL,GiD_NULL,GiD_NULL) 
 	  DO I=1,NumberMaterialPoints
@@ -399,7 +400,7 @@
           CALL GID_WRITESCALAR(I,SolidW)
     END DO
     CALL GID_ENDRESULT
-
+ 
     ! **********************************************************************
     ! ************************ VECTOR RESULTS ******************************
     ! **********************************************************************
@@ -416,7 +417,7 @@
           CALL GID_WRITEVECTOR(I,Acc)
       ENDDO
      CALL GID_ENDRESULT 
-
+ 
     ! ***** Body forces *****
     CALL GID_BEGINRESULTHEADER('Body Forces//total'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('FX','FY','FZ','Magnitude')
@@ -429,7 +430,7 @@
           CALL GID_WRITEVECTOR(I,BodyForce)
       ENDDO
      CALL GID_ENDRESULT 
-
+ 
     ! ***** Body forces liquid *****
     CALL GID_BEGINRESULTHEADER('Body Forces//liquid'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('FX','FY','FZ','Magnitude')
@@ -450,7 +451,7 @@
           end if	    
       ENDDO
      CALL GID_ENDRESULT 
-
+ 
     ! ***** Body forces mixture ***** 
     CALL GID_BEGINRESULTHEADER('Body Forces//mixture'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('FX','FY','FZ','Magnitude')
@@ -463,7 +464,7 @@
           CALL GID_WRITEVECTOR(I,BodyForcemix)
       ENDDO
      CALL GID_ENDRESULT 
-
+ 
     ! ***** Body forces gas *****      
     CALL GID_BEGINRESULTHEADER('Body Forces//gas'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('FX','FY','FZ','Magnitude')
@@ -497,7 +498,7 @@
         end if     
       ENDDO
      CALL GID_ENDRESULT        
-
+ 
      ! ***** Displacement solid *****
     CALL GID_BEGINRESULTHEADER('Displacement//solid'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('UX','UY','UZ','Magnitude')
@@ -516,7 +517,7 @@
           end if
       ENDDO
      CALL GID_ENDRESULT 
-
+ 
     ! ***** Displacement gas *****
     CALL GID_BEGINRESULTHEADER('Displacement//gas'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('UgX','UgY','UgZ','Magnitude')
@@ -584,7 +585,7 @@
         end if
       ENDDO
     CALL GID_ENDRESULT
-
+ 
     ! ***** External force gas *****     
     CALL GID_BEGINRESULTHEADER('External Forces//gas'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('ExtFGX','ExtFGY','ExtFGZ','Magnitude')
@@ -611,7 +612,7 @@
           end if
       ENDDO
     CALL GID_ENDRESULT   
-
+ 
     ! ***** Global position *****         
     CALL GID_BEGINRESULTHEADER('Position//Global'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('GPosX','GPosY','GPosZ','Magnitude')
@@ -637,7 +638,7 @@
           CALL GID_WRITEVECTOR(I,Localpos) 
       ENDDO
     CALL GID_ENDRESULT
-
+ 
     ! ***** Velocity liquid *****
     CALL GID_BEGINRESULTHEADER('Velocity//liquid'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('WX','WY','WZ','Magnitude')
@@ -658,7 +659,7 @@
         end if   
       ENDDO
     CALL GID_ENDRESULT  
-
+ 
     ! ***** Velocity solid *****
     CALL GID_BEGINRESULTHEADER('Velocity//solid'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('VX','VY','VZ','Magnitude')
@@ -677,7 +678,7 @@
          end if      
       ENDDO
     CALL GID_ENDRESULT  
-
+ 
     ! ***** Velocity gas *****
     CALL GID_BEGINRESULTHEADER('Velocity//gas'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('VX','VY','VZ','Magnitude')
@@ -720,7 +721,7 @@
           endif
       ENDDO
     CALL GID_ENDRESULT 
-
+ 
     ! ***** Effective stress solid ***** 
     CALL GID_BEGINRESULTHEADER('Eff_stress_solid'//char(0),'Tensor Results'//char(0), TimeStep, GiD_Matrix, GiD_onNodes, GiD_NULL)
     CALL GiD_3DMatrixComp('SXX','SYY','SZZ','SXY','SYZ','SXZ')
@@ -799,14 +800,14 @@
         end if      
       ENDDO
     CALL GID_ENDRESULT 
-
+ 
     if (TimeStep==CalParams%NLoadSteps) then
     CALL GID_CLOSEPOSTRESULTFILE() 
     endif
     
     End Subroutine WriteGiDResultsASCII
     
-
+ 
     
     Subroutine WriteGiDResultsBIN
     !**********************************************************************
@@ -855,8 +856,8 @@
     NoMPs = Counters%NParticles                     
     
     ARCH_POST_RES = trim(CalParams%FileNames%ProjectName)//'.POST.lst'
-
-
+ 
+ 
     CALL GID_OPENPOSTRESULTFILE(trim(CalParams%FileNames%ProjectName)//trim(CalParams%FileNames%LoadStepExt)//'.POST.bin',GiD_PostBinary)    
     
     ! ***** Opening list for print results ***** 
@@ -867,13 +868,13 @@
     WRITE(10,'(A)') trim(CalParams%FileNames%ProjectName)//trim(CalParams%FileNames%LoadStepExt)//'.POST.bin'
     CLOSE (10) 
     else
-
+ 
         OPEN (10,FILE=ARCH_POST_RES, STATUS ='OLD', POSITION = 'APPEND')   ! Open the exixting post-proccesing file
         WRITE(10,'(A)') trim(CalParams%FileNames%ProjectName)//trim(CalParams%FileNames%LoadStepExt)//'.POST.bin'
         CLOSE (10) ! close post-proccesing file
-
+ 
     endif
-
+ 
     If ((CalParams%IStep==1).and.(CalParams%TimeStep==1)) then   
        TimeStep = 0.0
     end if
@@ -907,7 +908,7 @@
           CALL GID_WRITEELEMENT(J, NMATElem(1))
       enddo
       CALL GID_ENDELEMENTS
-
+ 
     CALL GiD_BeginMesh('Fixed Mesh', GiD_2D,GiD_Triangle,3)
     CALL GiD_BeginMeshColor('Fixed Mesh',GiD_2D,GiD_Triangle,3,0.7d0,0.7d0,0.4d0)
     CALL GID_MESHUNIT('m')
@@ -1019,7 +1020,7 @@
           CALL GID_WRITESCALAR(I,EpsD)
       END DO
     CALL GID_ENDRESULT
-
+ 
     ! ***** Deviatoric_stress *****
     CALL GID_BEGINSCALARRESULT('Dev_stress','Scalar Results',TimeStep,GiD_onNodes,GiD_NULL,GiD_NULL,GiD_NULL) 
 	  DO I=1,NumberMaterialPoints                             
@@ -1060,7 +1061,7 @@
           CALL GID_WRITESCALAR(I,Particles(I)%MassGas)
     END DO
     CALL GID_ENDRESULT
-
+ 
     ! ***** Mass_Liquid *****
     CALL GID_BEGINSCALARRESULT('Mass//Mass_liquid','Scalar Results',TimeStep,GiD_onNodes,GiD_NULL,GiD_NULL,GiD_NULL) 
 	  DO I=1,NumberMaterialPoints  
@@ -1080,7 +1081,7 @@
           CALL GID_WRITESCALAR(I,Particles(I)%MassMixed)
     END DO
     CALL GID_ENDRESULT
-
+ 
     ! ***** Mass_solid *****
     CALL GID_BEGINSCALARRESULT('Mass//Mass_solid','Scalar Results',TimeStep,GiD_onNodes,GiD_NULL,GiD_NULL,GiD_NULL) 
 	  DO I=1,NumberMaterialPoints  
@@ -1115,7 +1116,7 @@
           CALL GID_WRITESCALAR(I,Particles(I)%GasPressure)
     END DO
     CALL GID_ENDRESULT
-
+ 
     ! ***** Pressure_liquid *****
     CALL GID_BEGINSCALARRESULT('Pressure//Liquid','Scalar Results',TimeStep,GiD_onNodes,GiD_NULL,GiD_NULL,GiD_NULL) 
 	  DO I=1,NumberMaterialPoints
@@ -1156,7 +1157,7 @@
           CALL GID_WRITESCALAR(I,EpsI)
     END DO
     CALL GID_ENDRESULT
-
+ 
     ! ***** Weight_gas *****
     CALL GID_BEGINSCALARRESULT('Weight//gas','Scalar Results',TimeStep,GiD_onNodes,GiD_NULL,GiD_NULL,GiD_NULL) 
 	  DO I=1,NumberMaterialPoints
@@ -1164,7 +1165,7 @@
     END DO
     CALL GID_ENDRESULT
     
-
+ 
     ! ***** Weight_liquid *****
     CALL GID_BEGINSCALARRESULT('Weight//liquid','Scalar Results',TimeStep,GiD_onNodes,GiD_NULL,GiD_NULL,GiD_NULL) 
 	  DO I=1,NumberMaterialPoints
@@ -1198,7 +1199,7 @@
           CALL GID_WRITESCALAR(I,SolidW)
     END DO
     CALL GID_ENDRESULT
-
+ 
     ! ***** State Variables *****    
     ! * 1 *
     CALL GID_BEGINSCALARRESULT('State Variables//1','Scalar Results',TimeStep,GiD_onNodes,GiD_NULL,GiD_NULL,GiD_NULL) 
@@ -1516,7 +1517,7 @@
           CALL GID_WRITEVECTOR(I,Acc)
       ENDDO
      CALL GID_ENDRESULT 
-
+ 
     ! ***** Body forces *****
     CALL GID_BEGINRESULTHEADER('Body Forces//solid'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('FX','FY','FZ','Magnitude')
@@ -1529,7 +1530,7 @@
           CALL GID_WRITEVECTOR(I,BodyForce)
       ENDDO
      CALL GID_ENDRESULT 
-
+ 
     ! ***** Body forces liquid *****
     CALL GID_BEGINRESULTHEADER('Body Forces//Liquid'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('FX','FY','FZ','Magnitude')
@@ -1550,7 +1551,7 @@
           end if	    
       ENDDO
      CALL GID_ENDRESULT 
-
+ 
     ! ***** Body forces mixture ***** 
     CALL GID_BEGINRESULTHEADER('Body Forces//mixture'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('FX','FY','FZ','Magnitude')
@@ -1563,7 +1564,7 @@
           CALL GID_WRITEVECTOR(I,BodyForcemix)
       ENDDO
      CALL GID_ENDRESULT 
-
+ 
     ! ***** Body forces gas *****      
     CALL GID_BEGINRESULTHEADER('Body Forces//gas'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('FX','FY','FZ','Magnitude')
@@ -1597,7 +1598,7 @@
         end if     
       ENDDO
      CALL GID_ENDRESULT        
-
+ 
      ! ***** Displacement solid *****
     CALL GID_BEGINRESULTHEADER('Displacement//solid'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('UX','UY','UZ','Magnitude')
@@ -1616,7 +1617,7 @@
           end if
       ENDDO
      CALL GID_ENDRESULT 
-
+ 
     ! ***** Displacement gas *****
     CALL GID_BEGINRESULTHEADER('Displacement//gas'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('UgX','UgY','UgZ','Magnitude')
@@ -1685,7 +1686,7 @@
         end if
       ENDDO
     CALL GID_ENDRESULT
-
+ 
     ! ***** External forces gas *****     
     CALL GID_BEGINRESULTHEADER('External Forces//gas'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('ExtFGX','ExtFGY','ExtFGZ','Magnitude')
@@ -1712,7 +1713,7 @@
           end if
       ENDDO
     CALL GID_ENDRESULT   
-
+ 
     ! ***** Global position *****         
     CALL GID_BEGINRESULTHEADER('Position//Global'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('GPosX','GPosY','GPosZ','Magnitude')
@@ -1738,7 +1739,7 @@
           CALL GID_WRITEVECTOR(I,Localpos) 
       ENDDO
     CALL GID_ENDRESULT
-
+ 
     ! ***** Velocity liquid *****
     CALL GID_BEGINRESULTHEADER('Velocity//liquid'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('WX','WY','WZ','Magnitude')
@@ -1759,7 +1760,7 @@
         end if   
       ENDDO
     CALL GID_ENDRESULT  
-
+ 
     ! ***** Velocity solid *****
     CALL GID_BEGINRESULTHEADER('Velocity//solid'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('VX','VY','VZ','Magnitude')
@@ -1778,7 +1779,7 @@
          end if      
       ENDDO
     CALL GID_ENDRESULT  
-
+ 
     ! ***** Velocity gas *****
     CALL GID_BEGINRESULTHEADER('Velocity//gas'//char(0),'Vector Results'//char(0), TimeStep, GiD_Vector, GiD_onNodes, GiD_NULL)
     CALL GID_VECTORCOMP('VX','VY','VZ','Magnitude')
@@ -1902,9 +1903,9 @@
       ENDDO
     CALL GID_ENDRESULT 
  
-
+ 
     if (TimeStep==CalParams%NLoadSteps) then
-
+ 
     endif
      12    FORMAT('Multiple')
      14    FORMAT('# postprocess files')

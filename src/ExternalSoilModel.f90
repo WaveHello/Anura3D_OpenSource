@@ -383,11 +383,10 @@ end subroutine ESM_VPSS_MC
   
   
 Subroutine UMAT_VPSS_MC(STRESS, STATEV, DDSDDE, SSE, SPD, SCD, RPL, DDSDDT, DRPLDE, &
-			                DRPLDT, STRAN, DSTRAN, TIME, DTIME, TEMP, DTEMP, PREDEF, DPRED,&
-			                CMNAME, NDI, NSHR, NTENS, &	NSTATEV, PROPS, NPROPS, COORDS, &
+			                DRPLDT, STRAN, DSTRAN, TIME, DTIME, TEMP, DTEMP, PREDEF, DPRED, &
+			                CMNAME, NDI, NSHR, NTENS, NSTATEV, PROPS, NPROPS, COORDS, &
 			                PNEWDT, CELENT, DFGRD0, DFGRD1, NOEL, NPT, &
 			                LAYER, KSPT, KSTEP, KINC)
-    !DEC$ ATTRIBUTES DLLEXPORT, ALIAS:"UMAT" :: UMAT
     implicit none
 
 	!Defining inputs

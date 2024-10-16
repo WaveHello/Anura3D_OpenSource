@@ -764,7 +764,7 @@
         end do
         do IPart = 1, NPartEle(IEl)  ! Loop over all particles in element
             ParticleIndex = GetParticleIndex(IPart, IEl) ! Get the particle ID
-            if((NFORMULATION==1).or. & (MaterialPointTypeArray(ParticleIndex)==MaterialPointTypeLiquid)) then
+            if((NFORMULATION==1) .or.  (MaterialPointTypeArray(ParticleIndex)==MaterialPointTypeLiquid)) then
                 if(NFORMULATION==1) then ! 1 Constituent
                     !ParticleVelocity = VelocityWaterArray(ParticleIndex,:)  ! get particle water velocity vector
                     ParticleMass     = MassWaterArray(ParticleIndex)
