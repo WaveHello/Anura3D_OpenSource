@@ -393,10 +393,16 @@ contains ! Routines of this module
          call DynUpdateParticleWeights( )
       end if
 
-      !Update porosity (Directly depends on: DEpsVol)
+      ! Update porosity (Directly depends on: DEpsVol)
       if (CalParams%ApplyPorosityUpdate) then !Update porosity (Directly depends on: DEpsVol)
          call DynUpdateParticlePorosity( )
       end if
+      
+      ! Update permeability (depends on porosity)
+      if (CalParams%ApplyDarcyPermeabilityUpdate) then 
+          call DynUpdateParticleConductivity( )
+      end if 
+      
 
 !\\\\\\\ END UPDATE PARTICLE PROPERTIES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
@@ -475,9 +481,7 @@ contains ! Routines of this module
          call SetUpMaterialElements ()
       endif
       
-      
-      
-      
+
       !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       
       ! MG22: step 1 is to find how many and which material points are located in the local subzone
@@ -489,7 +493,7 @@ contains ! Routines of this module
       if (IsMPMWithMixedIntegration() .and. .not.IsMPMSkipConvection()) then ! Not needed for pure MPM and FEM
          !call StressAndPorePressureSmoothening()
           ! find the stress for 4 gauss points. 
-         call StressAndPorePressureSmoothening_4GaussPoints()
+         call StressAndPorePressureSmoothening_4GaussPoints() ! do this for both interpolation and no interpolation
 
          !call StateParametersSmoothening()
       !else
@@ -498,7 +502,8 @@ contains ! Routines of this module
       end if
       
       
-      if (IsMPMWithMixedIntegration() .and. .not.IsMPMSkipConvection()) then ! Not needed for pure MPM and FEM
+      if (IsMPMWithMixedIntegration() .and. .not.IsMPMSkipConvection() &
+          .and. .not.IsMPMWithMixedIntegrationNoInterpolation()) then ! Not needed for pure MPM and FEM
          !call AssignStressesToParticles() ! Need to check for parallelization
       
          call AssignStressesToParticles_4GaussPoints() ! Need to check for parallelization
@@ -685,7 +690,7 @@ contains ! Routines of this module
       ! use this subroutine if you are in 'MPM-MIXED_MG22-NO-INTERPOLATION' or 'MPM-MIXED_MG22'
       ! otherwise not needed
       if (CalParams%ComputationMethod == MPM_MIXED_MG22_INTEGRATION .or. &
-          CalParams%ComputationMethod == MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER) then 
+          CalParams%ComputationMethod == MPM_MIXED_KEEPSTATEV_INTEGRATION) then 
       
       ! total number of elements
       NumberOfElements = Counters%NEl
@@ -2159,6 +2164,49 @@ contains ! Routines of this module
       end do ! loop over particles
 
    end subroutine DynUpdateParticlePorosity
+   
+   
+   
+   
+   subroutine DynUpdateParticleConductivity( )
+      !**********************************************************************
+      !
+      !    Function:  Updates particle permeability based on Xie and Leo (2004) 
+      !               Large strain oedometer is the benchmark. 
+      !
+      !                - need to update porosity 
+      !
+      ! Implemented in the frame of the MPM project.
+      !
+      !**********************************************************************
+
+      implicit none
+
+      ! Local variables
+      integer(INTEGER_TYPE) :: I, IParticle, ParticleIndex
+      real(REAL_TYPE) :: DEpsVol
+      
+      real(REAL_TYPE) :: two
+      
+      ! defining
+      two = 2.0
+
+      do IParticle = 1, Counters%NParticles  ! Loop over particles
+         ParticleIndex = GetParticleIndexFromList(IParticle)
+         
+         Particles(ParticleIndex)%Conductivity = Particles(ParticleIndex)%InitialConductivity * &
+             ((1-Particles(ParticleIndex)%InitialPorosity)/(1-Particles(ParticleIndex)%Porosity))**two
+         
+         
+         if (Particles(ParticleIndex)%Conductivity<0.0) then
+            Particles(ParticleIndex)%Conductivity = 0.0
+         end if
+
+      end do ! loop over particles
+
+   end subroutine DynUpdateParticleConductivity
+   
+   
 
 
    subroutine DynUpdateParticleDegreeOfSaturation( )
@@ -2833,15 +2881,18 @@ contains ! Routines of this module
              
              do J = 1, NTENSOR
              StressAverage(J) = StressAverage(J) / ParticlesVols !solid
+         
              end do
+             
+             WPAverage = WPAverage / ParticlesVols ! water
+             GPAverage = GPAverage / ParticlesVols ! gas
+             DPBVDAverage = DPBVDAverage / ParticlesVols ! bulk viscous pressure
              
              else 
             StressAverage = 0.0
              end if 
          
-         WPAverage = WPAverage / ParticlesVols ! water
-         GPAverage = GPAverage / ParticlesVols ! gas
-         DPBVDAverage = DPBVDAverage / ParticlesVols ! bulk viscous pressure
+         
 
          ! we do not want to overwrite at this stage so I decided not include these here
          ! Assign the average stress, water pressure and gas pressure to particles

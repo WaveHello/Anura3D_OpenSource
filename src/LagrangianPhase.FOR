@@ -781,7 +781,7 @@ contains ! Routines of this module
             !NElemPart = ELEMENTGAUSSPOINTS ! Number of Gauss points per element
             if (ELEMENTTYPE == QUAD4 .and. &
                (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-               CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+               CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
                ! map the stress using the 4 gauss points
                NElemPart = Counters%NGaussPoints !ELEMENTGAUSSPOINTS !this always have to be 4 gauss points
             else
@@ -795,29 +795,17 @@ contains ! Routines of this module
          do Int = 1, NElemPart ! Loop over number of integration points per element IEl
 
             ! Determine global ID of integration point
-            if (ELEMENTTYPE == QUAD4 .and. &
-               (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-               CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
-               IntGlo = GetParticleIndexInSubElement(IEl, Int, 1)
 
-            else
-
+            if (IsParticleIntegration(IEl) ) then
                IntGlo = GetParticleIndex(Int, IEl)
-            end if
-
-            ! recalculating the B matrix for every point in the integration loop
-            !call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, DShapeValuesArray(IntGlo,:,:)) ! get the B-matrix once per element
-
-            if  (ELEMENTTYPE == QUAD4 .and. &
-               (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-               CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
-               call FormB3_GP(Int, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN) ! get B-matrix
-
-            else
-
-               !if (IsParticleIntegration(IEl)) then
-               ! recalculating the B matrix for every point in the integration loop
                call FormB3(1, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN, DShapeValuesArray(IntGlo,:,:)) ! get the B-matrix once per element
+
+            else if (ELEMENTTYPE == QUAD4 .and. &
+               (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
+               CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
+
+               IntGlo = GetParticleIndexInSubElement(IEl, Int, 1)
+               call FormB3_GP(Int, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN) ! get B-matrix
 
             end if
 
@@ -826,7 +814,7 @@ contains ! Routines of this module
             N = Particles(IntGlo)%Porosity              !Porosity of the particle
             if (ELEMENTTYPE == QUAD4 .and. &
                (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
-               CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+               CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION)) then
 
                ! if mixed scheme with the quad, we need to use the gauss point pore pressure
                !S = SigmaEffArrayGaussPointsWaterPressure(IEl, Int) * WTN ! scalar pwp from the gauss point
@@ -834,11 +822,7 @@ contains ! Routines of this module
                Pg = SigmaEffArrayGaussPointsGasPressure(IEl, Int)
 
             else
-
-
                Pg = Particles(IntGlo)%GasPressure          !Gas Pressure (MPa)
-
-
             end if
 
             T = Particles(IntGlo)%Temperature           !Temperature (�C)

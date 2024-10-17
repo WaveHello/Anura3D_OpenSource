@@ -53,16 +53,10 @@
 				<File RelativePath="..\ReadMPMData.FOR"/>
 			</Filter>
 			<Filter Name="MaterialModels">
-				<File RelativePath="..\ESM_MCSS.f90"/>
 				<File RelativePath="..\ExternalSoilModel.for"/>
 				<File RelativePath="..\Liquid.FOR"/>
 			</Filter>
 			<Filter Name="MPMModules">
-				<Filter Name="Contact">
-					<File RelativePath="..\contact_2D.f90"/>
-					<File RelativePath="..\MPMDynContact.FOR">
-					</File>
-				</Filter>
 				<File RelativePath="..\AdjustParticleDiscretisation.FOR"/>
 				<File RelativePath="..\LagrangianPhase.FOR"/>
 				<File RelativePath="..\MPMConvPhase.FOR"/>
@@ -71,6 +65,7 @@
 				<File RelativePath="..\MPMDYN3PhaseSP.FOR"/>
 				<File RelativePath="..\MPMDynamicExplicit.FOR"/>
 				<File RelativePath="..\MPMDYNBTSig.FOR"/>
+				<File RelativePath="..\MPMDynContact.FOR"/>
 				<File RelativePath="..\MPMDYNConvPhase.FOR"/>
 				<File RelativePath="..\MPMDYNStresses.FOR"/>
 				<File RelativePath="..\MPMDynViscousBoundary.FOR"/>
