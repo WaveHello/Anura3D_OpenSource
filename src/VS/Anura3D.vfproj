@@ -53,11 +53,37 @@
 				<File RelativePath="..\ReadMPMData.FOR"/>
 			</Filter>
 			<Filter Name="MaterialModels">
-				<File RelativePath="..\ExternalSoilModel.for"/>
-				<File RelativePath="..\Liquid.FOR"/>
+				<Filter Name="Strain_Rate_Mohr_Coulomb">
+					<File RelativePath="..\Soilmodels\Strain_Rate_Mohr_Coulomb\array_functions.f90"/>
+					<File RelativePath="..\Soilmodels\Strain_Rate_Mohr_Coulomb\boolean_helper_funcs.f90"/>
+					<File RelativePath="..\Soilmodels\Strain_Rate_Mohr_Coulomb\ESM_SRMC.f90"/>
+					<File RelativePath="..\Soilmodels\Strain_Rate_Mohr_Coulomb\kind_precision_module.f90"/>
+					<File RelativePath="..\Soilmodels\Strain_Rate_Mohr_Coulomb\plastic_potential.f90"/>
+					<File RelativePath="..\Soilmodels\Strain_Rate_Mohr_Coulomb\SRMC.f90"/>
+					<File RelativePath="..\Soilmodels\Strain_Rate_Mohr_Coulomb\SRMC_help_funcs.f90"/>
+					<File RelativePath="..\Soilmodels\Strain_Rate_Mohr_Coulomb\SRMC_Ortiz_Simo.f90"/>
+					<File RelativePath="..\Soilmodels\Strain_Rate_Mohr_Coulomb\SRMC_substepping.f90"/>
+					<File RelativePath="..\Soilmodels\Strain_Rate_Mohr_Coulomb\state_parameters.f90"/>
+					<File RelativePath="..\Soilmodels\Strain_Rate_Mohr_Coulomb\state_params_deriv.f90"/>
+					<File RelativePath="..\Soilmodels\Strain_Rate_Mohr_Coulomb\strain_invariant_deriv.f90"/>
+					<File RelativePath="..\Soilmodels\Strain_Rate_Mohr_Coulomb\strain_invariants.f90"/>
+					<File RelativePath="..\Soilmodels\Strain_Rate_Mohr_Coulomb\stress_invariant_deriv.f90"/>
+					<File RelativePath="..\Soilmodels\Strain_Rate_Mohr_Coulomb\stress_invariants.f90"/>
+					<File RelativePath="..\Soilmodels\Strain_Rate_Mohr_Coulomb\voigt_functions.f90"/>
+					<File RelativePath="..\Soilmodels\Strain_Rate_Mohr_Coulomb\yield_function.f90"/>
+				</Filter>
+				<File RelativePath="..\Soilmodels\ESM_MCSS.f90">
+				</File>
+				<File RelativePath="..\ExternalSoilModel.for">
+				</File>
+				<File RelativePath="..\Liquid.FOR">
+				</File>
 			</Filter>
 			<Filter Name="MPMModules">
-				<File RelativePath="..\AdjustParticleDiscretisation.FOR"/>
+				<File RelativePath="..\AdjustParticleDiscretisation.FOR">
+				</File>
+				<File RelativePath="..\contact_2D.f90">
+				</File>
 				<File RelativePath="..\LagrangianPhase.FOR"/>
 				<File RelativePath="..\MPMConvPhase.FOR"/>
 				<File RelativePath="..\MPMData.FOR"/>

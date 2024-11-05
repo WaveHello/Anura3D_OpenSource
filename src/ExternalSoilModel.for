@@ -47,8 +47,9 @@ module ModExternalSoilModel
    use kernel32
    use ModMeshInfo
    use MOD_MCSS_ESM, only: ESM_MohrCoulombStrainSoftening
-contains
+   use MOD_SRMC_ESM, only: ESM_SRMC
 
+contains
 
    subroutine StressSolid(IDpt, IDel, BMatrix,IEntityID)
       !**********************************************************************
@@ -193,8 +194,12 @@ contains
       ! initialise UMAT
       if (NameModel == ESM_ARB_Model_MohrCoulombStrainSoftening) then
          ! Abdel's (Unreleased) Mohr-Coulomb Strain Softening Formulation
-         call ESM_MohrCoulombStrainSoftening(IDpt, IDel, IDset, Stress, Eunloading, PlasticMultiplier, StrainIncr, NSTATEVAR, StateVar,&
+         call ESM_MohrCoulombStrainSoftening(IDpt, IDel, IDset, Stress, Eunloading, PlasticMultiplier, StrainIncr, NSTATEVAR, StateVar, &
             nAddVar, AdditionalVar,cmname, NPROPERTIES, props, CalParams%NumberOfPhases, ntens)
+      else if (NameModel == ESM_STRAIN_RATE_MOHR_COULOMB) then
+         call ESM_SRMC(IDpt, IDel, IDset, Stress, Eunloading, PlasticMultiplier, StrainIncr, NSTATEVAR, StateVar, &
+         nAddVar, AdditionalVar,cmname, NPROPERTIES, props, CalParams%NumberOfPhases, ntens)
+         ! call !TODO: Add the call here for the SRMC ESM. Need to convert the order for SRMC to follow the Anura3D convention
       else
          p = GetProcAddress(MatParams(IDSet)%SoilModelDLLHandle, "ESM"C) ! Pointing to the ESM .dll
 

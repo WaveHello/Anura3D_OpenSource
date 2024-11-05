@@ -124,7 +124,8 @@ contains ! Routines of this module
 
       if (SoilModel == ESM_HYPOPLASTICITY_SAND .or. &
          SoilModel==ESM_EXTERNAL_SOIL_MODEL   .or. &
-         SoilModel==ESM_ARB_Model_MohrCoulombStrainSoftening) then ! user-defined soil model
+         SoilModel==ESM_ARB_Model_MohrCoulombStrainSoftening .or. &
+         SoilModel == ESM_STRAIN_RATE_MOHR_COULOMB) then ! user-defined soil model
          Eunloading = Particles(IParticle)%ESM_UnloadingStiffness
       end if
 

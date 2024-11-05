@@ -265,10 +265,7 @@ contains
       DDSDDE(4,4) = G
       DDSDDE(5,5) = G
       DDSDDE(6,6) = G
-      !*
-      !* ... end UMAT routine
-      !*
-      Return
+
    end SUBROUTINE UMAT_MohrCoulombStrainSoftening
 
    Subroutine MOHRStrainSoftening(IntGlo,D1,D2, GG,cp,cr,phip,phir, &
