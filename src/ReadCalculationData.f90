@@ -485,6 +485,7 @@ module ModReadCalculationData
          CorrectNormalsForSlice, &
          ApplyStructureTrajectory, &
          ApplyPorosityUpdate, &
+         ApplyDarcyPermeabilityUpdate, &
          ApplyRigidLoading, &  ! TRUE - apply a rigid load, i.e. fixities in direction which is perpendicular to loading direction
          ApplyBinghamFluid, & ! treat the material as a Bingham fluid
          ApplyFrictionalFluid, & ! like the Bingham fluid but with stress dipendent yield stress
@@ -889,7 +890,9 @@ contains ! Routines of this module
    logical function IsMPMComputation()
       IsMPMComputation =  &
          (CalParams%ComputationMethod==MPM_MIXED_INTEGRATION).or. &
-         (CalParams%ComputationMethod==MPM_MP_INTEGRATION)
+         (CalParams%ComputationMethod==MPM_MP_INTEGRATION) .or. &
+         (CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER) .or. & ! quad mixed no interpolation
+         (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION_SPECIFIER)  ! quad mixed with interpolation
    end function IsMPMComputation
 
    logical function IsSmallDeformationFEMComputation()
@@ -909,8 +912,15 @@ contains ! Routines of this module
    end function IsMPMWithMPIntegration
 
    logical function IsMPMWithMixedIntegration()
-      IsMPMWithMixedIntegration = CalParams%ComputationMethod==MPM_MIXED_INTEGRATION
+      IsMPMWithMixedIntegration = (CalParams%ComputationMethod==MPM_MIXED_INTEGRATION) .or. &
+         (CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER) .or. &
+         (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION_SPECIFIER)
    end function IsMPMWithMixedIntegration
+
+   logical function IsMPMWithMixedIntegrationNoInterpolation()
+      IsMPMWithMixedIntegrationNoInterpolation = &
+         (CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)
+   end function IsMPMWithMixedIntegrationNoInterpolation
 
    logical function IsMPMWithMixedKeepStatevIntegration()
       IsMPMWithMixedKeepStatevIntegration = CalParams%ComputationMethod==MPM_MIXED_KEEPSTATEV_INTEGRATION
@@ -1083,19 +1093,21 @@ contains ! Routines of this module
                CalParams%ComputationMethod = MPM_MIXED_INTEGRATION
 
                ! the integration scheme following Martinelli and Galavi (2022)
-            else if (trim(Upcase(DumS))==MPM_MIXED_MG22_INTEGRATION_SPECIFIER) then
+            else if (trim(Upcase(DumS))==&
+               MPM_MIXED_MG22_INTEGRATION_SPECIFIER) then
                CalParams%ComputationMethod = MPM_MIXED_MG22_INTEGRATION
+
                ! the integration scheme following Martinelli and Galavi (2022)
                ! but we do not overwrite the stresses and the state variables
-            else if (trim(Upcase(DumS))== MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER) then
-               CalParams%ComputationMethod = MPM_MIXED_KEEPSTATEV_INTEGRATION
+            else if (trim(Upcase(DumS))==&
+               MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER) then
+               CalParams%ComputationMethod = MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER
+
 
             else if (trim(Upcase(DumS))==MPM_MP_INTEGRATION_SPECIFIER) then
                CalParams%ComputationMethod = MPM_MP_INTEGRATION
-
             else if (trim(Upcase(DumS))==FEM_SPECIFIER) then
                CalParams%ComputationMethod = FEM
-               
             else if (trim(Upcase(DumS))==UL_FEM_SPECIFIER) then
                CalParams%ComputationMethod = UL_FEM
             else
@@ -1750,6 +1762,12 @@ contains ! Routines of this module
             call Assert( DumI(1) == 0 .or. DumI(1) == 1, 'CPS file: ' //trim(BName)// ' must be 0 or 1.' )
             if ( DumI(1) == 1 ) CalParams%ApplyPorosityUpdate = .true.
 
+         else if (trim(BName)=='$$APPLY_DARCY_PERMEABILITY_UPDATE') then
+            read (FileUnit, *, iostat=ios) DumI(1)
+            call Assert( ios == 0, messageIOS//trim(BName) )
+            call Assert( DumI(1) == 0 .or. DumI(1) == 1, 'CPS file: ' //trim(BName)// ' must be 0 or 1.' )
+            if ( DumI(1) == 1 ) CalParams%ApplyDarcyPermeabilityUpdate = .true.
+
 
          else if (trim(BName)=='$$SUBMERGED_CALCULATION') then
             read (FileUnit, *, iostat=ios) DumI(1:2)
@@ -1950,19 +1968,10 @@ contains ! Routines of this module
             read(prev_unit, *) InputString
             if (trim(Upcase(InputString))==MPM_MIXED_INTEGRATION_SPECIFIER) then
                PreviousComputationalMethod = MPM_MIXED_INTEGRATION
-               ! Quad MPM Mixed integration without averaging the state variables
-            else if (trim(Upcase(InputString))==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER) then
-               PreviousComputationalMethod = MPM_MIXED_KEEPSTATEV_INTEGRATION
-               ! Quad MPM Mixed integration with averaging the state variables
-            else if (trim(Upcase(InputString))==MPM_MIXED_MG22_INTEGRATION_SPECIFIER) then
-               PreviousComputationalMethod = MPM_MIXED_MG22_INTEGRATION
-               ! Regular MPM-MP integration
             else if (trim(Upcase(InputString))==MPM_MP_INTEGRATION_SPECIFIER) then
                PreviousComputationalMethod = MPM_MP_INTEGRATION
-               ! FEM Specifier
             else if (trim(Upcase(InputString))==FEM_SPECIFIER) then
                PreviousComputationalMethod = FEM
-               ! Updated lagrangian specifier
             else if (trim(Upcase(InputString))==UL_FEM_SPECIFIER) then
                PreviousComputationalMethod = UL_FEM
             else
@@ -2743,12 +2752,6 @@ contains ! Routines of this module
       select case(CalParams%ComputationMethod)
        case(MPM_MIXED_INTEGRATION)
          call WriteString(FileUnit, '$$COMPUTATION_METHOD', MPM_MIXED_INTEGRATION_SPECIFIER, 1, .true.)
-       case(MPM_MIXED_MG22_INTEGRATION)
-        ! Case for Quad MPM-Mixed integration with averaging of the state variables
-         call WriteString(Fileunit, '$$COMPUTATION_METHOD', MPM_MIXED_MG22_INTEGRATION_SPECIFIER, 1, .True.)
-       case(MPM_MIXED_KEEPSTATEV_INTEGRATION)
-        ! Case for Quad MPM-Mixed integration with no averaging of the state variables
-         call WriteString(FileUnit, '$$COMPUTATION_METHOD', MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER, 1, .True.)
        case(MPM_MP_INTEGRATION)
          call WriteString(FileUnit, '$$COMPUTATION_METHOD', MPM_MP_INTEGRATION_SPECIFIER, 1, .true.)
        case(FEM)

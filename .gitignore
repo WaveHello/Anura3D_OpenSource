@@ -43,3 +43,6 @@ src/VS/.vs/Anura3D/v16
 *.lin
 *.OPD
 *.spd
+
+# Ignoring the fpm compile output
+fpm_compile_output.txt

@@ -7,87 +7,42 @@
  <INFO> CXX COMPILER OPTIONS: 
  <INFO> LINKER OPTIONS:  
  <INFO> INCLUDE DIRECTORIES:  []
-[  0%]            GlobalConstants.f90
- + ifort -c ././src/GlobalConstants.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_GlobalConstants.f90.o
-ifort: warning #10182: disabling optimization; runtime debug checks enabled
-././src/GlobalConstants.f90(452): warning #6178: The return value of this FUNCTION has not been defined.   [DUMMYISINSIDEELEMENTLOCPOSPOINTER]
-         logical function DummyIsInsideElementLocPosPointer(LocPos)
---------------------------^
-././src/GlobalConstants.f90(406): warning #6843: A dummy argument with an explicit INTENT(OUT) declaration is not given an explicit value.   [HS]
-         subroutine DummyShapeLocPosPointer(LocPos, HS, dHS)
-----------------------------------------------------^
-././src/GlobalConstants.f90(406): warning #6843: A dummy argument with an explicit INTENT(OUT) declaration is not given an explicit value.   [DHS]
-         subroutine DummyShapeLocPosPointer(LocPos, HS, dHS)
---------------------------------------------------------^
-././src/GlobalConstants.f90(434): warning #6843: A dummy argument with an explicit INTENT(OUT) declaration is not given an explicit value.   [CROSSEDSIDE]
-         subroutine DummyCheckForGlobPosPointer(GlobPos, ElementID, CentrePoint, NodeCoord, ICon, CrossedSide, IsInside)
---------------------------------------------------------------------------------------------------^
-././src/GlobalConstants.f90(434): warning #6843: A dummy argument with an explicit INTENT(OUT) declaration is not given an explicit value.   [ISINSIDE]
-         subroutine DummyCheckForGlobPosPointer(GlobPos, ElementID, CentrePoint, NodeCoord, ICon, CrossedSide, IsInside)
----------------------------------------------------------------------------------------------------------------^
-[  1%]            GlobalConstants.f90  done.
-[  1%]              BuildDElastic.f90
- + ifort -c ././src/BuildDElastic.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_BuildDElastic.f90.o
-ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[  3%]              BuildDElastic.f90  done.
-[  3%]                    GeoMath.f90
- + ifort -c ././src/GeoMath.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_GeoMath.f90.o
-ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[  4%]                    GeoMath.f90  done.
-[  4%]                      ISORT.f90
- + ifort -c ././src/ISORT.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_ISORT.f90.o
-ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[  6%]                      ISORT.f90  done.
-[  6%]                 MatrixMath.f90
- + ifort -c ././src/MatrixMath.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_MatrixMath.f90.o
-ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[  7%]                 MatrixMath.f90  done.
-[  7%]                     String.f90
- + ifort -c ././src/String.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_String.f90.o
-ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[  9%]                     String.f90  done.
-[  9%]                   Feedback.f90
- + ifort -c ././src/Feedback.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_Feedback.f90.o
-ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 10%]                   Feedback.f90  done.
-[ 10%]                     FileIO.f90
- + ifort -c ././src/FileIO.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_FileIO.f90.o
-ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 12%]                     FileIO.f90  done.
-[ 12%]                   Counters.f90
- + ifort -c ././src/Counters.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_Counters.f90.o
-ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 13%]                   Counters.f90  done.
-[ 13%]        ReadCalculationData.f90
+[  0%]        ReadCalculationData.f90
  + ifort -c ././src/ReadCalculationData.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_ReadCalculationData.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-././src/ReadCalculationData.f90(813): warning #5117: Bad # preprocessor line
+././src/ReadCalculationData.f90(814): warning #5117: Bad # preprocessor line
 #ifdef Debug
 -^
-././src/ReadCalculationData.f90(815): warning #5117: Bad # preprocessor line
+././src/ReadCalculationData.f90(816): warning #5117: Bad # preprocessor line
 #else
 -^
-././src/ReadCalculationData.f90(817): warning #5117: Bad # preprocessor line
+././src/ReadCalculationData.f90(818): warning #5117: Bad # preprocessor line
 #endif
 -^
-[ 15%]        ReadCalculationData.f90  done.
-[ 15%]              ElemCalcTETRA.f90
- + ifort -c ././src/ElemCalcTETRA.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_ElemCalcTETRA.f90.o
-ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 16%]              ElemCalcTETRA.f90  done.
-[ 16%]                     timing.f90
- + ifort -c ././src/timing.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_timing.f90.o
-ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 18%]                     timing.f90  done.
-[ 18%]              GetPrinStress.f90
- + ifort -c ././src/GetPrinStress.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_GetPrinStress.f90.o
-ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 20%]              GetPrinStress.f90  done.
-[ 20%]                ElemCalcTRI.f90
+././src/ReadCalculationData.f90(894): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+         (CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER) .or. & ! quad mixed no interpolation
+---------------------------------------^
+././src/ReadCalculationData.f90(895): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22']
+         (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION_SPECIFIER)  ! quad mixed with interpolation
+---------------------------------------^
+././src/ReadCalculationData.f90(916): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+         (CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER) .or. &
+---------------------------------------^
+././src/ReadCalculationData.f90(917): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22']
+         (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION_SPECIFIER)
+---------------------------------------^
+././src/ReadCalculationData.f90(922): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+         (CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)
+---------------------------------------^
+././src/ReadCalculationData.f90(1104): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+               CalParams%ComputationMethod = MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER
+---------------------------------------------^
+[  1%]        ReadCalculationData.f90  done.
+[  1%]                ElemCalcTRI.f90
  + ifort -c ././src/ElemCalcTRI.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_ElemCalcTRI.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 21%]                ElemCalcTRI.f90  done.
-[ 21%]           InitialiseKernel.f90
+[  3%]                ElemCalcTRI.f90  done.
+[  3%]           InitialiseKernel.f90
  + ifort -c ././src/InitialiseKernel.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_InitialiseKernel.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
 ././src/InitialiseKernel.f90(94): warning #5117: Bad # preprocessor line
@@ -99,136 +54,154 @@ ifort: warning #10182: disabling optimization; runtime debug checks enabled
 ././src/InitialiseKernel.f90(98): warning #5117: Bad # preprocessor line
 #endif
 -^
-[ 23%]           InitialiseKernel.f90  done.
-[ 23%]               ElemCalcQUAD.f90
+[  5%]           InitialiseKernel.f90  done.
+[  5%]               ElemCalcQUAD.f90
  + ifort -c ././src/ElemCalcQUAD.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_ElemCalcQUAD.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 24%]               ElemCalcQUAD.f90  done.
-[ 24%]           ReadMaterialData.f90
+[  7%]               ElemCalcQUAD.f90  done.
+[  7%]           ReadMaterialData.f90
  + ifort -c ././src/ReadMaterialData.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_ReadMaterialData.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 26%]           ReadMaterialData.f90  done.
-[ 26%]                   Particle.f90
+[  9%]           ReadMaterialData.f90  done.
+[  9%]                   Particle.f90
  + ifort -c ././src/Particle.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_Particle.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 27%]                   Particle.f90  done.
-[ 27%]                   ElemCalc.f90
+[ 11%]                   Particle.f90  done.
+[ 11%]                   ElemCalc.f90
  + ifort -c ././src/ElemCalc.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_ElemCalc.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 29%]                   ElemCalc.f90  done.
-[ 29%]                   MeshInfo.f90
+[ 13%]                   ElemCalc.f90  done.
+[ 13%]                   MeshInfo.f90
  + ifort -c ././src/MeshInfo.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_MeshInfo.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 30%]                   MeshInfo.f90  done.
-[ 30%]               BuildBJacDet.f90
+[ 15%]                   MeshInfo.f90  done.
+[ 15%]               BuildBJacDet.f90
  + ifort -c ././src/BuildBJacDet.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_BuildBJacDet.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 32%]               BuildBJacDet.f90  done.
-[ 32%]                      B_bar.f90
+[ 16%]               BuildBJacDet.f90  done.
+[ 16%]                      B_bar.f90
  + ifort -c ././src/B_bar.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_B_bar.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 33%]                      B_bar.f90  done.
-[ 33%]            ElemConnections.f90
+[ 18%]                      B_bar.f90  done.
+[ 18%]            ElemConnections.f90
  + ifort -c ././src/ElemConnections.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_ElemConnections.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 35%]            ElemConnections.f90  done.
-[ 35%]           ReadGeometryData.f90
+[ 20%]            ElemConnections.f90  done.
+[ 20%]           ReadGeometryData.f90
  + ifort -c ././src/ReadGeometryData.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_ReadGeometryData.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 36%]           ReadGeometryData.f90  done.
-[ 36%]      InitialiseElementType.f90
+[ 22%]           ReadGeometryData.f90  done.
+[ 22%]      InitialiseElementType.f90
  + ifort -c ././src/InitialiseElementType.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_InitialiseElementType.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 38%]      InitialiseElementType.f90  done.
-[ 38%]                    MPMData.f90
+[ 24%]      InitialiseElementType.f90  done.
+[ 24%]                    MPMData.f90
  + ifort -c ././src/MPMData.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_MPMData.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 40%]                    MPMData.f90  done.
-[ 40%]               RotBoundCond.f90
+[ 26%]                    MPMData.f90  done.
+[ 26%]               RotBoundCond.f90
  + ifort -c ././src/RotBoundCond.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_RotBoundCond.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 41%]               RotBoundCond.f90  done.
-[ 41%]                 contact_2D.f90
+[ 28%]               RotBoundCond.f90  done.
+[ 28%]                 contact_2D.f90
  + ifort -c ././src/contact_2D.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_contact_2D.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 43%]                 contact_2D.f90  done.
-[ 43%]                    Anura3D.f90
+[ 30%]                 contact_2D.f90  done.
+[ 30%]                    Anura3D.f90
  + ifort -c app/Anura3D.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/app_Anura3D.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 44%]                    Anura3D.f90  done.
-[ 44%]                  GetStrain.f90
+[ 32%]                    Anura3D.f90  done.
+[ 32%]                  GetStrain.f90
  + ifort -c ././src/GetStrain.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_GetStrain.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 46%]                  GetStrain.f90  done.
-[ 46%]               WriteMPMData.f90
+[ 33%]                  GetStrain.f90  done.
+[ 33%]               WriteMPMData.f90
  + ifort -c ././src/WriteMPMData.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_WriteMPMData.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 47%]               WriteMPMData.f90  done.
-[ 47%]                MPMStresses.f90
+[ 35%]               WriteMPMData.f90  done.
+[ 35%]                MPMStresses.f90
  + ifort -c ././src/MPMStresses.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_MPMStresses.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 49%]                MPMStresses.f90  done.
-[ 49%]              MPMDynContact.f90
+[ 37%]                MPMStresses.f90  done.
+[ 37%]              MPMDynContact.f90
  + ifort -c ././src/MPMDynContact.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_MPMDynContact.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 50%]              MPMDynContact.f90  done.
-[ 50%]              WriteVTKASCII.f90
+[ 39%]              MPMDynContact.f90  done.
+[ 39%]              WriteVTKASCII.f90
  + ifort -c ././src/WriteVTKASCII.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_WriteVTKASCII.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 52%]              WriteVTKASCII.f90  done.
-[ 52%]             WriteVTKBinary.f90
+[ 41%]              WriteVTKASCII.f90  done.
+[ 41%]             WriteVTKBinary.f90
  + ifort -c ././src/WriteVTKBinary.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_WriteVTKBinary.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 53%]             WriteVTKBinary.f90  done.
-[ 53%]             WriteVTKOutput.f90
+[ 43%]             WriteVTKBinary.f90  done.
+[ 43%]             WriteVTKOutput.f90
  + ifort -c ././src/WriteVTKOutput.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_WriteVTKOutput.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 55%]             WriteVTKOutput.f90  done.
-[ 55%]             MPMDYN3PhaseSP.f90
+[ 45%]             WriteVTKOutput.f90  done.
+[ 45%]             MPMDYN3PhaseSP.f90
  + ifort -c ././src/MPMDYN3PhaseSP.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_MPMDYN3PhaseSP.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 56%]             MPMDYN3PhaseSP.f90  done.
-[ 56%]        TwoLayerFormulation.f90
+././src/MPMDYN3PhaseSP.f90(985): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+--------------------------------------------------^
+././src/MPMDYN3PhaseSP.f90(1040): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+--------------------------------------------------^
+././src/MPMDYN3PhaseSP.f90(1131): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+--------------------------------------------------^
+././src/MPMDYN3PhaseSP.f90(1187): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+--------------------------------------------------^
+././src/MPMDYN3PhaseSP.f90(1411): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+--------------------------------------------------^
+././src/MPMDYN3PhaseSP.f90(1470): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+--------------------------------------------------^
+[ 47%]             MPMDYN3PhaseSP.f90  done.
+[ 47%]        TwoLayerFormulation.f90
  + ifort -c ././src/TwoLayerFormulation.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_TwoLayerFormulation.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 58%]        TwoLayerFormulation.f90  done.
-[ 58%]                  RigidBody.f90
+[ 49%]        TwoLayerFormulation.f90  done.
+[ 49%]                  RigidBody.f90
  + ifort -c ././src/RigidBody.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_RigidBody.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 60%]                  RigidBody.f90  done.
-[ 60%]      MPMDynViscousBoundary.f90
+[ 50%]                  RigidBody.f90  done.
+[ 50%]      MPMDynViscousBoundary.f90
  + ifort -c ././src/MPMDynViscousBoundary.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_MPMDynViscousBoundary.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 61%]      MPMDynViscousBoundary.f90  done.
-[ 61%]                     Liquid.f90
+[ 52%]      MPMDynViscousBoundary.f90  done.
+[ 52%]                     Liquid.f90
  + ifort -c ././src/Liquid.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_Liquid.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 63%]                     Liquid.f90  done.
-[ 63%]             MPMDYN2PhaseSP.f90
+[ 54%]                     Liquid.f90  done.
+[ 54%]             MPMDYN2PhaseSP.f90
  + ifort -c ././src/MPMDYN2PhaseSP.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_MPMDYN2PhaseSP.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 64%]             MPMDYN2PhaseSP.f90  done.
-[ 64%]         MPMStrainSmoothing.f90
+[ 56%]             MPMDYN2PhaseSP.f90  done.
+[ 56%]         MPMStrainSmoothing.f90
  + ifort -c ././src/MPMStrainSmoothing.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_MPMStrainSmoothing.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 66%]         MPMStrainSmoothing.f90  done.
-[ 66%]             WriteVTK2Layer.f90
+[ 58%]         MPMStrainSmoothing.f90  done.
+[ 58%]             WriteVTK2Layer.f90
  + ifort -c ././src/WriteVTK2Layer.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_WriteVTK2Layer.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 67%]             WriteVTK2Layer.f90  done.
-[ 67%]              WriteTestData.f90
+[ 60%]             WriteVTK2Layer.f90  done.
+[ 60%]              WriteTestData.f90
  + ifort -c ././src/WriteTestData.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_WriteTestData.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 69%]              WriteTestData.f90  done.
-[ 69%]             WriteNodalData.f90
+[ 62%]              WriteTestData.f90  done.
+[ 62%]             WriteNodalData.f90
  + ifort -c ././src/WriteNodalData.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_WriteNodalData.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 70%]             WriteNodalData.f90  done.
-[ 70%]                ReadMPMData.f90
+[ 64%]             WriteNodalData.f90  done.
+[ 64%]                ReadMPMData.f90
  + ifort -c ././src/ReadMPMData.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_ReadMPMData.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 72%]                ReadMPMData.f90  done.
-[ 72%]          MPMMeshAdjustment.f90
+[ 66%]                ReadMPMData.f90  done.
+[ 66%]          MPMMeshAdjustment.f90
  + ifort -c ././src/MPMMeshAdjustment.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_MPMMeshAdjustment.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
 ././src/MPMMeshAdjustment.f90(768): remark #7960: The floating overflow condition was detected while evaluating this operation; the result is an Infinity.   [1.E200]
@@ -237,8 +210,8 @@ ifort: warning #10182: disabling optimization; runtime debug checks enabled
 ././src/MPMMeshAdjustment.f90(769): remark #7960: The floating overflow condition was detected while evaluating this operation; the result is an Infinity.   [1.E200]
           BoxMaximum = -1.E200
 -----------------------^
-[ 73%]          MPMMeshAdjustment.f90  done.
-[ 73%]            WriteResultData.f90
+[ 67%]          MPMMeshAdjustment.f90  done.
+[ 67%]            WriteResultData.f90
  + ifort -c ././src/WriteResultData.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_WriteResultData.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
 ././src/WriteResultData.f90(61): warning #5117: Bad # preprocessor line
@@ -268,60 +241,99 @@ ifort: warning #10182: disabling optimization; runtime debug checks enabled
 ././src/WriteResultData.f90(406): warning #5117: Bad # preprocessor line
 #endif
 -^
-[ 75%]            WriteResultData.f90  done.
-[ 75%]               ErrorHandler.f90
+[ 69%]            WriteResultData.f90  done.
+[ 69%]               ErrorHandler.f90
  + ifort -c ././src/ErrorHandler.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_ErrorHandler.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 76%]               ErrorHandler.f90  done.
-[ 76%]               MPMConvPhase.f90
+[ 71%]               ErrorHandler.f90  done.
+[ 71%]               MPMConvPhase.f90
  + ifort -c ././src/MPMConvPhase.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_MPMConvPhase.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 78%]               MPMConvPhase.f90  done.
-[ 78%]           MPMEmptyElements.f90
+[ 73%]               MPMConvPhase.f90  done.
+[ 73%]           MPMEmptyElements.f90
  + ifort -c ././src/MPMEmptyElements.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_MPMEmptyElements.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 80%]           MPMEmptyElements.f90  done.
-[ 80%] AdjustParticleDiscretisation.f
+[ 75%]           MPMEmptyElements.f90  done.
+[ 75%] AdjustParticleDiscretisation.f
  + ifort -c ././src/AdjustParticleDiscretisation.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_AdjustParticleDiscretisation.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 81%] AdjustParticleDiscretisation.f  done.
-[ 81%]              MPMExcavation.f90
+[ 77%] AdjustParticleDiscretisation.f  done.
+[ 77%]              MPMExcavation.f90
  + ifort -c ././src/MPMExcavation.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_MPMExcavation.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 83%]              MPMExcavation.f90  done.
-[ 83%]                    MPMInit.f90
+[ 79%]              MPMExcavation.f90  done.
+[ 79%]                    MPMInit.f90
  + ifort -c ././src/MPMInit.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_MPMInit.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 84%]                    MPMInit.f90  done.
-[ 84%]                MPMDYNBTSig.f90
+[ 81%]                    MPMInit.f90  done.
+[ 81%]                MPMDYNBTSig.f90
  + ifort -c ././src/MPMDYNBTSig.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_MPMDYNBTSig.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 86%]                MPMDYNBTSig.f90  done.
-[ 86%]          ExternalSoilModel.f90
+././src/MPMDYNBTSig.f90(210): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+--------------------------------------------------^
+././src/MPMDYNBTSig.f90(291): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+--------------------------------------------------^
+././src/MPMDYNBTSig.f90(306): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+--------------------------------------------------^
+././src/MPMDYNBTSig.f90(322): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+--------------------------------------------------^
+././src/MPMDYNBTSig.f90(507): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+--------------------------------------------------^
+././src/MPMDYNBTSig.f90(566): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+--------------------------------------------------^
+././src/MPMDYNBTSig.f90(585): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+--------------------------------------------------^
+././src/MPMDYNBTSig.f90(836): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+--------------------------------------------------^
+././src/MPMDYNBTSig.f90(921): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+--------------------------------------------------^
+././src/MPMDYNBTSig.f90(936): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+--------------------------------------------------^
+././src/MPMDYNBTSig.f90(951): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+                     CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+--------------------------------------------------^
+[ 83%]                MPMDYNBTSig.f90  done.
+[ 83%]          ExternalSoilModel.f90
  + ifort -c ././src/ExternalSoilModel.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_ExternalSoilModel.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 87%]          ExternalSoilModel.f90  done.
-[ 87%]             MPMDYNStresses.f90
+[ 84%]          ExternalSoilModel.f90  done.
+[ 84%]             MPMDYNStresses.f90
  + ifort -c ././src/MPMDYNStresses.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_MPMDYNStresses.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 89%]             MPMDYNStresses.f90  done.
-[ 89%]            LagrangianPhase.f90
+[ 86%]             MPMDYNStresses.f90  done.
+[ 86%]            LagrangianPhase.f90
  + ifort -c ././src/LagrangianPhase.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_LagrangianPhase.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 90%]            LagrangianPhase.f90  done.
-[ 90%]            MPMDYNConvPhase.f90
+././src/LagrangianPhase.f90(805): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+               CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+--------------------------------------------^
+././src/LagrangianPhase.f90(817): warning #6043: This Hollerith or character constant is too long and cannot be used in the current numeric context.   ['MPM-MIXED_MG22-NO-INTERPOLATION']
+               CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
+--------------------------------------------^
+[ 88%]            LagrangianPhase.f90  done.
+[ 88%]            MPMDYNConvPhase.f90
  + ifort -c ././src/MPMDYNConvPhase.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_MPMDYNConvPhase.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 92%]            MPMDYNConvPhase.f90  done.
-[ 92%]                  BuildLoad.f90
+[ 90%]            MPMDYNConvPhase.f90  done.
+[ 90%]                  BuildLoad.f90
  + ifort -c ././src/BuildLoad.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_BuildLoad.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 93%]                  BuildLoad.f90  done.
-[ 93%]         MPMDynamicExplicit.f90
+[ 92%]                  BuildLoad.f90  done.
+[ 92%]         MPMDynamicExplicit.f90
  + ifort -c ././src/MPMDynamicExplicit.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_MPMDynamicExplicit.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
-[ 95%]         MPMDynamicExplicit.f90  done.
-[ 95%]                     Kernel.f90
+[ 94%]         MPMDynamicExplicit.f90  done.
+[ 94%]                     Kernel.f90
  + ifort -c ././src/Kernel.f90   -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406 -free -module build/ifort_5B511A7208F6928E -Ibuild/ifort_5B511A7208F6928E -o build/ifort_5B511A7208F6928E/Anura3D/src_Kernel.f90.o
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
 ././src/Kernel.f90(49): warning #5117: Bad # preprocessor line
@@ -338,9 +350,12 @@ ifort: warning #10182: disabling optimization; runtime debug checks enabled
 -^
 [ 96%]                     Kernel.f90  done.
 [ 96%]                   libAnura3D.a
+ + mkdir -p build/ifort_A6B746598E6C439F/Anura3D/
  + ar -rs build/ifort_A6B746598E6C439F/Anura3D/libAnura3D.a build/ifort_5B511A7208F6928E/Anura3D/src_InitialiseElementType.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_MPMExcavation.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_MPMDYNBTSig.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_GetStrain.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_ElemCalcTRI.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_AdjustParticleDiscretisation.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_MPMDYNStresses.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_ReadCalculationData.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_WriteMPMData.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_MPMMeshAdjustment.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_BuildDElastic.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_Liquid.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_ElemCalcTETRA.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_WriteVTKOutput.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_getversion.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_MeshInfo.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_GeoMath.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_ISORT.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_MatrixMath.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_MPMStresses.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_WriteTestData.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_BuildBJacDet.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_BuildLoad.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_MPMInit.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_InitialiseKernel.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_Particle.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_B_bar.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_timing.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_ExternalSoilModel.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_MPMData.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_String.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_MPMDynContact.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_WriteResultData.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_RotBoundCond.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_ErrorHandler.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_MPMConvPhase.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_ElemCalcQUAD.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_GetPrinStress.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_ElemConnections.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_WriteVTKASCII.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_MPMDYN3PhaseSP.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_WriteVTKBinary.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_Feedback.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_MPMDYN2PhaseSP.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_FileIO.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_contact_2D.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_MPMStrainSmoothing.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_MPMDynamicExplicit.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_GlobalConstants.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_TwoLayerFormulation.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_ElemCalc.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_RigidBody.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_LagrangianPhase.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_ReadMaterialData.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_WriteNodalData.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_MPMDynViscousBoundary.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_WriteVTK2Layer.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_Kernel.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_MPMEmptyElements.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_Counters.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_MPMDYNConvPhase.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_ReadMPMData.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_ReadGeometryData.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_SoilModels_A3DMohrCoulombStandard.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_SoilModels_A3DLinearElasticity.f90.o build/ifort_5B511A7208F6928E/Anura3D/src_SoilModels_A3DBingham.f90.o
+ar: creating build/ifort_A6B746598E6C439F/Anura3D/libAnura3D.a
 [ 98%]                   libAnura3D.a  done.
 [ 98%]                        Anura3D
+ + mkdir -p build/ifort_C25AEFF5B15C1A79/app/
  + ifort    -O2 -g -check all -traceback -diag-disable=10448 -diag-disable=406  build/ifort_5B511A7208F6928E/Anura3D/app_Anura3D.f90.o build/ifort_A6B746598E6C439F/Anura3D/libAnura3D.a -o build/ifort_C25AEFF5B15C1A79/app/Anura3D
 ifort: warning #10182: disabling optimization; runtime debug checks enabled
 [100%]                        Anura3D  done.

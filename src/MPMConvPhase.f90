@@ -1278,6 +1278,8 @@ contains ! Routines of this module
       FirstParticlePhiStSoft = 0.0
       FirstParticlePsiStSoft = 0.0
       FirstParticlePP = 0.0
+      
+      ParticlesVols = 0.0
 
       do IAElement = 1, Counters%NAEl
          IElement = ActiveElement(IAElement)
@@ -1317,49 +1319,50 @@ contains ! Routines of this module
 
                      ! sum up all the (statevar*integeration weight) for all the MPs in the subzone
                      StateVarAverage(I) = StateVarAverage(I) + (ParticleStateVar*ParticleVol)
-
-                  end do
-
-                  ! sum up all the particle volumes
-                  ParticlesVols = ParticlesVols + ParticleVol
-
-               end do
-
-
-
-               ! take the average of each state variable component
-               do J = 1, NSTATEVAR
-
-                  if (ParticlesVols>0) then
-                     StateVarAverage(I) = StateVarAverage(I) / ParticlesVols
-                  else
-                     StateVarAverage(I) = 0.0
-                  end if
-
-
-
-
-
-               end do
-
-
-
-
-
-               ! take the average of each state variable
-               !FirstParticleIndex = GetParticleIndexInSubElement(IElement, IGaussPoint, IPart) !GetParticleIndex(1, IElement)
-               !
-               !
-               !FirstParticleHPStateVariables = GetHPStateVariables(Particles(FirstParticleIndex))
-               !FirstParticleHPIGStateVariables = GetHPIGStateVariables(Particles(FirstParticleIndex))
-               !FirstParticleModifiedHPStateVariables = GetModifiedHPStateVariables(Particles(FirstParticleIndex))
-               !
-               !FirstParticleEpsP = GetEpsP(Particles(FirstParticleIndex))
-               !FirstParticleSigmaPrin = GetSigmaPrin(Particles(FirstParticleIndex))
-               !FirstParticleCohesionStSoft = Particles(FirstParticleIndex)%CohesionStSoft
-               !FirstParticlePhiStSoft = Particles(FirstParticleIndex)%PhiStSoft
-               !FirstParticlePsiStSoft = Particles(FirstParticleIndex)%PsiStSoft
-               !FirstParticlePP = Particles(FirstParticleIndex)%PP
+                     
+                 end do 
+                 
+                 
+                 ! sum up all the particle volumes 
+                 ParticlesVols = ParticlesVols + ParticleVol
+                 
+                 end do 
+                 
+                 
+                 
+                 ! take the average of each state variable component
+                 do I = 1, NSTATEVAR
+                     
+                     if (ParticlesVols>0) then 
+                         StateVarAverage(I) = StateVarAverage(I) / ParticlesVols
+                     else
+                         StateVarAverage(I) = 0.0
+                     end if 
+                     
+                     
+                     
+                     
+                     
+                 end do 
+                 
+                 
+                 
+                 
+                 
+                 ! take the average of each state variable 
+            !FirstParticleIndex = GetParticleIndexInSubElement(IElement, IGaussPoint, IPart) !GetParticleIndex(1, IElement)
+            !
+            !
+            !FirstParticleHPStateVariables = GetHPStateVariables(Particles(FirstParticleIndex))
+            !FirstParticleHPIGStateVariables = GetHPIGStateVariables(Particles(FirstParticleIndex))
+            !FirstParticleModifiedHPStateVariables = GetModifiedHPStateVariables(Particles(FirstParticleIndex))
+            !
+            !FirstParticleEpsP = GetEpsP(Particles(FirstParticleIndex))
+            !FirstParticleSigmaPrin = GetSigmaPrin(Particles(FirstParticleIndex))
+            !FirstParticleCohesionStSoft = Particles(FirstParticleIndex)%CohesionStSoft
+            !FirstParticlePhiStSoft = Particles(FirstParticleIndex)%PhiStSoft
+            !FirstParticlePsiStSoft = Particles(FirstParticleIndex)%PsiStSoft
+            !FirstParticlePP = Particles(FirstParticleIndex)%PP
 
                !ESM
                !FirstParticleESMstatev = ESMstatevArray(FirstParticleIndex,:)

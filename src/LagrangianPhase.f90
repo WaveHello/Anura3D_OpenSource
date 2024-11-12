@@ -806,8 +806,8 @@ contains ! Routines of this module
 
                IntGlo = GetParticleIndexInSubElement(IEl, Int, 1)
                call FormB3_GP(Int, IEl, ElementConnectivities, NodalCoordinatesUpd, B, Det, WTN) ! get B-matrix
-            end if
 
+            end if
 
             g = CalParams%GravityData%GAccel  !Gravity (m/s2)
 
@@ -815,18 +815,11 @@ contains ! Routines of this module
             if (ELEMENTTYPE == QUAD4 .and. &
                (CalParams%ComputationMethod==MPM_MIXED_MG22_INTEGRATION .or. &
                CalParams%ComputationMethod==MPM_MIXED_MG22_NOINTERPOLATION_INTEGRATION_SPECIFIER)) then
-
                ! if mixed scheme with the quad, we need to use the gauss point pore pressure
                !S = SigmaEffArrayGaussPointsWaterPressure(IEl, Int) * WTN ! scalar pwp from the gauss point
-
                Pg = SigmaEffArrayGaussPointsGasPressure(IEl, Int)
-
             else
-
-
                Pg = Particles(IntGlo)%GasPressure          !Gas Pressure (MPa)
-
-
             end if
 
             T = Particles(IntGlo)%Temperature           !Temperature (�C)

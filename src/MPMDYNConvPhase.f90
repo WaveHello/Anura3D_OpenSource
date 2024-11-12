@@ -393,10 +393,16 @@ contains ! Routines of this module
          call DynUpdateParticleWeights( )
       end if
 
-      !Update porosity (Directly depends on: DEpsVol)
+      ! Update porosity (Directly depends on: DEpsVol)
       if (CalParams%ApplyPorosityUpdate) then !Update porosity (Directly depends on: DEpsVol)
          call DynUpdateParticlePorosity( )
       end if
+      
+      ! Update permeability (depends on porosity)
+      if (CalParams%ApplyDarcyPermeabilityUpdate) then 
+          call DynUpdateParticleConductivity( )
+      end if 
+      
 
 !\\\\\\\ END UPDATE PARTICLE PROPERTIES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
@@ -488,17 +494,18 @@ contains ! Routines of this module
       ! Smoothing of particle stresses for fully filled elements
       if (IsMPMWithMixedIntegration() .and. .not.IsMPMSkipConvection()) then ! Not needed for pure MPM and FEM
          !call StressAndPorePressureSmoothening()
-         ! find the stress for 4 gauss points.
-         call StressAndPorePressureSmoothening_4GaussPoints()
+          ! find the stress for 4 gauss points. 
+         call StressAndPorePressureSmoothening_4GaussPoints() ! do this for both interpolation and no interpolation
 
          !call StateParametersSmoothening()
          !else
          ! Store initial stresses of next step
          !call SetInitialStressForNextLoadStep()
       end if
-
-
-      if (IsMPMWithMixedIntegration() .and. .not.IsMPMSkipConvection()) then ! Not needed for pure MPM and FEM
+      
+      
+      if (IsMPMWithMixedIntegration() .and. .not.IsMPMSkipConvection() &
+          .and. .not.IsMPMWithMixedIntegrationNoInterpolation()) then ! Not needed for pure MPM and FEM
          !call AssignStressesToParticles() ! Need to check for parallelization
 
          call AssignStressesToParticles_4GaussPoints() ! Need to check for parallelization
@@ -2157,6 +2164,49 @@ contains ! Routines of this module
       end do ! loop over particles
 
    end subroutine DynUpdateParticlePorosity
+   
+   
+   
+   
+   subroutine DynUpdateParticleConductivity( )
+      !**********************************************************************
+      !
+      !    Function:  Updates particle permeability based on Xie and Leo (2004) 
+      !               Large strain oedometer is the benchmark. 
+      !
+      !                - need to update porosity 
+      !
+      ! Implemented in the frame of the MPM project.
+      !
+      !**********************************************************************
+
+      implicit none
+
+      ! Local variables
+      integer(INTEGER_TYPE) :: I, IParticle, ParticleIndex
+      real(REAL_TYPE) :: DEpsVol
+      
+      real(REAL_TYPE) :: two
+      
+      ! defining
+      two = 2.0
+
+      do IParticle = 1, Counters%NParticles  ! Loop over particles
+         ParticleIndex = GetParticleIndexFromList(IParticle)
+         
+         Particles(ParticleIndex)%Conductivity = Particles(ParticleIndex)%InitialConductivity * &
+             ((1-Particles(ParticleIndex)%InitialPorosity)/(1-Particles(ParticleIndex)%Porosity))**two
+         
+         
+         if (Particles(ParticleIndex)%Conductivity<0.0) then
+            Particles(ParticleIndex)%Conductivity = 0.0
+         end if
+
+      end do ! loop over particles
+
+   end subroutine DynUpdateParticleConductivity
+   
+   
 
 
    subroutine DynUpdateParticleDegreeOfSaturation( )
@@ -2826,20 +2876,23 @@ contains ! Routines of this module
 
             end do! Loop over particles
 
-            ! Take the average of each stress component, the water pressure and the gas pressure
-            if (ParticlesVols>0) then ! avoid dividing by zero
-
-               do J = 1, NTENSOR
-                  StressAverage(J) = StressAverage(J) / ParticlesVols !solid
-               end do
-
-            else
-               StressAverage = 0.0
-            end if
-
-            WPAverage = WPAverage / ParticlesVols ! water
-            GPAverage = GPAverage / ParticlesVols ! gas
-            DPBVDAverage = DPBVDAverage / ParticlesVols ! bulk viscous pressure
+         ! Take the average of each stress component, the water pressure and the gas pressure
+             if (ParticlesVols>0) then ! avoid dividing by zero
+             
+             do J = 1, NTENSOR
+             StressAverage(J) = StressAverage(J) / ParticlesVols !solid
+         
+             end do
+             
+             WPAverage = WPAverage / ParticlesVols ! water
+             GPAverage = GPAverage / ParticlesVols ! gas
+             DPBVDAverage = DPBVDAverage / ParticlesVols ! bulk viscous pressure
+             
+             else 
+            StressAverage = 0.0
+             end if 
+         
+         
 
             ! we do not want to overwrite at this stage so I decided not include these here
             ! Assign the average stress, water pressure and gas pressure to particles
