@@ -1302,7 +1302,8 @@ contains ! Routines of this module
       FirstParticlePP = 0.0
       
       ParticlesVols = 0.0
-
+      StateVarAverage = 0.0
+     
       do IAElement = 1, Counters%NAEl
          IElement = ActiveElement(IAElement)
          if ( (.not.IsParticleIntegration(IElement) ) ) then ! Loop over all active fully filled elements
@@ -1336,7 +1337,7 @@ contains ! Routines of this module
                  end if
             
             
-            
+                 ! Initialise 
                  ! Sum up stress components, water pressure and gas pressure
                  do I = 1, NSTATEVAR
                  
@@ -1355,7 +1356,7 @@ contains ! Routines of this module
                  end do 
                  
                  
-                 
+    
                  ! take the average of each state variable component
                  do I = 1, NSTATEVAR
                      
@@ -1368,7 +1369,7 @@ contains ! Routines of this module
                      
                      
                      
-                     
+        
                  end do 
                  
                  

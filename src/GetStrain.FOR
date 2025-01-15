@@ -183,7 +183,9 @@ contains
 
             U(1) = Disp(NDofEx(NN)+1)
             U(2) = Disp(NDofEx(NN)+2)
-
+            
+            ! This equation follows the derivation in Bisht () instead of in Hughes FEM because Eps(3) is set to zero. 
+            ! The current implementation doesn't allow for Eps(3) to exist as a plane strain assumption is made
             Eps(1) = Eps(1) + 0.5 * ( B(1,J) + B_Bar(1, J) )* U(1) + 0.5 * ( B_Bar(2,J) - B(2,J) )* U(2)   ! Eps_XX = dUx/dX
             Eps(2) = Eps(2) + 0.5 * ( B_bar(1, J) - B(1,J) )* U(1) + 0.5 * ( B(2,J) + B_bar(2,J) )* U(2)   ! Eps_YY = dUy/dY
 
@@ -198,6 +200,7 @@ contains
 
        case(3)
          print *, "Not implemented"
+         error stop
          ! do J = 1, ELEMENTNODES
          !    NN = Icon(J, Iel)
          !    U(1) = Disp(NDofEx(NN)+1)

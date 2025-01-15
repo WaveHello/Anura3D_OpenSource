@@ -1,14 +1,14 @@
 module mod_SRMC
    use mod_SRMC_funcs, only: MatVec
    use mod_strain_invariants, only: Get_strain_invariants
-   use mod_stress_invariants, only : Get_invariants                             
+   use mod_stress_invariants, only : Get_invariants
    use mod_state_params     , only: Get_I_coeff, Get_M, Get_Dp, check4crossing, Update_GK, Check_Unloading
    use mod_yield_function   , only: YieldFunction
    use mod_voigt_functions, only: TwoNormTensor, TwoNormTensor_strain
    use mod_SRMC_Substepping, only: Euler_Algorithm, Newton_Raphson, Stress_Drift_Correction
 
    use mod_SRMC_Ortiz_Simo, only: Ortiz_Simo_Integration
-                             
+
    implicit none
 
 contains
@@ -62,7 +62,7 @@ contains
 
       !local variables
       integer:: counter, MAXITER, SubStepping_MaxIter
-      integer, parameter :: Substepping = 0, Ortiz_Simo = 1  
+      integer, parameter :: Substepping = 0, Ortiz_Simo = 1
       double precision:: p, q, theta, M, I_act, I_0, Gu, Ku, eta_yu, Du, dI, &
          G1, K1, eta_y1, Dp1, G2, K2, eta_y2, Dp2, &
          p_t, q_t, dI_t, dI_TT, I_TT, dD1, dD2
@@ -247,7 +247,7 @@ contains
                      G_s, epsq_p, I_coeff, I_act, I_0, alpha_K, alpha_G, alpha_D,&
                      Gu, Ku, eta_yu, Du, dEps, MAXITER, FTOL,&
                      F0, Sig_0, alpha)
-            
+
                else !Pure plasticity
                   alpha=0.0d0
                endif
@@ -265,10 +265,10 @@ contains
             DT=1.0d0 !pseudo-time increment
 
             I_TT=I_coeff
-            
-            
+
+
             do while (T<1.0d0) !main loop
-            
+
                Sig_t=Sig!Store initial stress tensor
                I_coeff=I_TT
                dEps_TT=DT*dEps_t!substepping
@@ -330,7 +330,7 @@ contains
                Sig_t=Sig_t+0.5*(dSig1+dSig2)!updated stress
                Dp1=Dp+0.5*(dD1+dD2) !Updated dilation
                eta_y1=M-Dp1
-           
+
                call TwoNormTensor((dSig1-dSig2), 6, dummyvar(1)) !||Delta Sigma||
                call TwoNormTensor(Sig_t, 6, dummyvar(2)) !||Sig_T+DT||
                R_TT=0.5*max(dummyvar(1)/dummyvar(2), abs(dD1-dD2)/abs(eta_y1)) !Relative residual error
@@ -407,21 +407,21 @@ contains
                end if
             end do
             I_coeff=I_act
-            
-       case(Ortiz_Simo) ! Switch is set to 1
-         ! Oritz Simo Integration here
-         call Ortiz_Simo_Integration(G_0, nu, M_tc, M, N, D_min, h, G, K, eta_y, Dp, &
-            I_0, I_coeff, dI, alpha_G, alpha_K, alpha_D, Sig_0, EpsP, dEps, &
-            FTOL, NOEL, max_stress_iters)
 
-         Sig = Sig_0 ! Update the stresses
+          case(Ortiz_Simo) ! Switch is set to 1
+            ! Oritz Simo Integration here
+            call Ortiz_Simo_Integration(G_0, nu, M_tc, M, N, D_min, h, G, K, eta_y, Dp, &
+               I_0, I_coeff, dI, alpha_G, alpha_K, alpha_D, Sig_0, EpsP, dEps, &
+               FTOL, NOEL, max_stress_iters)
 
-       case default
-         print *, "Invalid Integration Scheme input"
-         stop
-      end select
+            Sig = Sig_0 ! Update the stresses
 
-   endif
-end subroutine SRMC_HSR
+          case default
+            print *, "Invalid Integration Scheme input"
+            stop
+         end select
+
+      endif
+   end subroutine SRMC_HSR
 
 end module mod_SRMC

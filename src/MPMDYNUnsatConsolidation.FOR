@@ -549,7 +549,9 @@
         ! Implemented in the frame of the MPM project.
         !
         !**********************************************************************
-       
+          use ModGetStrain, only: Get_strain, Get_B_Bar_Strain
+          use ModB_bar, only: eval_local_elem_center, B_bar_matrix
+          
           implicit none
         
           real(REAL_TYPE), dimension(Counters%N,Counters%nEntity), intent(in) :: DUTotAll              
@@ -603,12 +605,28 @@
                   end do
                 end if
                 !====================================         
-     
-                ! Eps = (Exx, Eyy, Ezz, Gxy, Gyz, Gzx)
-                call Get_Strain(IElement, IParticle, &
-                                ElementConnectivities, & !GetStrain.FOR
-                                BMatrixDeformed, DUTotEnt, ReducedDof, &
-                                Eps)
+                if (CalParams%ApplyB_Bar) then
+                  !print *, "Hello"
+                  ! Evaluate the element B-bar matrix
+                  call B_bar_matrix(dHS_center, ELEMENTNODES, Counters%NEl,  &
+                                    Counters%NodTot, NDIM,                   &
+                                    IElement, ElementConnectivities,         &
+                                    NodalCoordinatesUpd,                     &
+                                    B_barMatrixDeformed)
+
+                  ! ! Evaluate the particle strain
+                  ! Eps in 3D (Exx, Eyy, Ezz, Gxy, Gyz, Gzx), in 2D (Exx, Eyy, Ezz, Gxy)
+                  call Get_B_Bar_Strain(IElement, IParticle,                  &
+                                        ElementConnectivities,                &
+                                        BMatrixDeformed, B_barMatrixDeformed, & 
+                                        DUTotEnt, ReducedDof, Eps)
+                else 
+                  ! Eps in 3D (Exx, Eyy, Ezz, Gxy, Gyz, Gzx), in 2D (Exx, Eyy, Ezz, Gxy)
+                  call Get_Strain(IElement, IParticle, &
+                                  ElementConnectivities, &
+                                  BMatrixDeformed, DUTotEnt, ReducedDof, &
+                                  Eps) ! Eps = strain increment at material point
+                end if 
                  
                     Particles(ParticleIndex)%GasVolumetricStrain = Eps(1) + Eps(2) + Eps(3) ! for 2D and 3D valid
                     
